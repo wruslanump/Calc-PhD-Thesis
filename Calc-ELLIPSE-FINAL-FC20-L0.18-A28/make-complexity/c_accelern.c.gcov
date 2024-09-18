@@ -1,0 +1,551 @@
+        -:    0:Source:/home/wruslan/workspaces-gnat/gnatstudio-c/gnat_c_cnc-04/src/curves/c_accelern.c
+        -:    1:// FILE: c_accelern.c
+        -:    2:
+        -:    3:#include <math.h>         // For pow()
+        -:    4:#include "c_accelern.h"
+        -:    5:
+        -:    6:double const PI_cacc = 3.141592653589793238;
+        -:    7:
+        -:    8:// ==================================================================
+        -:    9:// X-ACCELERN COMPONENT
+        -:   10:// ==================================================================
+  1558948:   11:double fxn_cacc_x(double u)
+        -:   12:  {
+        -:   13:
+        -:   14:  // ELLIPSE D2X
+  1558948:   15:  double scaleup = 11.0;
+  1558948:   16:  double k = (2.0 * PI_cacc);
+        -:   17:  // double  x    = sin(k*u);
+        -:   18:  // double dx_du = (+k)*cos(k*u);
+  1558948:   19:  double d2x_du2 = (-k)*(+k)*sin(k*u);
+  1558948:   20:  return (scaleup)*(d2x_du2);
+        -:   21:
+        -:   22:
+        -:   23:
+        -:   24:  /*
+        -:   25: // ===============================
+        -:   26: // RIBBON100L - D2X
+        -:   27:
+        -:   28:    // set xrange [-1.0:+6.0] GnuPlot
+        -:   29:    // set yrange [-1.0:+6.0] Gnuplot
+        -:   30:    // RANGE FOR t = [-2.00, +2.00] equivalent to u = [0.00, 1.00]
+        -:   31:    double t = 4.0*(u - 0.50); // TRANSORMATION EQUATION
+        -:   32:
+        -:   33:    double scaleup = 10.0;
+        -:   34:    // double x = (t*t);
+        -:   35:    // double dx_du = 2*(t);
+        -:   36:    double d2x_du2 = 2;
+        -:   37:    return (scaleup)*(d2x_du2);
+        -:   38:
+        -:   39: // ===============================
+        -:   40:*/
+        -:   41:/*
+        -:   42:  // TEARDROP D2X
+        -:   43:  double scaleup = 1.0;
+        -:   44:  return (scaleup)*( + 900.0 - 1800.0*pow(u, 1.0) );
+        -:   45:*/
+        -:   46:  // =======================================
+        -:   47:/*
+        -:   48:  // HYPOTROCOID D2X
+        -:   49:  double scaleup = 1.0;   // 1.0 IS GOOD (OTHERS BAD)
+        -:   50:  double k = (6.0*PI_cacc);                                     // RANGE
+        -:   51:  // double x = (  2*cos(k*u)      + 5*cos(2*k*u/3));                  // X
+        -:   52:  // double dx_du = ( -2*k*sin(k*u)    - 5*(2*k/3)*sin(2*k*u/3) );        // DX
+        -:   53:  double d2x_du2 = ( -2*k*k*cos(k*u)  - 5*(2*k/3)*(2*k/3)*cos(2*k*u/3) ); // D2X
+        -:   54:  return (scaleup)*(d2x_du2);
+        -:   55:*/
+        -:   56:  // ========================================
+        -:   57:/*
+        -:   58:  // EPICYCLOID D2X
+        -:   59:  double scaleup = 10.0;
+        -:   60:  double k = (2.0 * PI_cacc);
+        -:   61:  double small = 1.0e-10;
+        -:   62:  // double x =  (5*cos(k*u + small) - cos(5*k*u - small));     // X
+        -:   63:  // double dx = ( -5*k*sin(k*u + small) + (5*k)*sin(5*k*u - small));         // DX
+        -:   64:  double d2x =   ( -5*k*k*cos(k*u + small) + (5*k)*(5*k)*cos(5*k*u - small));  // D2X
+        -:   65:  return (scaleup)*(d2x);
+        -:   66:*/
+        -:   67:// =========================================
+        -:   68:/*
+        -:   69:  // ASTEPI D2X = ASTROID D2X + EPICYCLOID D2X
+        -:   70:  double scaleup = 10.0;
+        -:   71:  double k = (2.0 * PI_cacc);
+        -:   72:  double small = 1.0e-10;
+        -:   73:
+        -:   74:  double d2x_ast = -4.0*(3.0)*(2.0)*k*k*pow(sin(k*u), 1.0);
+        -:   75:  double d2x_epi = -5.0*k*k*cos(k*u + small) + (5.0*k)*(5.0*k)*cos(5*k*u - small);
+        -:   76:  double d2x = d2x_ast + d2x_epi;
+        -:   77:  return (scaleup)*(d2x);
+        -:   78:*/
+        -:   79:// ==========================================
+        -:   80:/*
+        -:   81:  double fxn_get_d2x_snailshell (double u);
+        -:   82:
+        -:   83:  // SNAHYP D2X = (10)*SNAILSHELL D2X + HYPOTROCOID D2X
+        -:   84:  double scaleup = 10.0;
+        -:   85:  double k = (4.0 * PI_cacc);
+        -:   86:  double small = 1.0e-10;
+        -:   87:  double d2x_sna = (10)*fxn_get_d2x_snailshell(u);  // FUNCTION CALL
+        -:   88:  double d2x_hyp = ( -2*k*k*cos(k*u)  - 5*(2*k/3)*(2*k/3)*cos(2*k*u/3) );
+        -:   89:  double d2x = d2x_sna + d2x_hyp;
+        -:   90:  return (scaleup)*(d2x);
+        -:   91:*/
+        -:   92:// ==========================================
+        -:   93:/*
+        -:   94:  // CIRCLE D2X
+        -:   95:  double scaleup = 79.0;
+        -:   96:  double k = (2.0 * PI_cacc);
+        -:   97:  // double  x    = sin(k*u);
+        -:   98:  // double dx_du = (+k)*cos(k*u);
+        -:   99:  double d2x_du2 = (-k)*(+k)*sin(k*u);
+        -:  100:  return (scaleup)*(d2x_du2);
+        -:  101:*/
+        -:  102:
+        -:  103:// ==========================================
+        -:  104:/*
+        -:  105:  // LINE-POLYU D2X
+        -:  106:  double scaleup = 1.0;
+        -:  107:  // double polyu_x =  ( 150.0*pow(u, 1.0) + 150.0*pow(u, 2.0) );
+        -:  108:  // double polyu_dx = ( 150.0 + 300.0*pow(u, 1.0) );
+        -:  109:  double polyu_d2x = 300.0;
+        -:  110:  return (scaleup)*(polyu_d2x);
+        -:  111:*/
+        -:  112:// ===========================================
+        -:  113:/*
+        -:  114:  // SKEWED ASTROID D2X
+        -:  115:  double scaleup = 10.0;
+        -:  116:  double k = (2.0*PI_cacc);
+        -:  117:  // double x =   +4.0*pow(sin(k*u), 3.0);
+        -:  118:  // double dx_du =  +4.0*(3.0)*k*pow(cos(k*u), 2.0);
+        -:  119:  double d2x_du2 = -4.0*(3.0)*(2.0)*k*k*pow(sin(k*u), 1.0);
+        -:  120:  return (scaleup)*(d2x_du2);
+        -:  121:*/
+        -:  122:// ============================================
+        -:  123:/*
+        -:  124:  // SNAILSHELL D2X
+        -:  125:  double scaleup = 100.0;
+        -:  126:  double k  = (3.0*PI_cacc);
+        -:  127:
+        -:  128:  //  dx_du = (AX/M) + (BX/M) + (CX/M)
+        -:  129:  double AXf = (2*k*k*u);
+        -:  130:  double AXg = sin(2*k*u);
+        -:  131:  double AX  = AXf*AXg;
+        -:  132:  double dAXf = (2*k*k);
+        -:  133:  double dAXg = 2*k*cos(2*k*u);
+        -:  134:  double dAX = (AXf*dAXg + AXg*dAXf);
+        -:  135:
+        -:  136:  double BXf = (-2*k*k*k*u*u);
+        -:  137:  double BXg = cos(2*k*u);
+        -:  138:  double BX  = BXf*BXg;
+        -:  139:  double dBXf = (-4*k*k*k*u);
+        -:  140:  double dBXg = -2*k*sin(2*k*u);
+        -:  141:  double dBX = (BXf*dBXg + BXg*dBXf);
+        -:  142:
+        -:  143:  double CX = (-8*k)*cos(2*k*u);
+        -:  144:  double dCX = (16*k*k)*sin(2*k*u);
+        -:  145:
+        -:  146:  double M = (k*k*k*k*u*u*u*u) + (8*k*u*k*u) + 16;
+        -:  147:  double dM = (4*k*k*k*k*u*u*u) + (16*k*k*u);
+        -:  148:
+        -:  149:  double d2AX = (AX*dM - M*dAX)/(M*M);
+        -:  150:  double d2BX = (BX*dM - M*dBX)/(M*M);
+        -:  151:  double d2CX = (CX*dM - M*dCX)/(M*M);
+        -:  152:
+        -:  153:  // SNAILSHELL RETURN
+        -:  154:  double d2x_du2 = d2AX + d2BX + d2CX;
+        -:  155:  return (scaleup)*(d2x_du2);
+        -:  156:*/
+        -:  157:// =================================================
+        -:  158:/*
+        -:  159:  // BUTTERFLY D2X
+        -:  160:  double scaleup = 10.0;
+        -:  161:  double k = (2.0 * PI_cacc);
+        -:  162:
+        -:  163:  // ==================
+        -:  164:  double AX  = -k*pow(sin(k*u),2)*exp(cos(k*u));
+        -:  165:  double AXf = -k*pow(sin(k*u), 2);
+        -:  166:  double AXg = exp(cos(k*u));
+        -:  167:  double dAXf_du = -2*k*sin(k*u)*k;
+        -:  168:  double dAXg_du = -sin(k*u)*k*exp(cos(k*u));
+        -:  169:
+        -:  170:  double dAX_du = AXf*dAXg_du + AXg*dAXf_du;
+        -:  171:
+        -:  172:  // =================
+        -:  173:  double BX  = +8*k*sin(k*u)*sin(4*k*u);
+        -:  174:  double BXf = +8*k*sin(k*u);
+        -:  175:  double BXg = sin(4*k*u);
+        -:  176:  double dBXf_du = +8*k*k*cos(k*u);
+        -:  177:  double dBXg_du = +4*k*sin(4*k*u);
+        -:  178:
+        -:  179:  double dBX_du = BXf*dBXg_du + BXg*dBXf_du;
+        -:  180:
+        -:  181:  // =================
+        -:  182:  double CX  = -5*(k/12)*sin(k*u)*cos(k*u/12)*pow(sin(k*u/12), 4);
+        -:  183:  double CXf  = -5*(k/12)*sin(k*u)*cos(k*u/12);
+        -:  184:  double CXff = -5*(k/12)*sin(k*u);
+        -:  185:  double CXfg = cos(k*u/12);
+        -:  186:  double dCXff_du = -5*(k/12)*k*cos(k*u);
+        -:  187:  double dCXfg_du = -(k / 12) * sin (k * u / 12);
+        -:  188:  double dCXf_du = CXff*dCXfg_du + CXfg*dCXff_du;
+        -:  189:
+        -:  190:  double CXg = pow(sin(k*u/12), 4);
+        -:  191:  double dCXg_du = (k/12)*cos(k*u/12)*4*pow(sin(k*u/12), 3);
+        -:  192:
+        -:  193:  double dCX_du = CXf*dCXg_du + CXg*dCXf_du;
+        -:  194:
+        -:  195:  // =================
+        -:  196:  double DX  = k*cos(k*u)*exp(cos(k*u));
+        -:  197:  double DXf = k*cos(k*u);
+        -:  198:  double DXg = exp(cos(k*u));
+        -:  199:  double dDXf_du = -k*k*sin(k*u);
+        -:  200:  double dDXg_du = -k*sin(k*u)*exp(cos(k*u));
+        -:  201:
+        -:  202:  double dDX_du = DXf*dDXg_du + DXg*dDXf_du;
+        -:  203:
+        -:  204:  // =================
+        -:  205:  double EX  = -2*k*cos(k*u)*cos(4*k*u);
+        -:  206:  double EXf = -2*k*cos(k*u);
+        -:  207:  double EXg = cos(4*k*u);
+        -:  208:  double dEXf_du = 2*k*k*sin(k*u);
+        -:  209:  double dEXg_du = -4*k*sin(4*k*u);
+        -:  210:
+        -:  211:  double dEX_du = EXf*dEXg_du + EXg*dEXf_du;
+        -:  212:
+        -:  213:  // =================
+        -:  214:  double FX  = -k*cos(k*u)*pow(sin(k*u/12), 5);
+        -:  215:  double FXf = -k*cos(k*u);
+        -:  216:  double FXg = pow(sin(k*u/12), 5);
+        -:  217:  double dFXf_du = +k*k*sin(k*u);
+        -:  218:  double dFXg_du = 5*pow(sin(k*u/12),4)*cos(k*u/12)*(k/12);
+        -:  219:
+        -:  220:  double dFX_du = FXf*dFXg_du + FXg*dFXf_du;
+        -:  221:
+        -:  222:  // RETURN FOR BUTTERFLY
+        -:  223:  // ====================
+        -:  224:  double d2x_du2 = dAX_du + dBX_du + dCX_du + dDX_du + dEX_du + dFX_du;
+        -:  225:  return (scaleup)*(d2x_du2);
+        -:  226:*/
+        -:  227:  // ======================================
+        -:  228:
+        -:  229:}
+        -:  230:
+        -:  231:// ==================================================================
+        -:  232:// Y-ACCELERN COMPONENT
+        -:  233:// ==================================================================
+  1558948:  234:double fxn_cacc_y(double u)
+        -:  235:  {
+        -:  236:
+        -:  237:
+        -:  238:  // ELLIPSE D2Y
+  1558948:  239:  double scaleup = 51.0;
+  1558948:  240:  double k = (2.0*PI_cacc);
+        -:  241:  // double y     = cos(k*u);
+        -:  242:  // double dy_du = (-k)*sin(k*u);
+  1558948:  243:  double d2y_du2  = (+k)*(-k)*cos(k*u);
+  1558948:  244:  return (scaleup)*(d2y_du2);
+        -:  245:
+        -:  246:
+        -:  247: // ===============================
+        -:  248: // RIBBON100L - D2Y
+        -:  249:/*
+        -:  250:  // set xrange [-1.0:+6.0] GnuPlot
+        -:  251:  // set yrange [-1.0:+6.0] Gnuplot
+        -:  252:  // RANGE FOR t = [-2.00, +2.00] equivalent to u = [0.00, 1.00]
+        -:  253:  double t = 4.0*(u - 0.50); // TRANSORMATION EQUATION
+        -:  254:
+        -:  255:  double scaleup = 10.0;
+        -:  256:  // double y = (t*t*t) - 3*(t) + 3;
+        -:  257:  // double dy_du = 3*(t*t) - 3;
+        -:  258:  double d2y_du2 = 6*(t);
+        -:  259:  return (scaleup)*(d2y_du2);
+        -:  260:
+        -:  261:*/
+        -:  262: // ===============================
+        -:  263:/*
+        -:  264:
+        -:  265:  // TEARDROP D2Y
+        -:  266:  double scaleup = 1.0;
+        -:  267:  return (scaleup)*(+ 300.0 );
+        -:  268:*/
+        -:  269:  // ===============================================
+        -:  270:/*
+        -:  271:  // HYPOTROCOID D2Y
+        -:  272:  double scaleup = 1.0; // 1.0 IS GOOD (OTHERS BAD)
+        -:  273:  double k = (6.0*PI_cacc);                                    // RANGE
+        -:  274:  // double y = (  2*sin(k*u)     - 5*sin(2*k*u/3));                   // Y
+        -:  275:  // double dy_du = (  2*k*cos(k*u)   - 5*(2*k/3)*cos(2*k*u/3) );          // DY
+        -:  276:  double d2y_du2 = ( -2*k*k*sin(k*u) + 5*(2*k/3)*(2*k/3)*sin(2*k*u/3) );     // D2Y
+        -:  277:  return (scaleup)*(d2y_du2);
+        -:  278:*/
+        -:  279:  // ==============================================
+        -:  280:/*
+        -:  281:  // EPICYCLOID D2Y
+        -:  282:  double scaleup = 10.0;
+        -:  283:  double k = (2.0*PI_cacc);                     // RANGE
+        -:  284:  double small = 1.0e-10;
+        -:  285:  // double y = (5*sin(k*u + small) - sin(5*k*u - small) );   // Y
+        -:  286:  // double dy = ( 5*k*cos(k*u + small) - (5*k)*cos(5*k*u - small) );    // DY
+        -:  287:  double d2y = ( -5*k*k*sin(k*u + small) + (5*k)*(5*k)*sin(5*k*u - small) );  // D2Y
+        -:  288:  return (scaleup)*(d2y);
+        -:  289:*/
+        -:  290:// ==============================================
+        -:  291:/*
+        -:  292:  // ASTEPI D2Y = ASTROID D2Y + EPICYCLOID D2Y
+        -:  293:  double scaleup = 10.0;
+        -:  294:  double k = (2.0 * PI_cacc);
+        -:  295:  double small = 1.0e-10;
+        -:  296:
+        -:  297:  double d2y_ast = -4.0*(3.0)*(2.0)*k*k*pow(cos(k*u), 1.0);
+        -:  298:  double d2y_epi = -5.0*k*k*sin(k*u + small) + (5*k)*(5*k)*sin(5*k*u - small);
+        -:  299:  double d2y = d2y_ast + d2y_epi;
+        -:  300:  return (scaleup)*(d2y);
+        -:  301:*/
+        -:  302:// ==============================================
+        -:  303:/*
+        -:  304:  double fxn_get_d2y_snailshell (double u);
+        -:  305:
+        -:  306:  // SNAHYP D2Y = (10) SNAILSHELL D2Y + HYPOTROCOID D2Y
+        -:  307:  double scaleup = 10.0;
+        -:  308:  double k = (4.0 * PI_cacc);
+        -:  309:  double small = 1.0e-10;
+        -:  310:  double d2y_sna = (10)*fxn_get_d2y_snailshell(u);  // FUNCTION CALL
+        -:  311:  double d2y_hyp = ( -2*k*k*sin(k*u) + 5*(2*k/3)*(2*k/3)*sin(2*k*u/3) );
+        -:  312:  double d2y = d2y_sna + d2y_hyp;
+        -:  313:  return (scaleup)*(d2y);
+        -:  314:*/
+        -:  315:// ==============================================
+        -:  316:/*
+        -:  317:  // CIRCLE D2Y
+        -:  318:  double scaleup = 79.0;
+        -:  319:  double k = (2.0*PI_cacc);
+        -:  320:  // double y     = cos(k*u);
+        -:  321:  // double dy_du = (-k)*sin(k*u);
+        -:  322:  double d2y_du2  = (+k)*(-k)*cos(k*u);
+        -:  323:  return (scaleup)*(d2y_du2);
+        -:  324:*/
+        -:  325:// ==============================================
+        -:  326:/*
+        -:  327:  // LINE-POLYU D2Y
+        -:  328:  double scaleup = 1.0;
+        -:  329:  // double polyu_y =  ( 150.0*pow(u, 1.0) + 150.0*pow(u, 2.0) );
+        -:  330:  // double polyu_dy = ( 150.0 + 300.0*pow(u, 1.0) );
+        -:  331:  double polyu_d2y = 300.0;
+        -:  332:  return (scaleup)*(polyu_d2y);
+        -:  333:*/
+        -:  334:// =============================================
+        -:  335:/*
+        -:  336:  // SKEWED ASTROID D2Y
+        -:  337:  double scaleup = 25.0;
+        -:  338:  double k = (2.0*PI_cacc);
+        -:  339:  // double y   = +4.0*pow(cos(k*u), 3.0);
+        -:  340:  // double dy_du  = -4.0*(3.0)*k*pow(sin(k*u), 2.0);
+        -:  341:  double d2y_du2 = -4.0*(3.0)*(2.0)*k*k*pow(cos(k*u), 1.0);
+        -:  342:  return (scaleup)*(d2y_du2);
+        -:  343:*/
+        -:  344:// ===============================================
+        -:  345:/*
+        -:  346:    // SNAILSHELL D2Y
+        -:  347:    double scaleup = 100.0;
+        -:  348:    double k = (3.0*PI_cacc);
+        -:  349:
+        -:  350:    // dy_du = (AY/M) + (BY/M) + (CY/M)
+        -:  351:    double AYf = (2*k*k*u);
+        -:  352:    double AYg = cos(2*k*u);
+        -:  353:    double AY  = AYf*AYg;
+        -:  354:
+        -:  355:    double dAYf = (2*k*k);
+        -:  356:    double dAYg = -2*k*sin(2*k*u);
+        -:  357:    double dAY = (AYf*dAYg + AYg*dAYf);
+        -:  358:
+        -:  359:    double BYf = (2*k*k*k*u*u);
+        -:  360:    double BYg = sin(2*k*u);
+        -:  361:    double BY  = BYf*BYg;
+        -:  362:
+        -:  363:    double dBYf = (4*k*k*k*u);
+        -:  364:    double dBYg = 2*k*cos(2*k*u);
+        -:  365:    double dBY = (BYf*dBYg + BYg*dBYf);
+        -:  366:
+        -:  367:    double CY = (8*k)*sin(2*k*u);
+        -:  368:    double dCY = (16*k*k)*cos(2*k*u);
+        -:  369:
+        -:  370:    double M = (k*k*k*k*u*u*u*u) + (8*k*u*k*u) + 16;
+        -:  371:    double dM = (4*k*k*k*k*u*u*u) + (16*k*k*u);
+        -:  372:
+        -:  373:    double d2AY = (AY*dM - M*dAY)/(M*M);
+        -:  374:    double d2BY = (BY*dM - M*dBY)/(M*M);
+        -:  375:    double d2CY = (CY*dM - M*dCY)/(M*M);
+        -:  376:
+        -:  377:    // SNAILSHELL RETURN
+        -:  378:    double d2y_du2 = d2AY + d2BY + d2CY;
+        -:  379:    return (scaleup)*(d2y_du2);
+        -:  380:
+        -:  381:*/
+        -:  382:// ==============================================
+        -:  383:/*
+        -:  384:  // BUTTERFLY D2Y
+        -:  385:  double scaleup = 10.0;
+        -:  386:  double k = (2.0 * PI_cacc);
+        -:  387:
+        -:  388:  // ==================
+        -:  389:  double AY  = -k*cos(k*u)*exp(cos(k*u));
+        -:  390:  double AYf = -k*cos(k*u);
+        -:  391:  double AYg = exp(cos(k*u));
+        -:  392:  double dAYf_du = k*k*sin(k*u);
+        -:  393:  double dAYg_du = -k*sin(k*u)*exp(cos(k*u));
+        -:  394:
+        -:  395:  double dAY_du = AYf*dAYg_du + AYg*dAYf_du;
+        -:  396:
+        -:  397:  // =================
+        -:  398:  double BY  = +8*k*cos(k*u)*sin(4*k*u);
+        -:  399:  double BYf = +8*k*cos(k*u);
+        -:  400:  double BYg = sin(4*k*u);
+        -:  401:  double dBYf_du = -8*k*k*sin(k*u);
+        -:  402:  double dBYg_du = +4*k*cos(4*k*u);
+        -:  403:
+        -:  404:  double dBY_du = BYf*dBYg_du + BYg*dBYf_du;
+        -:  405:
+        -:  406:  // =================
+        -:  407:  double CY   = -5*(k/12)*cos(k*u)*cos(k*u/12)*pow(sin(k*u/12), 4);
+        -:  408:  double CYf  = -5*(k/12)*cos(k*u)*cos(k*u/12);
+        -:  409:  double CYff = -5*(k/12)*cos(k*u);
+        -:  410:  double CYfg = cos(k*u/12);
+        -:  411:  double dCYff_du = +5*(k/12)*k*sin(k*u);
+        -:  412:  double dCYfg_du = -(k/12)*sin(k*u/12);
+        -:  413:  double dCYf_du = CYff*dCYfg_du + CYfg*dCYff_du;
+        -:  414:
+        -:  415:  double CYg = pow(sin(k*u/12), 4);
+        -:  416:  double dCYg_du = (k/12)*cos(k*u/12)*4*pow(sin(k*u/12), 3);
+        -:  417:
+        -:  418:  double dCY_du = CYf*dCYg_du + CYg*dCYf_du;
+        -:  419:
+        -:  420:  // =================
+        -:  421:  double DY  = -k*sin(k*u)*exp(cos(k*u));
+        -:  422:  double DYf = -k*sin(k*u);
+        -:  423:  double DYg = exp(cos(k*u));
+        -:  424:  double dDYf_du = -k*k*cos(k*u);
+        -:  425:  double dDYg_du = -k*sin(k*u)*exp(cos(k*u));
+        -:  426:
+        -:  427:  double dDY_du = DYf*dDYg_du + DYg*dDYf_du;
+        -:  428:
+        -:  429:  // =================
+        -:  430:  double EY  = +2*k*sin(k*u)*cos(4*k*u);
+        -:  431:  double EYf = +2*k*sin(k*u);
+        -:  432:  double EYg = cos(4*k*u);
+        -:  433:  double dEYf_du = +2*k*k*cos(k*u);
+        -:  434:  double dEYg_du = -4*k*sin(4*k*u);
+        -:  435:
+        -:  436:  double dEY_du = EYf*dEYg_du + EYg*dEYf_du;
+        -:  437:
+        -:  438:  // =================
+        -:  439:  double FY  = +k*sin(k*u)*pow(sin(k*u/12), 5);
+        -:  440:  double FYf = +k*sin(k*u);
+        -:  441:  double FYg = pow(sin(k*u/12), 5);
+        -:  442:  double dFYf_du = +k*k*cos(k*u);
+        -:  443:  double dFYg_du = 5*pow(sin(k*u/12),4)*cos(k*u/12)*(k/12);
+        -:  444:
+        -:  445:  double dFY_du = FYf*dFYg_du + FYg*dFYf_du;
+        -:  446:
+        -:  447:  // RETURN FOR BUTTERFLY
+        -:  448:  // ================
+        -:  449:  double d2y_du2 = dAY_du + dBY_du + dCY_du + dDY_du + dEY_du + dFY_du;
+        -:  450:  return (scaleup)*(d2y_du2);
+        -:  451:*/
+        -:  452:// =========================================
+        -:  453:
+        -:  454:}
+        -:  455:
+        -:  456:// ==================================================================
+        -:  457:// ACCELERN MAGNITUDE
+        -:  458:// ==================================================================
+   722988:  459:double fxn_cacc_r (double u)
+        -:  460:  {
+   722988:  461:  double temp_ax = fxn_cacc_x (u);
+   722988:  462:  double temp_ay = fxn_cacc_y (u);
+   722988:  463:  double temp_ar = sqrt(temp_ax*temp_ax + temp_ay*temp_ay);
+        -:  464:
+   722988:  465:  return ( fabs(temp_ar) );
+        -:  466:  }
+        -:  467:
+        -:  468:// =============================================
+    #####:  469:double fxn_get_d2x_snailshell (double u)
+        -:  470:{
+        -:  471:
+        -:  472:  // SNAILSHELL D2X
+    #####:  473:  double scaleup = 1.0;     // NO SCALEUP HERE
+    #####:  474:  double k  = (4.0*PI_cacc);
+        -:  475:
+        -:  476:  //  dx_du = (AX/M) + (BX/M) + (CX/M)
+    #####:  477:  double AXf = (2*k*k*u);
+    #####:  478:  double AXg = sin(2*k*u);
+    #####:  479:  double AX  = AXf*AXg;
+    #####:  480:  double dAXf = (2*k*k);
+    #####:  481:  double dAXg = 2*k*cos(2*k*u);
+    #####:  482:  double dAX = (AXf*dAXg + AXg*dAXf);
+        -:  483:
+    #####:  484:  double BXf = (-2*k*k*k*u*u);
+    #####:  485:  double BXg = cos(2*k*u);
+    #####:  486:  double BX  = BXf*BXg;
+    #####:  487:  double dBXf = (-4*k*k*k*u);
+    #####:  488:  double dBXg = -2*k*sin(2*k*u);
+    #####:  489:  double dBX = (BXf*dBXg + BXg*dBXf);
+        -:  490:
+    #####:  491:  double CX = (-8*k)*cos(2*k*u);
+    #####:  492:  double dCX = (16*k*k)*sin(2*k*u);
+        -:  493:
+    #####:  494:  double M = (k*k*k*k*u*u*u*u) + (8*k*u*k*u) + 16;
+    #####:  495:  double dM = (4*k*k*k*k*u*u*u) + (16*k*k*u);
+        -:  496:
+    #####:  497:  double d2AX = (AX*dM - M*dAX)/(M*M);
+    #####:  498:  double d2BX = (BX*dM - M*dBX)/(M*M);
+    #####:  499:  double d2CX = (CX*dM - M*dCX)/(M*M);
+        -:  500:
+        -:  501:  // SNAILSHELL RETURN
+    #####:  502:  double d2x_du2 = d2AX + d2BX + d2CX;
+    #####:  503:  return (scaleup)*(d2x_du2);
+        -:  504:
+        -:  505:}
+        -:  506:
+        -:  507:// =============================================
+    #####:  508:double fxn_get_d2y_snailshell(double u)
+        -:  509:{
+        -:  510:
+        -:  511:    // SNAILSHELL D2Y
+    #####:  512:    double scaleup = 1.0;  // NO SCALEUP
+    #####:  513:    double k = (4.0*PI_cacc);
+        -:  514:
+        -:  515:    // dy_du = (AY/M) + (BY/M) + (CY/M)
+    #####:  516:    double AYf = (2*k*k*u);
+    #####:  517:    double AYg = cos(2*k*u);
+    #####:  518:    double AY  = AYf*AYg;
+        -:  519:
+    #####:  520:    double dAYf = (2*k*k);
+    #####:  521:    double dAYg = -2*k*sin(2*k*u);
+    #####:  522:    double dAY = (AYf*dAYg + AYg*dAYf);
+        -:  523:
+    #####:  524:    double BYf = (2*k*k*k*u*u);
+    #####:  525:    double BYg = sin(2*k*u);
+    #####:  526:    double BY  = BYf*BYg;
+        -:  527:
+    #####:  528:    double dBYf = (4*k*k*k*u);
+    #####:  529:    double dBYg = 2*k*cos(2*k*u);
+    #####:  530:    double dBY = (BYf*dBYg + BYg*dBYf);
+        -:  531:
+    #####:  532:    double CY = (8*k)*sin(2*k*u);
+    #####:  533:    double dCY = (16*k*k)*cos(2*k*u);
+        -:  534:
+    #####:  535:    double M = (k*k*k*k*u*u*u*u) + (8*k*u*k*u) + 16;
+    #####:  536:    double dM = (4*k*k*k*k*u*u*u) + (16*k*k*u);
+        -:  537:
+    #####:  538:    double d2AY = (AY*dM - M*dAY)/(M*M);
+    #####:  539:    double d2BY = (BY*dM - M*dBY)/(M*M);
+    #####:  540:    double d2CY = (CY*dM - M*dCY)/(M*M);
+        -:  541:
+        -:  542:    // SNAILSHELL RETURN
+    #####:  543:    double d2y_du2 = d2AY + d2BY + d2CY;
+    #####:  544:    return (scaleup)*(d2y_du2);
+        -:  545:
+        -:  546:}
+        -:  547:
+        -:  548:// ==================================================================
+        -:  549:// ALHAMDULILLAH 3 TIMES
+        -:  550:// ==================================================================

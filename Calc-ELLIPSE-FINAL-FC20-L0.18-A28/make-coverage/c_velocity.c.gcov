@@ -1,0 +1,348 @@
+        -:    0:Source:/home/wruslan/workspaces-gnat/gnatstudio-c/gnat_c_cnc-04/src/curves/c_velocity.c
+        -:    1:// FILE: c_velocity.c
+        -:    2:
+        -:    3:#include <math.h>         // For pow()
+        -:    4:#include "c_velocity.h"
+        -:    5:
+        -:    6:double const PI_cvel = 3.141592653589793238;
+        -:    7:
+        -:    8:// ==============================================
+        -:    9:// X-VELOCITY COMPONENT
+        -:   10:// ==============================================
+  1061882:   11:double fxn_cvel_x(double u)
+        -:   12:  {
+        -:   13:
+        -:   14:
+        -:   15:  // ELLIPSE DX
+  1061882:   16:  double scaleup = 11.0;
+  1061882:   17:  double k = (2.0*PI_cvel);
+        -:   18:  // double x = sin(k*u);
+  1061882:   19:  double dx_du = k*cos(k*u);
+  1061882:   20:  return (scaleup)*(dx_du);
+        -:   21:
+        -:   22:
+        -:   23:
+        -:   24:
+        -:   25:    /*
+        -:   26:    // ===============================
+        -:   27:    // RIBBON100L - DX
+        -:   28:
+        -:   29:     // set xrange [-1.0:+6.0] GnuPlot
+        -:   30:     // set yrange [-1.0:+6.0] Gnuplot
+        -:   31:     // RANGE FOR t = [-2.00, +2.00] equivalent to u = [0.00, 1.00]
+        -:   32:     double t = 4.0*(u - 0.50); // TRANSORMATION EQUATION
+        -:   33:
+        -:   34:     double scaleup = 10.0;
+        -:   35:     // double x = (t*t);
+        -:   36:     double dx_du = 2*(t);
+        -:   37:     return (scaleup)*(dx_du);
+        -:   38:
+        -:   39:  */
+        -:   40: // ===============================
+        -:   41:/*
+        -:   42:
+        -:   43:  // TEARDROP DX
+        -:   44:  double scaleup = 1.0;
+        -:   45:  return (scaleup)*( -150.0 + 900.0*pow(u, 1.0) - 900.0*pow(u, 2.0) );
+        -:   46:*/
+        -:   47:  // ============================
+        -:   48:/*
+        -:   49:  // HYPOTROCOID DX
+        -:   50:  double scaleup = 1.0;  // 1.0 IS GOOD (OTHERS BAD)
+        -:   51:  double k = (6.0*PI_cvel);                            // RANGE
+        -:   52:  // double x = (2*cos(k*u) + 5*cos(2*k*u/3));                // X
+        -:   53:  double dx_du = ( -2*k*sin(k*u) - (5*2*k/3)*sin(2*k*u/3) );   // DX
+        -:   54:  return (scaleup)*(dx_du);
+        -:   55:*/
+        -:   56:  // =============================
+        -:   57:/*
+        -:   58:  // EPICYCLOID DX
+        -:   59:  double scaleup = 10.0;
+        -:   60:  double k = (2.0 * PI_cvel);
+        -:   61:  double small = 1.0e-10;
+        -:   62:  // double x =  (5*cos(k*u + small) - cos(5*k*u - small));     // X
+        -:   63:  double dx =  ( -5*k*sin(k*u + small) + (5*k)*sin(5*k*u - small));         // DX
+        -:   64:  return (scaleup)*(dx);
+        -:   65:*/
+        -:   66:// ==============================
+        -:   67:/*
+        -:   68:// ASTEPI DX = ASTROID DX + EPICYCLOID DX
+        -:   69:  double scaleup = 10.0;
+        -:   70:  double k = (2.0 * PI_cvel);
+        -:   71:  double small = 1.0e-10;
+        -:   72:
+        -:   73:  // double x_ast = +4.0* pow(sin (k*u), 3.0);
+        -:   74:  double dx_ast = +4.0*(3.0)*k*pow(cos (k*u), 2.0);
+        -:   75:  // double x_epi = +5.0*cos(k*u + small) - cos(5*k*u - small);
+        -:   76:  double dx_epi = -5.0*k*sin(k*u + small) + (5.0*k)*sin(5*k*u - small);
+        -:   77:  double dx = dx_ast + dx_epi;
+        -:   78:  return (scaleup)*(dx);
+        -:   79:*/
+        -:   80:// ================================
+        -:   81:/*
+        -:   82:  double fxn_get_dx_snailshell (double u);
+        -:   83:
+        -:   84:  // SNAHYP DX = SNAILSHELL DX + HYPOTROCOID DX
+        -:   85:  double scaleup = 10.0;
+        -:   86:  double k = (4.0 * PI_cvel);
+        -:   87:  double small = 1.0e-10;
+        -:   88:  double dx_sna = (10)*fxn_get_dx_snailshell(u);  // FUNCTION CALL ****
+        -:   89:  double dx_hyp = ( -2*k*sin(k*u) - (5*2*k/3)*sin(2*k*u/3) );
+        -:   90:  double dx = dx_sna + dx_hyp;
+        -:   91:  return (scaleup)*(dx);
+        -:   92:*/
+        -:   93:// =================================
+        -:   94:
+        -:   95:  /*
+        -:   96:  // CIRCLE DX
+        -:   97:  double scaleup = 79.0;
+        -:   98:  double k = (2.0*PI_cvel);
+        -:   99:  // double x = sin(k*u);
+        -:  100:  double dx_du = k*cos(k*u);
+        -:  101:  return (scaleup)*(dx_du);
+        -:  102:*/
+        -:  103:// =================================
+        -:  104:/*
+        -:  105:  // LINE-POLYU DX
+        -:  106:  double scaleup = 1.0;
+        -:  107:  // double polyu_x = ( 150.0*pow(u, 1.0) + 150.0*pow(u, 2.0) );
+        -:  108:  double polyu_dx = ( 150.0 + 300.0*pow(u, 1.0) );
+        -:  109:  return (scaleup)*(polyu_dx);
+        -:  110:*/
+        -:  111:// =================================
+        -:  112:/*
+        -:  113:  // SKEWED ASTROID DX
+        -:  114:  double scaleup = 10.0;
+        -:  115:  double k = (2.0*PI_cvel);
+        -:  116:  // double x =   +4.0*pow(sin(k*u), 3.0);
+        -:  117:     double dx_du =  +4.0*(3.0)*k*pow(cos(k*u), 2.0);
+        -:  118:  // double d2x_du2 = -4.0*(3.0)*(2.0)*k*k*pow(sin(k*u), 1.0);
+        -:  119:  return (scaleup)*(dx_du);
+        -:  120:*/
+        -:  121:// ==================================
+        -:  122:/*
+        -:  123:  // SNAILSHELL DX
+        -:  124:  double scaleup = 100.0;
+        -:  125:  double k       = (3.0*PI_cvel);
+        -:  126:
+        -:  127:  double fxtu = sin (2 * k * u); // DIFFERENT
+        -:  128:  double d_fxtdu = 2 * k * cos (2 * k * u);
+        -:  129:  double gxtu = (k * k * u * u + 4.0);
+        -:  130:  double d_gxtdu = 2 * k * k * u;
+        -:  131:  // SNAILSHELL RESULT QUOTIENT RULE
+        -:  132:  double dx_du = ((fxtu * d_gxtdu) - (gxtu * d_fxtdu)) / (gxtu * gxtu);
+        -:  133:  return (scaleup)*(dx_du);
+        -:  134:*/
+        -:  135:// ===================================
+        -:  136:/*
+        -:  137:  // BUTTERFLY DX
+        -:  138:  double scaleup = 10.0;
+        -:  139:  double k       = (2.0*PI_cvel);
+        -:  140:
+        -:  141:  double fxtu    = sin(k*u);   // DIFFERENT
+        -:  142:  double d_fxtdu = k*cos(k*u);
+        -:  143:  double gxtu    = exp(cos(k*u)) - 2*cos(4*k*u) - pow(sin(k*u/12), 5.0);
+        -:  144:  double d_gxtdu = - k*sin(k*u)*exp(cos(k*u)) + 8*k*sin(4*k*u) - 5*pow(sin(k*u/12), 4.0)*(k/12)*cos(k*u/12);
+        -:  145:  // BUTTERFLY RESULT PRODUCT RULE
+        -:  146:  double dx_du   = (fxtu * d_gxtdu) + (gxtu * d_fxtdu);
+        -:  147:  return (scaleup)*(dx_du);
+        -:  148:*/
+        -:  149:
+        -:  150:  }
+        -:  151:
+        -:  152:// ==============================================
+        -:  153:// Y-VELOCITY COMPONENT
+        -:  154:// ==============================================
+  1061882:  155:double fxn_cvel_y(double u)
+        -:  156:  {
+        -:  157:
+        -:  158:
+        -:  159:  // ELLIPSE DY
+  1061882:  160:  double scaleup = 51.0;
+  1061882:  161:  double k = (2.0*PI_cvel);
+        -:  162:  // double  y = cos(k*u);
+  1061882:  163:  double dy_du = -k*sin(k*u);
+  1061882:  164:  return (scaleup)*(dy_du);
+        -:  165:
+        -:  166:
+        -:  167:
+        -:  168:/*
+        -:  169:// ===============================
+        -:  170: // RIBBON100L - DY
+        -:  171:
+        -:  172:  // set xrange [-1.0:+6.0] GnuPlot
+        -:  173:  // set yrange [-1.0:+6.0] Gnuplot
+        -:  174:  // RANGE FOR t = [-2.00, +2.00] equivalent to u = [0.00, 1.00]
+        -:  175:  double t = 4.0*(u - 0.50); // TRANSORMATION EQUATION
+        -:  176:
+        -:  177:  double scaleup = 10.0;
+        -:  178:  // double y = (t*t*t) - 3*(t) + 3;
+        -:  179:  double dy_du = 3*(t*t) - 3;
+        -:  180:  return (scaleup)*(dy_du);
+        -:  181:
+        -:  182: // ===============================
+        -:  183:
+        -:  184:*/
+        -:  185:/*
+        -:  186:  // TEARDROP DY
+        -:  187:  double scaleup = 1.0;
+        -:  188:  return (scaleup)*( -150.0 + 300.0*pow(u, 1.0) );
+        -:  189:*/
+        -:  190:  // ===========================================
+        -:  191:/*
+        -:  192:  // HYPOTROCOID DY
+        -:  193:  double scaleup = 1.0;  // 1.0 IS GOOD (OTHERS BAD)
+        -:  194:  double k = (6.0*PI_cvel);                          // RANGE
+        -:  195:  double y = (2*sin(k*u) - 5*sin(2*k*u/3));           // Y
+        -:  196:  double dy_du = ( 2*k*cos(k*u) - (5*2*k/3)*cos(2*k*u/3) );  // DY
+        -:  197:  return (scaleup)*(dy_du);
+        -:  198:*/
+        -:  199:  // ============================================
+        -:  200:/*
+        -:  201:  // EPICYCLOID DY
+        -:  202:  double scaleup = 10.0;
+        -:  203:  double k = (2.0*PI_cvel);                      // RANGE
+        -:  204:  double small = 1.0e-10;
+        -:  205:  // double y = (5*sin(k*u + small) - sin(5*k*u - small) );   // Y
+        -:  206:  double dy =  ( 5*k*cos(k*u + small) - (5*k)*cos(5*k*u - small) );    // DY
+        -:  207:  return (scaleup)*(dy);
+        -:  208:*/
+        -:  209:  // ============================================
+        -:  210:/*
+        -:  211:  // ASTEPI DY = ASTROID DY + EPICYCLOID DY
+        -:  212:  double scaleup = 10.0;
+        -:  213:  double k = (2.0 * PI_cvel);
+        -:  214:  double small = 1.0e-10;
+        -:  215:
+        -:  216:  double dy_ast = -4.0*(3.0)*k*pow(sin(k*u), 2.0);
+        -:  217:  double dy_epi = 5*k*cos(k*u + small) - (5*k)*cos(5*k*u - small);
+        -:  218:  double dy = dy_ast + dy_epi;
+        -:  219:  return (scaleup)*(dy);
+        -:  220:*/
+        -:  221:// ============================================
+        -:  222:
+        -:  223:/*
+        -:  224:  double fxn_get_dy_snailshell (double u);
+        -:  225:
+        -:  226:  // SNAHYP DY = SNAILSHELL DY + HYPOTROCOID DY
+        -:  227:  double scaleup = 10.0;
+        -:  228:  double k = (4.0 * PI_cvel);
+        -:  229:  double small = 1.0e-10;
+        -:  230:  double dy_sna = (10)*fxn_get_dy_snailshell(u);  // FUNCTION  CALL
+        -:  231:  double dy_hyp = ( -2*k*sin(k*u) - (5*2*k/3)*sin(2*k*u/3) );
+        -:  232:  double dy = dy_sna + dy_hyp;
+        -:  233:  return (scaleup)*(dy);
+        -:  234:*/
+        -:  235:// ============================================
+        -:  236:/*
+        -:  237:  // CIRCLE DY
+        -:  238:  double scaleup = 79.0;
+        -:  239:  double k = (2.0*PI_cvel);
+        -:  240:  // double  y = cos(k*u);
+        -:  241:  double dy_du = -k*sin(k*u);
+        -:  242:  return (scaleup)*(dy_du);
+        -:  243:*/
+        -:  244:// ============================================
+        -:  245:/*
+        -:  246:  // LINE-POLYU DY
+        -:  247:  double scaleup = 1.0;
+        -:  248:  // double polyu_y =  ( 150.0*pow(u, 1.0) + 150.0*pow(u, 2.0) );
+        -:  249:  double polyu_dy = ( 150.0 + 300.0*pow(u, 1.0) );
+        -:  250:  return (scaleup)*(polyu_dy);
+        -:  251:*/
+        -:  252:// ============================================
+        -:  253:/*
+        -:  254:  // SKEWED ASTROID DY
+        -:  255:  double scaleup = 25.0;
+        -:  256:  double k = (2.0*PI_cvel);
+        -:  257:  // double y   = +4.0*pow(cos(k*u), 3.0);
+        -:  258:  double dy_du  = -4.0*(3.0)*k*pow(sin(k*u), 2.0);
+        -:  259:  // double d2y_du2 = -4.0*(3.0)*(2.0)*k*k*pow(cos(k*u), 1.0);
+        -:  260:  return (scaleup)*(dy_du);
+        -:  261:*/
+        -:  262:// =============================================
+        -:  263:/*
+        -:  264:  // SNAILSHELL DY
+        -:  265:  double scaleup = 100.0;
+        -:  266:  double k       = (3.0*PI_cvel);
+        -:  267:
+        -:  268:  double fytu    = cos(2*k*u);   // DIFFERENT
+        -:  269:  double d_fytdu = -2*k*sin(2*k*u);
+        -:  270:  double gytu    = (k*k*u*u + 4.0);
+        -:  271:  double d_gytdu = 2*k*k*u;
+        -:  272:
+        -:  273:  // SNAILSHELL RESULT QUOTIENT RULE
+        -:  274:  double dy_du   = ( (fytu * d_gytdu) - (gytu * d_fytdu) )/( gytu*gytu );
+        -:  275:  return (scaleup)*(dy_du);
+        -:  276:*/
+        -:  277:// ===================================================
+        -:  278:/*
+        -:  279:  // BUTTERFLY DY
+        -:  280:  double scaleup = 10.0;
+        -:  281:  double k       = (2.0*PI_cvel);
+        -:  282:
+        -:  283:  double fytu    = cos(k*u);  // DIFFERENT
+        -:  284:  double d_fytdu = -k*sin(k*u);
+        -:  285:  double gytu    = exp(cos(k*u)) - 2*cos(4*k*u) - pow(sin(k*u/12), 5.0);
+        -:  286:  double d_gytdu = - k*sin(k*u)*exp(cos(k*u)) + 8*k*sin(4*k*u) - 5*pow(sin(k*u/12), 4.0)*(k/12)*cos(k*u/12);
+        -:  287:
+        -:  288:  // BUTTERFLY RESULT PRODUCT RULE
+        -:  289:  double dy_du   = (fytu * d_gytdu) + (gytu * d_fytdu);
+        -:  290:  return (scaleup)*(dy_du);
+        -:  291:*/
+        -:  292:  // ===================================================
+        -:  293:
+        -:  294:}
+        -:  295:
+        -:  296:// ==============================================
+        -:  297:// VELOCITY MAGNITUDE
+        -:  298:// ==============================================
+   519640:  299:double fxn_cvel_r (double u)
+        -:  300:  {
+   519640:  301:  double temp_vx = fxn_cvel_x (u);
+   519640:  302:  double temp_vy = fxn_cvel_y (u);
+   519640:  303:  double temp_vr = sqrt(temp_vx*temp_vx + temp_vy*temp_vy);
+        -:  304:
+   519640:  305:  return ( fabs(temp_vr) );
+        -:  306:  }
+        -:  307:// ===================================================
+        -:  308:
+        -:  309:
+        -:  310:// ==============================================
+    #####:  311:double fxn_get_dx_snailshell (double u)
+        -:  312:{
+        -:  313:
+    #####:  314:  double scaleup = 1.0;     // NO SCALEUP HERE (UNITY)
+    #####:  315:  double k = (4.0*PI_cvel); // CONSTANT ONLY
+        -:  316:
+    #####:  317:  double fxtu = sin (2*k*u); // DIFFERENT
+    #####:  318:  double d_fxtdu = 2 * k * cos (2 * k * u);
+    #####:  319:  double gxtu = (k * k * u * u + 4.0);
+    #####:  320:  double d_gxtdu = 2 * k * k * u;
+        -:  321:  // SNAILSHELL RESULT QUOTIENT RULE
+    #####:  322:  double dx_du = ((fxtu * d_gxtdu) - (gxtu * d_fxtdu)) / (gxtu * gxtu);
+    #####:  323:  return (scaleup)*(dx_du);
+        -:  324:
+        -:  325:}
+        -:  326:
+        -:  327:// =============================================
+    #####:  328:double fxn_get_dy_snailshell(double u)
+        -:  329:{
+        -:  330:
+    #####:  331:  double scaleup = 1.0;
+    #####:  332:  double k       = (4.0*PI_cvel);
+        -:  333:
+    #####:  334:  double fytu    = cos(2*k*u);   // DIFFERENT
+    #####:  335:  double d_fytdu = -2*k*sin(2*k*u);
+    #####:  336:  double gytu    = (k*k*u*u + 4.0);
+    #####:  337:  double d_gytdu = 2*k*k*u;
+        -:  338:  // SNAILSHELL RESULT QUOTIENT RULE
+    #####:  339:  double dy_du   = ( (fytu * d_gytdu) - (gytu * d_fytdu) )/( gytu*gytu );
+    #####:  340:  return (scaleup)*(dy_du);
+        -:  341:
+        -:  342:}
+        -:  343:
+        -:  344:// =========================================================
+        -:  345:// ALHAMDULILLAH 3 TIMES
+        -:  346:// =========================================================
+        -:  347:

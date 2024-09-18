@@ -1,0 +1,186 @@
+        -:    0:Source:/home/wruslan/workspaces-gnat/gnatstudio-c/gnat_c_cnc-04/src/curves/c_pos_epsilon.h
+        -:    1:
+        -:    2:// FILE: c_pos_epsilon.h
+        -:    3:
+        -:    4:#include <math.h> // for pow()
+        -:    5:
+        -:    6:// GLOBAL ARRAYS FOR SUBDIVISIONS BETWEEN u AND u_next
+        -:    7:// ==================================================================
+        -:    8:const int array_size1 = 21;
+        -:    9:double arc_u_points[21]; // AVOID WARNINGS INSTEAD OF arc_u_points[];
+        -:   10:double arc_x_points[21];
+        -:   11:double arc_y_points[21]; 
+        -:   12:double perpend_y_intercept[21];
+        -:   13:double chord_x_commpoints[21];
+        -:   14:double chord_y_commpoints[21]; 
+        -:   15:double x_error[21];        
+        -:   16:double y_error[21];        
+        -:   17:double chord_error[21];   
+        -:   18:
+        -:   19:double fxn_max_element_array(double thearray[], int array_size);
+        -:   20:double fxn_min_element_array(double thearray[], int array_size);
+        -:   21:void proc_initialize_zero_all_arc_arrays(int arr_size);
+        -:   22:void proc_populate_arc_array_points(double u, double u_next, double  arc_u_points[], double arc_x_points[],  double arc_y_points[]) ;
+        -:   23:
+        -:   24:double fxn_c_epsilon_for_arc_u_to_u_next(double u, double u_next, double  arc_u_points[], double arc_x_points[],  double arc_y_points[]);
+        -:   25:
+        -:   26:// ==================================================================
+  3120354:   27:double fxn_max_element_array(double thearray[], int array_size) {
+        -:   28:// ==================================================================2021-12-15-WOM-function
+        -:   29:    	int i;
+        -:   30:    	double the_max;
+  3120354:   31:    	the_max = thearray[0];
+ 65527434:   32:    	for (i = 1; i < array_size; i++) {
+ 62407080:   33:            if (thearray[i] > the_max) { 
+ 31203500:   34:               the_max = thearray[i];;
+        -:   35:            }    		   
+        -:   36:    	}
+        -:   37:    	
+  3120354:   38:return (the_max);
+        -:   39:}
+        -:   40:
+        -:   41:// ==================================================================
+    #####:   42:double fxn_min_element_array(double thearray[], int array_size) {  
+        -:   43:// ==================================================================
+        -:   44:    	int i;
+        -:   45:    	double the_min;
+    #####:   46:    	the_min = thearray[0];
+    #####:   47:    	for (i = 1; i < array_size; i++) {
+    #####:   48:            if (thearray[i] < the_min) { 
+    #####:   49:               the_min = thearray[i];;
+        -:   50:            }    		   
+        -:   51:    	}
+        -:   52:    	
+    #####:   53:return (the_min);
+        -:   54:}  
+        -:   55:
+        -:   56:// ==================================================================
+  3120354:   57:void proc_initialize_zero_all_arc_arrays(int arr_size) {
+        -:   58:// ==================================================================
+        -:   59:	int j;
+ 68647788:   60:	for (j = 0; j <= arr_size-1; j++ ) {
+        -:   61:		
+        -:   62:		// GLOBAL ARRAYS
+ 65527434:   63:		arc_u_points[j] = 0.0;
+ 65527434:   64:		arc_x_points[j] = 0.0;
+ 65527434:   65:		arc_y_points[j] = 0.0;
+ 65527434:   66:        perpend_y_intercept[j] = 0.0;
+ 65527434:   67:		chord_x_commpoints[j]  = 0.0;
+ 65527434:   68:		chord_y_commpoints[j]  = 0.0; 
+ 65527434:   69:		x_error[j]    = 0.0;        
+ 65527434:   70:		y_error[j]    = 0.0;        
+ 65527434:   71:		chord_error[j] = 0.0;     		
+        -:   72:	}
+        -:   73:
+  3120354:   74:} 
+        -:   75:
+        -:   76:// =================================================================
+ 68647788:   77:double fxn_x(double u) {
+ 68647788:   78:	return ( -150*pow(u, 1.0) + 450*pow(u, 2.0) - 300*pow(u, 3.0) ); 
+        -:   79:} 
+        -:   80:// =================================================================
+ 68647788:   81:double fxn_y(double u) {
+ 68647788:   82:	return ( -150*pow(u, 1.0) + 150*pow(u, 2.0) ); 
+        -:   83:} 
+        -:   84:
+        -:   85:// ==================================================================
+  3120354:   86:void proc_populate_arc_array_points(double u, double u_next, double  arc_u_points[], double arc_x_points[],  double arc_y_points[]) {
+        -:   87:// ==================================================================
+        -:   88:
+        -:   89:    // IMPORTANT TO SET ZEROS
+  3120354:   90:	proc_initialize_zero_all_arc_arrays(array_size1);
+        -:   91:	
+        -:   92:	// ENFORCE START-POINT OF CURVE-ARC INDEX [0]
+  3120354:   93:	arc_u_points[0] = u;
+  3120354:   94:	arc_x_points[0] = fxn_x(u);
+  3120354:   95:	arc_y_points[0] = fxn_y(u);
+        -:   96:	
+        -:   97:	// Number of sub-divisions on curve-arc between [u:u_incr]
+  3120354:   98:	int u_subdivisions = (array_size1 - 1);	
+        -:   99:		
+        -:  100:	// X-Y points for each subdivisions	built from start of curve-arc
+        -:  101:	// Start index from [1] not [0]
+        -:  102:	int j;
+ 65527434:  103:    for (j = 1; j <= array_size1-1; j++) {
+ 62407080:  104:	     arc_u_points[j] = arc_u_points[0] + j*(u_next/u_subdivisions);
+ 62407080:  105:	     arc_x_points[j] = fxn_x(arc_u_points[j]);
+ 62407080:  106:	     arc_y_points[j] = fxn_y(arc_u_points[j]);	     
+        -:  107:	  }
+        -:  108:	
+        -:  109:    // ENFORCE END-POINT OF CURVE-ARC AT INDEX [array_size-1]
+  3120354:  110:    arc_u_points[array_size1-1] = (u + u_next);
+  3120354:  111:	  arc_x_points[array_size1-1] = fxn_x(u + u_next);
+  3120354:  112:	  arc_y_points[array_size1-1] = fxn_y(u + u_next);
+        -:  113:	
+        -:  114:	// PRINT FOR CHECKING
+        -:  115:	// for (j = 0; j < array_size1; j++) {
+        -:  116:    //     printf("ARC ARRAYS  j, arc_u_points[j], arc_x_points[j], arc_y_points[j] [ %d]  %15.11lf  %15.11lf %15.11lf \n", j, arc_u_points[j], arc_x_points[j], arc_y_points[j]);
+        -:  117:	// }
+        -:  118:
+  3120354:  119:}
+        -:  120:
+        -:  121:// ==================================================================
+  3120354:  122:double fxn_c_epsilon_for_arc_u_to_u_next(double u, double u_next, double  arc_u_points[], double arc_x_points[],  double arc_y_points[]) {
+        -:  123:// ==================================================================
+        -:  124:  int j, k;
+  3120354:  125:	double the_epsilon = 0.0; // Initialize
+        -:  126:	//printf("CHECK CHORD ENDPOINTS u, u_incr %15.11lf %15.11lf \n", u, u_next);
+        -:  127:
+        -:  128:  // FILL UP THE ARC ARRAYS BETWEEN u AND u_next
+  3120354:  129:  proc_populate_arc_array_points(u, u_next, arc_u_points, arc_x_points,  arc_y_points); 
+        -:  130:    
+        -:  131:  // FOR TESTING ONLY
+        -:  132:  // proc_populate_arc_array_points(0.160, 0.000100, arc_u_points, arc_x_points,  arc_y_points); 
+        -:  133:
+        -:  134:  // SLOPE FOR THE CHORD (STRAIGHT LINE) BETWEEN u AND u_next
+  3120354:  135:	double deta_y = arc_y_points[array_size1-1] - arc_y_points[0];   // CORRECT
+  3120354:  136:	double deta_x = arc_x_points[array_size1-1] - arc_x_points[0];   // CORRECT
+  3120354:  137:	double chord_slope = deta_y/deta_x;
+        -:  138:
+        -:  139:	// USING CHORD LINE Y-INTERCEPT FOR LINE (x1,y1) TO (x2, y2)
+        -:  140:	// y_intercept1 = y1 - slope * x1;
+        -:  141:	// y_intercept2 = y2 - slope * x2;
+        -:  142:
+        -:  143:	// CALCULATE CHORD LINE Y-INTERCEPT 
+  3120354:  144:	double chord_y_intercept = arc_y_points[array_size1-1] - (chord_slope)*arc_x_points[array_size1-1];
+        -:  145:
+        -:  146:	// CALCULATE PERPENDICULAR LINE SLOPE TO THE CHORD 
+  3120354:  147:	double perpend_slope = (-1.0/chord_slope);  
+        -:  148:
+        -:  149:	// CALCULATE THE CROSSING POINT (x_comm, y_comm) OF PERPENDICULAR LINE TO THE CHORD LINE
+        -:  150:	// SATISFYING THE PERPENDICULAR LINE EQUATION FOR THE CURVE POINT (x, y)
+        -:  151:	// END POINTS OF CHORD ARE [0] AND [10] SO CALCULATE (1 .. 9) ONLY
+ 68647788:  152:	for (j = 0; j < array_size1; j++) {   
+        -:  153:		
+ 65527434:  154:		perpend_y_intercept[j] = arc_y_points[j] - (perpend_slope)*(arc_x_points[j]); 
+ 65527434:  155:		chord_x_commpoints[j] = (perpend_y_intercept[j] - chord_y_intercept)/(chord_slope - perpend_slope);
+ 65527434:  156:		chord_y_commpoints[j] = (chord_slope)*(chord_x_commpoints[j]) + chord_y_intercept;
+        -:  157:	  
+        -:  158:		// FOR CHECKING	
+        -:  159:		// printf("[%d]   %15.11lf %15.11lf %15.11lf \n", j, perpend_y_intercept[j], chord_x_commpoints[j], chord_y_commpoints[j]);
+        -:  160:	} 
+        -:  161:
+ 62407080:  162:	for (k = 1; k < array_size1-1; k++) {   
+        -:  163:
+ 59286726:  164:		x_error[k] = (arc_x_points[k] - chord_x_commpoints[k]);
+ 59286726:  165:		y_error[k] = (arc_y_points[k] - chord_y_commpoints[k]);
+ 59286726:  166:		chord_error[k] = fabs(sqrt(x_error[k]*x_error[k] + y_error[k]*y_error[k]));
+        -:  167:		
+        -:  168:// FOR CHECKING
+        -:  169:// printf("%15.6lf [%d] %15.12lf %15.12lf %15.12lf  %15.12lf %15.12lf %15.12lf %15.12lf \n", u+k*(u_next/20.0), k, arc_x_points[k], arc_y_points[k], chord_x_commpoints[k], chord_y_commpoints[k], x_error[k], y_error[k], chord_error[k]);
+        -:  170:		
+        -:  171:    } 
+        -:  172:
+        -:  173:    // ENFORCE CURVE-ARC AND CHORD-LINE CROSSING POINTS
+  3120354:  174:    x_error[0]  = 0.0;  y_error[0]  = 0.0;  chord_error[0]  = 0.0;
+  3120354:  175:    x_error[array_size1-1] = 0.0;  y_error[array_size1-1] = 0.0;  chord_error[array_size1-1] = 0.0;
+        -:  176:
+  3120354:  177:	  the_epsilon = fxn_max_element_array(chord_error, array_size1); 
+        -:  178:
+  3120354:  179:return (the_epsilon);
+        -:  180:}
+        -:  181:
+        -:  182:// ==================================================================
+        -:  183:// ALHAMDULILLAH 3 TIMES WRY
+        -:  184:// ==================================================================
+        -:  185:

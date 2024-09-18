@@ -1,0 +1,71 @@
+        -:    0:Source:/home/wruslan/workspaces-gnat/gnatstudio-c/gnat_c_cnc-04/src/common/c_min_max_int_dbl_in_array.c
+        -:    1:// FILE: c_min_max_int_dbl_in_array.c
+        -:    2:
+        -:    3:#include <stdio.h>
+        -:    4:#include <math.h>
+        -:    5:
+        -:    6:#include "c_min_max_int_dbl_in_array.h"
+        -:    7:
+        -:    8:// ==================================================================
+    67780:    9:double fxn_get_max_element_arraydoubles(double thearray[], int array_size) {
+        -:   10:// ==================================================================
+        -:   11:        int i;
+        -:   12:        double the_max;
+    67780:   13:        the_max = thearray[0];
+   135560:   14:        for (i = 1; i < array_size; i++) {
+    67780:   15:            if (thearray[i] > the_max) {
+    54862:   16:               the_max = thearray[i];;
+        -:   17:            }
+        -:   18:        }
+        -:   19:
+    67780:   20:return (the_max);
+        -:   21:}
+        -:   22:
+        -:   23:// ==================================================================
+   203338:   24:double fxn_get_min_element_arraydoubles(double thearray[], int array_size) {
+        -:   25:// ==================================================================
+        -:   26:        int i;
+        -:   27:        double the_min;
+   203338:   28:        the_min = thearray[0];
+   497048:   29:        for (i = 1; i < array_size; i++) {
+   293710:   30:            if (thearray[i] < the_min) {
+   124384:   31:               the_min = thearray[i];;
+        -:   32:            }
+        -:   33:        }
+        -:   34:
+   203338:   35:return (the_min);
+        -:   36:}
+        -:   37:
+        -:   38:// ==================================================================
+    #####:   39:int fxn_get_max_element_arrayints(int thearray[], int array_size) {
+        -:   40:// ==================================================================
+        -:   41:        int i;
+        -:   42:        int the_max;
+    #####:   43:        the_max = thearray[0];
+    #####:   44:        for (i = 1; i < array_size; i++) {
+    #####:   45:            if (thearray[i] > the_max) {
+    #####:   46:               the_max = thearray[i];;
+        -:   47:            }
+        -:   48:        }
+        -:   49:
+    #####:   50:return (the_max);
+        -:   51:}
+        -:   52:
+        -:   53:// ==================================================================
+    #####:   54:int fxn_get_min_element_arrayints(int thearray[], int array_size) {
+        -:   55:// ==================================================================
+        -:   56:        int i;
+        -:   57:        int the_min;
+    #####:   58:        the_min = thearray[0];
+    #####:   59:        for (i = 1; i < array_size; i++) {
+    #####:   60:            if (thearray[i] < the_min) {
+    #####:   61:               the_min = thearray[i];;
+        -:   62:            }
+        -:   63:        }
+        -:   64:
+    #####:   65:return (the_min);
+        -:   66:}
+        -:   67:
+        -:   68:// ==================================================================
+        -:   69:// ALHAMDULILLAH 3 TIMES
+        -:   70:// ==================================================================

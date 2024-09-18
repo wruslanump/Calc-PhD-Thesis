@@ -1,0 +1,62 @@
+        -:    0:Source:/home/wruslan/workspaces-gnat/gnatstudio-c/gnat_c_cnc-04/src/curves/c_pos_rho.h
+        -:    1:
+        -:    2:// File: c_pos_rho.h
+        -:    3:
+        -:    4:#include <math.h> // for pow()
+        -:    5:
+        -:    6:#include "c_velocity.h"
+        -:    7:#include "c_accelern.h"
+        -:    8:
+        -:    9:double fxn_c_radiuscurvature_rho_at_u(double u);
+        -:   10:
+        -:   11:// ==================================================================
+   338904:   12:double fxn_c_radiuscurvature_rho_at_u(double u) {
+        -:   13:// ==================================================================
+        -:   14:// The curvature varies along the curve, so does the acceleration limits.
+        -:   15:
+        -:   16:// USING THE ORIGINAL PARAMETRIC EQUATIONS (0 < u < 1)
+        -:   17:
+        -:   18:// dx/du = -150 + 900*u - 900*u*u
+        -:   19:// dy/du = -150 + 300*u
+        -:   20:
+        -:   21:// d(dx/du)/du = + 900 -1800*u
+        -:   22:// d(dy/du)/du = + 300
+        -:   23:	
+        -:   24:// REF: https://math24.net/curvature-radius.html
+        -:   25:// USING THE FORMULA AT THE REF ABOVE
+        -:   26:// From this definition it follows that the curvature at a point of a curve 
+        -:   27:// characterizes the speed of rotation of the tangent of the curve at this point.
+        -:   28:// Find the curvature (K) and radius of curvature (1/K) of the curve ....
+        -:   29:
+        -:   30:// If a curve is defined in parametric form by the equations x = x(u), y = y(u)_
+        -:   31:// then its curvature at any point is given by rho(x, y),
+        -:   32:
+        -:   33:// rho = radiuscurvature = (1/curvature)
+        -:   34:// curvature = (numerator / denominator)
+        -:   35:// numerator   = fabs [(x')*(y'') - (y')*(x'')]
+        -:   36:// denominator = [(x')*(x') + (y')*(y')] ^(3/2)
+        -:   37:
+        -:   38:    // CALL THE ALREADY DEFINED FUNCTIONS
+        -:   39:	// double x_prime       = fxn_dx_du(u); 
+        -:   40:    // double y_prime       = fxn_dy_du(u); 
+        -:   41:    // double x_doubleprime = fxn_ddx_du_du(u);
+        -:   42:    // double y_doubleprime = fxn_ddy_du_du(u);
+        -:   43:    
+   338904:   44: 	  double x_prime       = fxn_cvel_x(u);
+   338904:   45:    double y_prime       = fxn_cvel_y(u);
+   338904:   46:    double x_doubleprime = fxn_cacc_x(u);
+   338904:   47:    double y_doubleprime = fxn_cacc_y(u);
+        -:   48:     
+        -:   49:
+   338904:   50:    double numerator = fabs ((x_prime)*(y_doubleprime) - (y_prime)*(x_doubleprime));
+   338904:   51:    double denominator = pow (((x_prime)*(x_prime) + (y_prime)*(y_prime)), 1.5);
+        -:   52:    // double curvature  = (numerator/denominator);
+   338904:   53:    double rho_u      = (denominator/numerator); // Radius of curvature
+        -:   54:    
+   338904:   55:	return (rho_u); 
+        -:   56:}
+        -:   57:
+        -:   58:// ==================================================================
+        -:   59:// ALHAMDULILLAH 3 TIMES WRY
+        -:   60:// ==================================================================
+        -:   61:

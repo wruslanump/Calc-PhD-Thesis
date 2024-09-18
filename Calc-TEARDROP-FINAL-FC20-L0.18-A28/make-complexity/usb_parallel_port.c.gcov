@@ -1,0 +1,426 @@
+        -:    0:Source:/home/wruslan/workspaces-gnat/gnatstudio-c/gnat_c_cnc-04/src/parallel_usb/usb_parallel_port.c
+        -:    1:/*
+        -:    2: * usb_parallel_port.c
+        -:    3: *
+        -:    4: *  Created on: Apr 15, 2020
+        -:    5: *      Author: wruslan
+        -:    6:
+        -:    7:// ========================================================
+        -:    8:(1) PROLIFIC USB-to-Serial PL2303 cable, making it a RS-232 serial port device.
+        -:    9:(2) PROLIFIC USB-to-Parallel PL2305 cable, making it a IEEE-1284 parallel port device.
+        -:   10:
+        -:   11:Both cables are USB version 1.1 specification compliant.
+        -:   12:
+        -:   13:The PL2303 chip on the Prolific Technology USB-to-Serial cable device,
+        -:   14:is a full-duplex transmitter and receiver (TXD and RXD) for read and
+        -:   15:write serial communications.
+        -:   16:
+        -:   17:The PL2305 chip on the USB-to-Parallel cable emulates a Bidirectional
+        -:   18:printer device so can also be used for read and write parallel communications.
+        -:   19:
+        -:   20:Note: The USB-to-Parallel cable (PROLIFIC) is identical to USB-to-Parallel cable (KATRON)
+        -:   21:
+        -:   22:=========================================
+        -:   23:(1) For USB-to-Parallel cable (PROLIFIC)
+        -:   24:=========================================
+        -:   25:wruslan@HP-EliteBook-8470p-Ub1804:~$ dmesg
+        -:   26:....
+        -:   27:[10905.859361] usb 1-1.6: new full-speed USB device number 21 using ehci-pci
+        -:   28:[10905.969246] usb 1-1.6: New USB device found, idVendor=067b, idProduct=2305
+        -:   29:[10905.969251] usb 1-1.6: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+        -:   30:[10905.969253] usb 1-1.6: Product: IEEE-1284 Controller
+        -:   31:[10905.969255] usb 1-1.6: Manufacturer: Prolific Technology Inc.
+        -:   32:[10905.976090] usblp 1-1.6:1.0: usblp0: USB Bidirectional printer dev 21 if 0 alt 1 proto 2 vid 0x067B pid 0x2305
+        -:   33:wruslan@HP-EliteBook-8470p-Ub1804:~$
+        -:   34:
+        -:   35:====================================
+        -:   36:wruslan@HP-EliteBook-8470p-Ub1804:~$ ls -al /dev/usb
+        -:   37:total 0
+        -:   38:drwxr-xr-x  2 root root     60 Apr 15 14:10 .
+        -:   39:drwxr-xr-x 21 root root   4600 Apr 15 14:10 ..
+        -:   40:crw-rw----  1 root lp   180, 0 Apr 15 14:10 lp0
+        -:   41:wruslan@HP-EliteBook-8470p-Ub1804:~$
+        -:   42:
+        -:   43:====================================
+        -:   44:wruslan@HP-EliteBook-8470p-Ub1804:~$ stat /dev/usb/lp0
+        -:   45:  File: /dev/usb/lp0
+        -:   46:  Size: 0         	Blocks: 0          IO Block: 4096   character special file
+        -:   47:Device: 6h/6d	Inode: 592         Links: 1     Device type: b4,0
+        -:   48:Access: (0660/crw-rw----)  Uid: (    0/    root)   Gid: (    7/      lp)
+        -:   49:Access: 2020-04-15 14:10:28.496741748 +0800
+        -:   50:Modify: 2020-04-15 14:10:28.496741748 +0800
+        -:   51:Change: 2020-04-15 14:10:28.496741748 +0800
+        -:   52: Birth: -
+        -:   53:wruslan@HP-EliteBook-8470p-Ub1804:~$
+        -:   54:
+        -:   55:=========================================
+        -:   56:(2) For USB-to-Parallel cable (KATRON)
+        -:   57:=========================================
+        -:   58:
+        -:   59:[31158.633881] usb 1-1.2: New USB device found, idVendor=0fe6, idProduct=811e
+        -:   60:[31158.633886] usb 1-1.2: New USB device strings: Mfr=0, Product=2, SerialNumber=0
+        -:   61:[31158.633888] usb 1-1.2: Product: IEEE-1284 Controller
+        -:   62:[31158.739902] usblp 1-1.2:1.0: usblp0: USB Bidirectional printer dev 62 if 0 alt 0 proto 2 vid 0x0FE6 pid 0x811E
+        -:   63:wruslan@HP-EliteBook-8470p-Ub1804:~$
+        -:   64:
+        -:   65:====================================
+        -:   66:wruslan@HP-EliteBook-8470p-Ub1804:~$ ls -al /dev | grep usb
+        -:   67:drwxr-xr-x   2 root    root          60 Apr 15 19:48 usb
+        -:   68:wruslan@HP-EliteBook-8470p-Ub1804:~$ ls -al /dev/usb
+        -:   69:total 0
+        -:   70:drwxr-xr-x  2 root root     60 Apr 15 19:48 .
+        -:   71:drwxr-xr-x 21 root root   4600 Apr 15 19:48 ..
+        -:   72:crw-rw----  1 root lp   180, 0 Apr 15 19:48 lp0
+        -:   73:wruslan@HP-EliteBook-8470p-Ub1804:~$
+        -:   74:
+        -:   75:===================================
+        -:   76:wruslan@HP-EliteBook-8470p-Ub1804:~$ stat /dev/usb/lp0
+        -:   77:  File: /dev/usb/lp0
+        -:   78:  Size: 0         	Blocks: 0          IO Block: 4096   character special file
+        -:   79:Device: 6h/6d	Inode: 592         Links: 1     Device type: b4,0
+        -:   80:Access: (0660/crw-rw----)  Uid: (    0/    root)   Gid: (    7/      lp)
+        -:   81:Access: 2020-04-15 19:48:01.987343911 +0800
+        -:   82:Modify: 2020-04-15 19:48:01.987343911 +0800
+        -:   83:Change: 2020-04-15 19:48:01.987343911 +0800
+        -:   84: Birth: -
+        -:   85:wruslan@HP-EliteBook-8470p-Ub1804:~$
+        -:   86:
+        -:   87:
+        -:   88:*/
+        -:   89:// ========================================================
+        -:   90:// C-PROGRAM HEADER FILES
+        -:   91:#include <stdio.h>
+        -:   92:#include <unistd.h>
+        -:   93:#include <stdlib.h>
+        -:   94:#include <fcntl.h>
+        -:   95:#include <termios.h>
+        -:   96:#include <sched.h>
+        -:   97:#include <signal.h>    // Signal for User interrupt Ctrl-C to stop
+        -:   98:#include <math.h>
+        -:   99:#include <errno.h>
+        -:  100:#include <string.h>	   // TO HANDLE strlen IN gcode . h
+        -:  101:#include <curses.h>	   // TO HANDLE getch () , wgetch ()
+        -:  102:#include <sys/fcntl.h>
+        -:  103:#include <sys/ioctl.h>
+        -:  104:#include <sys/io.h>
+        -:  105:#include <sys/mman.h>
+        -:  106:
+        -:  107:// WRY Date-Time stamp nanosecond display
+        -:  108:#include "common/c_dtstamp.h"
+        -:  109:
+        -:  110:// ========================================================
+        -:  111:// GLOBAL DEFINITIONS
+        -:  112:
+        -:  113:	// DEVICE: For-Cable-USB-to-Parallel-PL2305.
+        -:  114:	#define DEVICE_USB_TO_PAR	"/dev/usb/lp0"
+        -:  115:
+        -:  116:	// BINARY REPRESENTATION FOR PRINTING (DISPLAY) TO SCREEN
+        -:  117:	char bin8_output[33] = {0};	// LAST CHAR IS NULL "\0"
+        -:  118:
+        -:  119:// ========================================================
+    #####:  120:void convert_integer_to_binary8(int input_int, char *output_bin8) {
+        -:  121:// ========================================================
+        -:  122:    unsigned int mask8;
+    #####:  123:    mask8  = 0b10000000;
+        -:  124:
+    #####:  125:    int bitposition = 0;
+    #####:  126:    while (mask8)  {         		// Loop until MASK is empty
+    #####:  127:		bitposition++;
+        -:  128:
+    #####:  129:		if (input_int & mask8) {     	// Bitwise AND => test the masked bit
+    #####:  130:				*output_bin8 = '1';     // if true, binary value 1 is appended to output array
+        -:  131:		} else {
+    #####:  132:				*output_bin8 = '0';     // if false, binary value 0 is appended to output array
+        -:  133:		}
+        -:  134:
+    #####:  135:		output_bin8++;              // next character
+    #####:  136:        mask8 >>= 1;                // shift the mask variable 1 bit to the right
+        -:  137:    } // End while..
+        -:  138:
+    #####:  139:    *output_bin8 = 0;               // add the trailing null
+    #####:  140:}
+        -:  141:
+        -:  142:// ========================================================
+    #####:  143:void test_writeusb_to_parport(void) {
+        -:  144:// ========================================================
+    #####:  145:DTStamp(); printf("STARTED  test_writeusb_to_parport(void).\n");
+        -:  146:
+        -:  147:// Open usb_parport for both read and write
+    #####:  148:int fd_usb_parport = open(DEVICE_USB_TO_PAR, O_WRONLY | O_RDONLY | O_NOCTTY | O_NDELAY);
+    #####:  149:if (fd_usb_parport < 0) {
+    #####:  150:	DTStamp(); printf("ERROR:   open DEVICE_USB_TO_PAR = /dev/usb/lp0/ return fd_usb_parport = %d \n", fd_usb_parport);
+    #####:  151:	DTStamp(); printf("ERROR:   Must run as root with $ sudo ./XXX \n");
+    #####:  152:	perror("fd_usb_parport");
+    #####:  153:	exit(1);
+        -:  154:} else {
+    #####:  155:	DTStamp(); printf("SUCCESS: open DEVICE_USB_TO_PAR = /dev/usb/lp0/ return fd_usb_parport = %d \n", fd_usb_parport);
+        -:  156:}
+        -:  157:
+        -:  158:	// TEST EXECUTE DEVICE write() ELECTRICAL PULSES TO PARALLEL PORT (char, short and long) data types
+        -:  159:	unsigned char data_uchar;
+    #####:  160:	data_uchar = 'R';
+    #####:  161:	if (fd_usb_parport != -1) {
+    #####:  162:		write(fd_usb_parport, (const void *)(long)data_uchar, 1);
+    #####:  163:		DTStamp(); printf("SUCCESS: write(fd_usb_parport, (const void *)data_uchar, 1) = %c\n", data_uchar);
+        -:  164:	} else {
+    #####:  165:		DTStamp(); printf("FAILED:  write(fd_usb_parport, (const void *)data_uchar, 1) = %c\n", data_uchar);
+        -:  166:	}
+        -:  167:
+        -:  168:	short data_short;
+    #####:  169:	data_short= 165;
+    #####:  170:	if (fd_usb_parport != -1) {
+    #####:  171:		write(fd_usb_parport, (const void *)(long)data_short, 1);
+    #####:  172:		DTStamp(); printf("SUCCESS: write(fd_usb_parport, (const void *)data_short, 1) = %d\n", data_short);
+        -:  173:	} else {
+    #####:  174:		DTStamp(); printf("FAILED:  write(fd_usb_parport, (const void *)data_short, 1) = %d\n", data_short);
+        -:  175:	}
+        -:  176:
+        -:  177:	long data_long;
+    #####:  178:	data_long = 66577789;
+    #####:  179:	if (fd_usb_parport != -1) {
+    #####:  180:		write(fd_usb_parport, (const void *)data_long, 1);
+    #####:  181:		DTStamp(); printf("SUCCESS: write(fd_usb_parport, (const void *)data_long,  1) = %ld\n", data_long);
+        -:  182:	} else {
+    #####:  183:		DTStamp(); printf("FAILED:  write(fd_usb_parport, (const void *)data_long,  1) = %ld\n", data_long);
+        -:  184:	}
+        -:  185:
+        -:  186:	// Test write loop with buffered data
+        -:  187:	// PERFORM WRITE LOOP FOR ELECTRICAL PULSE OUTPUTS
+        -:  188:	int i;
+    #####:  189:	int intToWrite = 0;
+    #####:  190:	char TheChar[] = "Bismillah WRY and Alhamdulillah WRY!";
+    #####:  191:	int str_length = strlen(TheChar);
+        -:  192:
+    #####:  193:	for (i = 0; i < str_length; i++) {
+        -:  194:
+        -:  195:		// GRAB INTEGER TO WRITE (8-BITS) TO DEVICE
+    #####:  196:		intToWrite = TheChar[i];
+    #####:  197:		if (fd_usb_parport != -1) {
+    #####:  198:			convert_integer_to_binary8(intToWrite, bin8_output);
+    #####:  199:			write(fd_usb_parport, (const void *)(long)TheChar[i], 1);
+    #####:  200:			DTStamp();
+    #####:  201:			printf("SUCCESS: write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = %d \tchar= %c bin= %s hex= 0x%x int= %d \n", i, intToWrite, bin8_output, intToWrite, intToWrite);
+        -:  202:		} else {
+    #####:  203:			DTStamp();
+    #####:  204:			printf("FAILED:  write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = %d \tchar= %c bin= %s hex= 0x%x int= %d \n", i, intToWrite, bin8_output, intToWrite, intToWrite);
+        -:  205:		}
+        -:  206:	} // End for..loop
+        -:  207:
+        -:  208:
+        -:  209:// Close usb_parport
+    #####:  210:if (fd_usb_parport >= 0) {
+    #####:  211:	close(fd_usb_parport);
+        -:  212:}
+        -:  213:
+    #####:  214:DTStamp(); printf("FINISHED test_writeusb_to_parport(void).\n");
+    #####:  215:}
+        -:  216:// ========================================================
+        -:  217:/*
+        -:  218:wruslan@HP-EliteBook-8470p-Ub1804:~/apps/cpp-eclipse-wks/usb-to-parallel-port/Debug$ sudo ./usb-to-parallel-port
+        -:  219:2020-04-15 17:20:35.553079232 	Starting in main(), Bismillah 3 times WRY.
+        -:  220:2020-04-15 17:20:35.553113644 	Program started.
+        -:  221:
+        -:  222:=============================================================
+        -:  223:2020-04-15 17:20:35.553134018 	Timer 1 start.
+        -:  224:2020-04-15 17:20:35.553151144 	CHECK 1: Check environment, date, time and clock.
+        -:  225:2020-04-15 17:20:35.553204631 	Current date and time: Wed Apr 15, 2020 17:20:35
+        -:  226:2020-04-15 17:20:35.553223357 	Current directory: /home/wruslan/apps/cpp-eclipse-wks/usb-to-parallel-port/Debug
+        -:  227:2020-04-15 17:20:35.553237035 	Current runfile  : ./usb-to-parallel-port
+        -:  228:2020-04-15 17:20:35.553264870 	Clock time resolution 	= 1 nanoseconds
+        -:  229:2020-04-15 17:20:35.553270084 	Timer 1 stop. Duration (timer start-to-stop) = 0.000140646 seconds.
+        -:  230:
+        -:  231:=============================================================
+        -:  232:2020-04-15 17:20:35.553282722 	Timer 2 start.
+        -:  233:2020-04-15 17:20:35.553290825 	EXECUTE: Write via usb to parallel port using PL2305 chip on cable
+        -:  234:2020-04-15 17:20:35.553299061 	STARTED  test_writeusb_to_parport(void).
+        -:  235:2020-04-15 17:20:35.553331400 	SUCCESS: open DEVICE_USB_TO_PAR = /dev/usb/lp0/ return fd_usb_parport = 3
+        -:  236:2020-04-15 17:20:35.553373061 	SUCCESS: write(fd_usb_parport, (const void *)data_uchar, 1) = R
+        -:  237:2020-04-15 17:20:35.553408759 	SUCCESS: write(fd_usb_parport, (const void *)data_short, 1) = 165
+        -:  238:2020-04-15 17:20:35.553418382 	SUCCESS: write(fd_usb_parport, (const void *)data_long,  1) = 66577789
+        -:  239:2020-04-15 17:20:35.553427937 	SUCCESS: write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = 0 	char= B bin= 01000010 hex= 0x42 int= 66
+        -:  240:2020-04-15 17:20:35.553438343 	SUCCESS: write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = 1 	char= i bin= 01101001 hex= 0x69 int= 105
+        -:  241:2020-04-15 17:20:35.553446091 	SUCCESS: write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = 2 	char= s bin= 01110011 hex= 0x73 int= 115
+        -:  242:2020-04-15 17:20:35.553453454 	SUCCESS: write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = 3 	char= m bin= 01101101 hex= 0x6d int= 109
+        -:  243:2020-04-15 17:20:35.553460819 	SUCCESS: write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = 4 	char= i bin= 01101001 hex= 0x69 int= 105
+        -:  244:2020-04-15 17:20:35.553468392 	SUCCESS: write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = 5 	char= l bin= 01101100 hex= 0x6c int= 108
+        -:  245:2020-04-15 17:20:35.553475953 	SUCCESS: write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = 6 	char= l bin= 01101100 hex= 0x6c int= 108
+        -:  246:2020-04-15 17:20:35.553483394 	SUCCESS: write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = 7 	char= a bin= 01100001 hex= 0x61 int= 97
+        -:  247:2020-04-15 17:20:35.553490855 	SUCCESS: write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = 8 	char= h bin= 01101000 hex= 0x68 int= 104
+        -:  248:2020-04-15 17:20:35.553499829 	SUCCESS: write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = 9 	char=   bin= 00100000 hex= 0x20 int= 32
+        -:  249:2020-04-15 17:20:35.553507702 	SUCCESS: write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = 10 	char= W bin= 01010111 hex= 0x57 int= 87
+        -:  250:2020-04-15 17:20:35.553515137 	SUCCESS: write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = 11 	char= R bin= 01010010 hex= 0x52 int= 82
+        -:  251:2020-04-15 17:20:35.553522606 	SUCCESS: write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = 12 	char= Y bin= 01011001 hex= 0x59 int= 89
+        -:  252:2020-04-15 17:20:35.553529984 	SUCCESS: write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = 13 	char=   bin= 00100000 hex= 0x20 int= 32
+        -:  253:2020-04-15 17:20:35.553537395 	SUCCESS: write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = 14 	char= a bin= 01100001 hex= 0x61 int= 97
+        -:  254:2020-04-15 17:20:35.553544838 	SUCCESS: write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = 15 	char= n bin= 01101110 hex= 0x6e int= 110
+        -:  255:2020-04-15 17:20:35.553552261 	SUCCESS: write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = 16 	char= d bin= 01100100 hex= 0x64 int= 100
+        -:  256:2020-04-15 17:20:35.553559632 	SUCCESS: write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = 17 	char=   bin= 00100000 hex= 0x20 int= 32
+        -:  257:2020-04-15 17:20:35.553567088 	SUCCESS: write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = 18 	char= A bin= 01000001 hex= 0x41 int= 65
+        -:  258:2020-04-15 17:20:35.553574457 	SUCCESS: write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = 19 	char= l bin= 01101100 hex= 0x6c int= 108
+        -:  259:2020-04-15 17:20:35.553581873 	SUCCESS: write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = 20 	char= h bin= 01101000 hex= 0x68 int= 104
+        -:  260:2020-04-15 17:20:35.553589309 	SUCCESS: write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = 21 	char= a bin= 01100001 hex= 0x61 int= 97
+        -:  261:2020-04-15 17:20:35.553596710 	SUCCESS: write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = 22 	char= m bin= 01101101 hex= 0x6d int= 109
+        -:  262:2020-04-15 17:20:35.553604075 	SUCCESS: write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = 23 	char= d bin= 01100100 hex= 0x64 int= 100
+        -:  263:2020-04-15 17:20:35.553611538 	SUCCESS: write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = 24 	char= u bin= 01110101 hex= 0x75 int= 117
+        -:  264:2020-04-15 17:20:35.553618902 	SUCCESS: write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = 25 	char= l bin= 01101100 hex= 0x6c int= 108
+        -:  265:2020-04-15 17:20:35.553626266 	SUCCESS: write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = 26 	char= i bin= 01101001 hex= 0x69 int= 105
+        -:  266:2020-04-15 17:20:35.553633725 	SUCCESS: write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = 27 	char= l bin= 01101100 hex= 0x6c int= 108
+        -:  267:2020-04-15 17:20:35.553641086 	SUCCESS: write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = 28 	char= l bin= 01101100 hex= 0x6c int= 108
+        -:  268:2020-04-15 17:20:35.553648455 	SUCCESS: write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = 29 	char= a bin= 01100001 hex= 0x61 int= 97
+        -:  269:2020-04-15 17:20:35.553655887 	SUCCESS: write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = 30 	char= h bin= 01101000 hex= 0x68 int= 104
+        -:  270:2020-04-15 17:20:35.553663297 	SUCCESS: write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = 31 	char=   bin= 00100000 hex= 0x20 int= 32
+        -:  271:2020-04-15 17:20:35.553670748 	SUCCESS: write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = 32 	char= W bin= 01010111 hex= 0x57 int= 87
+        -:  272:2020-04-15 17:20:35.553678232 	SUCCESS: write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = 33 	char= R bin= 01010010 hex= 0x52 int= 82
+        -:  273:2020-04-15 17:20:35.553685603 	SUCCESS: write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = 34 	char= Y bin= 01011001 hex= 0x59 int= 89
+        -:  274:2020-04-15 17:20:35.553693041 	SUCCESS: write(fd_usb_parport, (const void *)(long)TheChar[i],  1) i = 35 	char= ! bin= 00100001 hex= 0x21 int= 33
+        -:  275:2020-04-15 17:20:35.556972969 	FINISHED test_writeusb_to_parport(void).
+        -:  276:2020-04-15 17:20:35.556982628 	Timer 2 stop. Duration (timer start-to-stop) = 0.003700299 seconds.
+        -:  277:
+        -:  278:2020-04-15 17:20:35.556995158 	Total program run duration   = 0.004025134 seconds.
+        -:  279:
+        -:  280:2020-04-15 17:20:35.557006488 	Program ended.
+        -:  281:2020-04-15 17:20:35.557014540 	Ending in main(), Alhamdulillah 3 times WRY.
+        -:  282:wruslan@HP-EliteBook-8470p-Ub1804:~/apps/cpp-eclipse-wks/usb-to-parallel-port/Debug$
+        -:  283:
+        -:  284:*/
+        -:  285:// ========================================================
+        -:  286:/*
+        -:  287:[ 9764.184593] usb 1-1.2: new full-speed USB device number 17 using ehci-pci
+        -:  288:[ 9764.222686] usb 1-1.2: New USB device found, idVendor=067b, idProduct=2305
+        -:  289:[ 9764.222691] usb 1-1.2: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+        -:  290:[ 9764.222693] usb 1-1.2: Product: IEEE-1284 Controller
+        -:  291:[ 9764.222696] usb 1-1.2: Manufacturer: Prolific Technology Inc.
+        -:  292:[ 9764.224047] usblp 1-1.2:1.0: usblp0: USB Bidirectional printer dev 17 if 0 alt 1 proto 2 vid 0x067B pid 0x2305
+        -:  293:[10002.864782] traps: parallel-port-0[9298] general protection ip:400a09 sp:7ffc064aaf80 error:0 in parallel-port-01[400000+3000]
+        -:  294:wruslan@HP-EliteBook-8470p-Ub1804:~$
+        -:  295:
+        -:  296:wruslan@HP-EliteBook-8470p-Ub1804:~$ ls -al /dev/usb
+        -:  297:total 0
+        -:  298:drwxr-xr-x  2 root root     60 Apr 15 14:03 .
+        -:  299:drwxr-xr-x 21 root root   4600 Apr 15 14:03 ..
+        -:  300:crw-rw----  1 root lp   180, 0 Apr 15 14:03 lp0
+        -:  301:wruslan@HP-EliteBook-8470p-Ub1804:~$
+        -:  302:
+        -:  303:// ========================================================
+        -:  304:Bus 001 Device 017: ID 067b:2305 Prolific Technology, Inc. PL2305 Parallel Port
+        -:  305:Device Descriptor:
+        -:  306:  bLength                18
+        -:  307:  bDescriptorType         1
+        -:  308:  bcdUSB               1.00
+        -:  309:  bDeviceClass            0 (Defined at Interface level)
+        -:  310:  bDeviceSubClass         0
+        -:  311:  bDeviceProtocol         0
+        -:  312:  bMaxPacketSize0         8
+        -:  313:  idVendor           0x067b Prolific Technology, Inc.
+        -:  314:  idProduct          0x2305 PL2305 Parallel
+        -:  315:  bcdDevice            2.02
+        -:  316:  iManufacturer           1 (error)
+        -:  317:  iProduct                2 (error)
+        -:  318:  iSerial                 0
+        -:  319:  bNumConfigurations      1
+        -:  320:  Configuration Descriptor:
+        -:  321:    bLength                 9
+        -:  322:    bDescriptorType         2
+        -:  323:    wTotalLength           78
+        -:  324:    bNumInterfaces          1
+        -:  325:    bConfigurationValue     1
+        -:  326:    iConfiguration          0
+        -:  327:    bmAttributes         0x80
+        -:  328:      (Bus Powered)
+        -:  329:    MaxPower              100mA
+        -:  330:    Interface Descriptor:
+        -:  331:      bLength                 9
+        -:  332:      bDescriptorType         4
+        -:  333:      bInterfaceNumber        0
+        -:  334:      bAlternateSetting       0
+        -:  335:      bNumEndpoints           1
+        -:  336:      bInterfaceClass         7 Printer
+        -:  337:      bInterfaceSubClass      1 Printer
+        -:  338:      bInterfaceProtocol      1 Unidirectional
+        -:  339:      iInterface              0
+        -:  340:      Endpoint Descriptor:
+        -:  341:        bLength                 7
+        -:  342:        bDescriptorType         5
+        -:  343:        bEndpointAddress     0x01  EP 1 OUT
+        -:  344:        bmAttributes            2
+        -:  345:          Transfer Type            Bulk
+        -:  346:          Synch Type               None
+        -:  347:          Usage Type               Data
+        -:  348:        wMaxPacketSize     0x0040  1x 64 bytes
+        -:  349:        bInterval               0
+        -:  350:    Interface Descriptor:
+        -:  351:      bLength                 9
+        -:  352:      bDescriptorType         4
+        -:  353:      bInterfaceNumber        0
+        -:  354:      bAlternateSetting       1
+        -:  355:      bNumEndpoints           2
+        -:  356:      bInterfaceClass         7 Printer
+        -:  357:      bInterfaceSubClass      1 Printer
+        -:  358:      bInterfaceProtocol      2 Bidirectional
+        -:  359:      iInterface              0
+        -:  360:      Endpoint Descriptor:
+        -:  361:        bLength                 7
+        -:  362:        bDescriptorType         5
+        -:  363:        bEndpointAddress     0x01  EP 1 OUT
+        -:  364:        bmAttributes            2
+        -:  365:          Transfer Type            Bulk
+        -:  366:          Synch Type               None
+        -:  367:          Usage Type               Data
+        -:  368:        wMaxPacketSize     0x0040  1x 64 bytes
+        -:  369:        bInterval               0
+        -:  370:      Endpoint Descriptor:
+        -:  371:        bLength                 7
+        -:  372:        bDescriptorType         5
+        -:  373:        bEndpointAddress     0x82  EP 2 IN
+        -:  374:        bmAttributes            2
+        -:  375:          Transfer Type            Bulk
+        -:  376:          Synch Type               None
+        -:  377:          Usage Type               Data
+        -:  378:        wMaxPacketSize     0x0040  1x 64 bytes
+        -:  379:        bInterval               0
+        -:  380:    Interface Descriptor:
+        -:  381:      bLength                 9
+        -:  382:      bDescriptorType         4
+        -:  383:      bInterfaceNumber        0
+        -:  384:      bAlternateSetting       2
+        -:  385:      bNumEndpoints           3
+        -:  386:      bInterfaceClass       255 Vendor Specific Class
+        -:  387:      bInterfaceSubClass      0
+        -:  388:      bInterfaceProtocol    255
+        -:  389:      iInterface              0
+        -:  390:      Endpoint Descriptor:
+        -:  391:        bLength                 7
+        -:  392:        bDescriptorType         5
+        -:  393:        bEndpointAddress     0x01  EP 1 OUT
+        -:  394:        bmAttributes            2
+        -:  395:          Transfer Type            Bulk
+        -:  396:          Synch Type               None
+        -:  397:          Usage Type               Data
+        -:  398:        wMaxPacketSize     0x0040  1x 64 bytes
+        -:  399:        bInterval               0
+        -:  400:      Endpoint Descriptor:
+        -:  401:        bLength                 7
+        -:  402:        bDescriptorType         5
+        -:  403:        bEndpointAddress     0x82  EP 2 IN
+        -:  404:        bmAttributes            2
+        -:  405:          Transfer Type            Bulk
+        -:  406:          Synch Type               None
+        -:  407:          Usage Type               Data
+        -:  408:        wMaxPacketSize     0x0040  1x 64 bytes
+        -:  409:        bInterval               0
+        -:  410:      Endpoint Descriptor:
+        -:  411:        bLength                 7
+        -:  412:        bDescriptorType         5
+        -:  413:        bEndpointAddress     0x83  EP 3 IN
+        -:  414:        bmAttributes            3
+        -:  415:          Transfer Type            Interrupt
+        -:  416:          Synch Type               None
+        -:  417:          Usage Type               Data
+        -:  418:        wMaxPacketSize     0x0004  1x 4 bytes
+        -:  419:        bInterval               1
+        -:  420:Device Status:     0xd5f0
+        -:  421:  (Bus Powered)
+        -:  422:  Debug Mode
+        -:  423:
+        -:  424:*/
+        -:  425:// ========================================================

@@ -1,0 +1,236 @@
+        -:    0:Source:/home/wruslan/workspaces-gnat/gnatstudio-c/gnat_c_cnc-04/src/algo/calc05_action_next_frate.c
+        -:    1:// FILE: calc05_action_next_frate.c
+        -:    2:
+        -:    3:#include <stdio.h>
+        -:    4:#include <math.h>     // FOR fabs()
+        -:    5:#include <stdlib.h>   // FOR exit(1)
+        -:    6:
+        -:    7:#include "algo/calc05_action_next_frate.h"
+        -:    8:
+        -:    9:// ==================================================================
+    #####:   10:double fxn_get_frate_when_below_limit (double u, double u_next,
+        -:   11:                                double curr_frate_limit, double curr_frate,
+        -:   12:                                double max_jerk, double t_interpol)
+        -:   13:// ==================================================================
+        -:   14:{
+        -:   15:  double next_frate;
+    #####:   16:  int countup = 0;
+        -:   17:
+    #####:   18:  while (curr_frate_limit > curr_frate) // increase frate
+        -:   19:  {
+    #####:   20:       curr_frate = curr_frate + (max_jerk) * (t_interpol);
+    #####:   21:       countup = countup + 1;
+        -:   22:  }
+        -:   23:
+    #####:   24:  next_frate = curr_frate;
+        -:   25:
+    #####:   26:  return (next_frate);
+        -:   27:}
+        -:   28:
+        -:   29:// ==================================================================
+    #####:   30:double fxn_get_frate_when_above_limit (double u, double u_next,
+        -:   31:                                double curr_frate_limit, double curr_frate,
+        -:   32:                                double max_jerk, double t_interpol)
+        -:   33:// ==================================================================
+        -:   34:{
+        -:   35:  double next_frate;
+    #####:   36:  int countdown = 0;
+        -:   37:
+    #####:   38:  while (curr_frate_limit > curr_frate) // decrease frate
+        -:   39:  {
+    #####:   40:       curr_frate = curr_frate - (max_jerk) * (t_interpol);
+    #####:   41:       countdown = countdown + 1;
+        -:   42:  }
+        -:   43:
+    #####:   44:  next_frate = curr_frate;
+        -:   45:
+    #####:   46:  return (next_frate);
+        -:   47:}
+        -:   48:
+        -:   49:
+        -:   50:// ==================================================================
+    #####:   51:double fxn_get_frate_when_equal_limit (double u, double u_next,
+        -:   52:                                double curr_frate_limit, double curr_frate,
+        -:   53:                                double max_jerk, double t_interpol)
+        -:   54:// ==================================================================
+        -:   55:{
+        -:   56:  double next_frate;
+        -:   57:
+    #####:   58:  next_frate = curr_frate;
+        -:   59:
+    #####:   60:  return (next_frate);
+        -:   61:}
+        -:   62:
+        -:   63:
+        -:   64:
+        -:   65:// ==================================================================
+    #####:   66:double fxn_get_value_next_tang_accn (double rtime, double u, double u_next,
+        -:   67:                              double curr_tang_accn, int prev_frate_action,
+        -:   68:                              int next_frate_action, double max_jerk,
+        -:   69:                              double t_intpl)
+        -:   70:
+        -:   71:// ==================================================================
+        -:   72:{
+        -:   73:  double next_tang_accn;
+        -:   74:
+        -:   75:        // CASE 1: CONTINUE INCREASE ACCN AND INCREASE FEEDRARE
+        -:   76:        // ====================================
+    #####:   77:        if ((prev_frate_action == +1)
+    #####:   78:         && (next_frate_action == +1))
+        -:   79:        {
+    #####:   80:          next_tang_accn = curr_tang_accn + (max_jerk * t_intpl);
+        -:   81:
+        -:   82:        // CASE 2: SWITCH ACCN TO DECELERATION AND DECREASE FEEDRATE
+        -:   83:        // ====================================
+    #####:   84:        } else if ((prev_frate_action == +1)
+    #####:   85:                && (next_frate_action == -1))
+        -:   86:        {
+    #####:   87:          next_tang_accn = - (max_jerk * t_intpl);
+        -:   88:
+        -:   89:        // CASE 3: SWITCH INCREASE TO CONSTANT FEEDRATE
+        -:   90:        // ====================================
+    #####:   91:        } else if ((prev_frate_action == +1)
+    #####:   92:                && (next_frate_action == 0))
+        -:   93:        {
+    #####:   94:          next_tang_accn = 0.0;
+        -:   95:
+        -:   96:        // CAEE 4: SWITCH DECELERATION TO ACCN AND INCREASE FEEDRATE
+        -:   97:        // ====================================
+    #####:   98:        } else if ((prev_frate_action == -1)
+    #####:   99:                && (next_frate_action == +1))
+        -:  100:        {
+    #####:  101:          next_tang_accn = + (max_jerk * t_intpl);
+        -:  102:
+        -:  103:        // CASE 5: CONTINUE DECREASE ACCN AND DECREASE FEEDRATE
+        -:  104:        // ====================================
+    #####:  105:        } else if ((prev_frate_action == -1)
+    #####:  106:                && (next_frate_action == -1))
+        -:  107:        {
+    #####:  108:          next_tang_accn = curr_tang_accn - (max_jerk * t_intpl);
+        -:  109:
+        -:  110:        // CASE 6: SWITCH DECREASE TO CONSTANT FEEDRATE
+        -:  111:        // ====================================
+    #####:  112:        } else if ((prev_frate_action == -1)
+    #####:  113:               &&  (next_frate_action == 0))
+        -:  114:        {
+    #####:  115:          next_tang_accn = 0.0;
+        -:  116:
+        -:  117:        // CASE 7: SWITCH CONSTANT TO INCREASE FEEDRATE
+        -:  118:        // ====================================
+    #####:  119:        } else if ((prev_frate_action == 0)
+    #####:  120:               &&  (next_frate_action == +1))
+        -:  121:        {
+    #####:  122:          next_tang_accn = curr_tang_accn + (max_jerk * t_intpl);
+        -:  123:
+        -:  124:        // CASE 8: SWITCH CONSTANT TO DECREASE FEEDRATE
+        -:  125:        // ===================================
+    #####:  126:        } else if ((prev_frate_action == 0)
+    #####:  127:               &&  (next_frate_action == -1))
+        -:  128:        {
+    #####:  129:          next_tang_accn = curr_tang_accn - (max_jerk * t_intpl);
+        -:  130:
+        -:  131:        // CASE 9: MAINTAIN CONSTANT FEEDRATE
+        -:  132:        // ===================================
+    #####:  133:        } else if ((prev_frate_action == 0)
+    #####:  134:               &&  (next_frate_action == 0))
+        -:  135:        {
+    #####:  136:          next_tang_accn = 0.0;
+        -:  137:
+        -:  138:        }
+        -:  139:        // ===================================
+        -:  140:        else
+        -:  141:        {
+    #####:  142:          perror ("ERROR in frate_action\n");
+        -:  143:        }
+        -:  144:
+    #####:  145:  return (next_tang_accn);
+        -:  146:}
+        -:  147:
+        -:  148:// ==================================================================
+    #####:  149:double fxn_get_value_next_frate (double rtime, double u, double u_next,
+        -:  150:                          double next_tang_accn, double curr_frate,
+        -:  151:                          int prev_frate_action, int next_frate_action,
+        -:  152:                          double max_jerk, double t_intpl)
+        -:  153:
+        -:  154:// ==================================================================
+        -:  155:{
+        -:  156:
+        -:  157:     double next_frate;
+        -:  158:
+        -:  159:        // CASE 1: CONTINUE INCREASE FEEDRARE
+        -:  160:        // ========================================
+    #####:  161:        if ((prev_frate_action == +1)
+    #####:  162:         && (next_frate_action == +1))
+        -:  163:        {
+    #####:  164:          next_frate = curr_frate + fabs(next_tang_accn) * (t_intpl);
+        -:  165:
+        -:  166:        // CASE 2: SWITCH INCREASE FEEDRATE TO DECREASE FEEDRATE
+        -:  167:        // ========================================
+    #####:  168:        } else if ((prev_frate_action == +1)
+    #####:  169:                && (next_frate_action == -1))
+        -:  170:        {
+    #####:  171:          next_frate = curr_frate - fabs(next_tang_accn) * (t_intpl);
+        -:  172:
+        -:  173:        // CASE 3: SWITCH INCREASE FEEDRATE TO CONSTANT FEEDRATE
+        -:  174:        // ====================================
+    #####:  175:        } else if ((prev_frate_action == +1)
+    #####:  176:                && (next_frate_action == 0))
+        -:  177:        {
+    #####:  178:          next_frate = curr_frate;
+        -:  179:
+        -:  180:        // CAEE 4: SWITCH DECREASE FEEDRATE TO INCREASE FEEDRATE
+        -:  181:        // ====================================
+    #####:  182:        } else if ((prev_frate_action == -1)
+    #####:  183:                && (next_frate_action == +1))
+        -:  184:        {
+    #####:  185:          next_frate = curr_frate + fabs(next_tang_accn) * (t_intpl);
+        -:  186:
+        -:  187:        // CASE 5: CONTINUE DECREASE FEEDRATE
+        -:  188:        // ====================================
+    #####:  189:        } else if ((prev_frate_action == -1)
+    #####:  190:                && (next_frate_action == -1))
+        -:  191:        {
+    #####:  192:          next_frate = curr_frate - fabs((next_tang_accn)) * (t_intpl);
+        -:  193:
+        -:  194:        // CASE 6: SWITCH DECREASE FEEDRATE TO CONSTANT FEEDRATE
+        -:  195:        // ====================================
+    #####:  196:        } else if ((prev_frate_action == -1)
+    #####:  197:               &&  (next_frate_action == 0))
+        -:  198:        {
+    #####:  199:          next_frate = curr_frate;
+        -:  200:
+        -:  201:        // CASE 7: SWITCH CONSTANT FEEDRATE TO INCREASE FEEDRATE
+        -:  202:        // ====================================
+    #####:  203:        } else if ((prev_frate_action == 0)
+    #####:  204:               &&  (next_frate_action == +1))
+        -:  205:        {
+    #####:  206:          next_frate = curr_frate + fabs((next_tang_accn)) * (t_intpl);
+        -:  207:
+        -:  208:        // CASE 8: SWITCH CONSTANT FEEDRATE TO DECREASE FEEDRATE
+        -:  209:        // ===================================
+    #####:  210:        } else if ((prev_frate_action == 0)
+    #####:  211:               &&  (next_frate_action == -1))
+        -:  212:        {
+    #####:  213:          next_frate = curr_frate - fabs((next_tang_accn)) * (t_intpl);
+        -:  214:
+        -:  215:        // CASE 9: CONTINUE CONSTANT FEEDRATE
+        -:  216:        // ====================================
+    #####:  217:        } else if ((prev_frate_action == 0)
+    #####:  218:               &&  (next_frate_action == 0))
+        -:  219:        {
+    #####:  220:          next_frate = curr_frate;
+        -:  221:
+        -:  222:        }
+        -:  223:        else
+        -:  224:        {
+    #####:  225:          perror ("ERROR in frate_action \n");
+    #####:  226:          exit(1);
+        -:  227:        }
+        -:  228:
+    #####:  229:  return (next_frate);
+        -:  230:}
+        -:  231:
+        -:  232:// ==================================================================
+        -:  233:// ALHAMDULILLAH 3 TIMES.
+        -:  234:// ==================================================================
+        -:  235:

@@ -1,0 +1,257 @@
+        -:    0:Source:/home/wruslan/workspaces-gnat/gnatstudio-c/gnat_c_cnc-04/src/algo/calc06_decide_next_frate.c
+        -:    1:// FILE: calc06_decide_next_frate.c
+        -:    2:
+        -:    3:#include <math.h>
+        -:    4:#include <stdio.h>
+        -:    5:#include <stdlib.h> // FOR exit(1)
+        -:    6:
+        -:    7:FILE *FHdata_01;
+        -:    8:
+        -:    9:#include "algo/calc06_decide_next_frate.h"
+        -:   10:#include "common/c_random_int_dbl.h" // RANDOM NUMBERS
+        -:   11:
+        -:   12:// REFERENCE Fig. 3. Algorithm for the feedrate lookahead module.
+        -:   13:// ==================================================================
+    #####:   14:double fxn_get_root_N1(int N, double max_jerk, double t_interpol,
+        -:   15:                     double curr_tang_accn, double curr_frate_limit,
+        -:   16:                     double curr_frate)
+        -:   17:// ==================================================================
+        -:   18:{
+        -:   19:    double root_N1;
+        -:   20:
+    #####:   21:    max_jerk = 200.0;
+    #####:   22:    t_interpol = 0.001;
+    #####:   23:    double tempA = (0.5)*(max_jerk)*(t_interpol)*(t_interpol);
+    #####:   24:    double tempB = tempA - (curr_tang_accn)*(t_interpol);
+    #####:   25:    double tempC = (curr_frate_limit - curr_frate);
+        -:   26:
+    #####:   27:    double dtmnant = (tempB * tempB) - (4.0) * (tempA) * (tempC);
+        -:   28:
+    #####:   29:    root_N1 = (-tempB + sqrt (dtmnant)) / (2.0) * (tempA);
+        -:   30:
+    #####:   31:    return (root_N1);
+        -:   32:}
+        -:   33:// ==================================================================
+    #####:   34:double fxn_get_root_N2(int N, double max_jerk, double t_interpol,
+        -:   35:                     double curr_tang_accn, double curr_frate_limit,
+        -:   36:                     double curr_frate)
+        -:   37:// ==================================================================
+        -:   38:{
+        -:   39:    double root_N2;
+        -:   40:
+    #####:   41:    max_jerk = 200.0;
+    #####:   42:    t_interpol = 0.001;
+    #####:   43:    double tempA = (0.5)*(max_jerk)*(t_interpol)*(t_interpol);
+    #####:   44:    double tempB = tempA - (curr_tang_accn)*(t_interpol);
+    #####:   45:    double tempC = (curr_frate_limit - curr_frate);
+        -:   46:
+    #####:   47:    double dtmnant = (tempB * tempB) - (4.0) * (tempA) * (tempC);
+        -:   48:
+    #####:   49:    root_N2 = (-tempB - sqrt (dtmnant)) / (2.0) * (tempA);
+        -:   50:
+    #####:   51:    return (root_N2);
+        -:   52:}
+        -:   53:// ==================================================================
+    #####:   54:double fxn_get_determinant (int N, double max_jerk, double t_interpol,
+        -:   55:                     double curr_tang_accn, double curr_frate_limit,
+        -:   56:                     double curr_frate)
+        -:   57:// ==================================================================
+        -:   58:{
+        -:   59:    double the_dtmnant;
+        -:   60:
+        -:   61:    // QUADRATIC EQUATION TO SOLVE
+        -:   62:    // The solutions of a quadratic equation ax2 + bx + c = 0 are given
+        -:   63:    // by the quadratic formula x = [-b ± sqrt(b² - 4ac)] / (2a).
+        -:   64:
+        -:   65:    // Equation (21) ==> tempA*(N*N) + tempB*N + tempC = 0
+        -:   66:
+    #####:   67:    max_jerk = 200.0;
+    #####:   68:    t_interpol = 0.001;
+    #####:   69:    double tempA = (0.5)*(max_jerk)*(t_interpol)*(t_interpol);
+    #####:   70:    double tempB = tempA - (curr_tang_accn)*(t_interpol);
+    #####:   71:    double tempC = (curr_frate_limit - curr_frate);
+        -:   72:
+        -:   73:    // printf ("TMPABC: %15.9lf %15.9lf %15.9lf ", tempA, tempB, tempC);
+        -:   74:
+    #####:   75:    the_dtmnant = (tempB * tempB) - (4.0) * (tempA) * (tempC);
+        -:   76:
+        -:   77:    // printf ("DTMNANT: %15.9lf ", the_dtmnant);
+        -:   78:
+        -:   79:
+    #####:   80:return (the_dtmnant);
+        -:   81:}
+        -:   82:
+        -:   83:// ==================================================================
+    #####:   84:int fxn_get_action_next_feedrate (int prev_frate_action, int N, double u,
+        -:   85:                              double curr_frate_limit, double curr_frate,
+        -:   86:                              double curr_tang_accn, double distS_look)
+        -:   87:// ==================================================================
+        -:   88:{
+        -:   89:  int next_frate_action; // (-1 = decrease, 0 = no change, +1 = increase)
+        -:   90:
+        -:   91:  // RUN EITHER CASE_A, CASE_B OR CASE_C
+    #####:   92:  if (curr_frate_limit > curr_frate) // CURR_FEEDRATE BELOW LIMIT
+        -:   93:    {
+        -:   94:      next_frate_action
+    #####:   95:        = proc_run_next_frate_case_A (prev_frate_action, N, u, curr_frate_limit,
+        -:   96:                                      curr_frate, curr_tang_accn, distS_look);
+        -:   97:    }
+    #####:   98:  else if (curr_frate_limit < curr_frate) // CURR_FEEDRATE ABOVE LIMIT
+        -:   99:    {
+        -:  100:      next_frate_action
+    #####:  101:        = proc_run_next_frate_case_B (prev_frate_action, N, u, curr_frate_limit,
+        -:  102:                                      curr_frate, curr_tang_accn, distS_look);
+        -:  103:    }
+        -:  104:  else // CURR_FEEDRATE EQUALS FEEDRATE LIMIT (FEEDRATE REMAINS CONSTANT)
+        -:  105:    {
+        -:  106:      next_frate_action
+    #####:  107:        = proc_run_next_frate_case_C (prev_frate_action, N, u, curr_frate_limit,
+        -:  108:                                      curr_frate, curr_tang_accn, distS_look);
+        -:  109:    }
+        -:  110:
+    #####:  111:  return (next_frate_action);
+        -:  112:}
+        -:  113:
+        -:  114:// ==================================================================
+    #####:  115:int proc_run_next_frate_case_A (int prev_frate_action, int N, double u,
+        -:  116:                            double curr_frate_limit, double curr_frate,
+        -:  117:                            double curr_tang_accn, double distS_look)
+        -:  118:// ==================================================================
+        -:  119:{
+        -:  120:  int next_frate_action_A;
+        -:  121:
+    #####:  122:  printf ("%6d INSIDE CASE A ", N);
+        -:  123:
+    #####:  124: fprintf (FHdata_01, "%6d INSIDE CASE A ", N);
+        -:  125:
+    #####:  126:  if (curr_tang_accn > 0.0)
+        -:  127:    {
+        -:  128:
+    #####:  129:      double max_jerk = 200.0;
+    #####:  130:      double t_interpol = 0.001;
+        -:  131:
+    #####:  132:      double dtmnant = fxn_get_determinant (N, max_jerk, t_interpol,
+        -:  133:                     curr_tang_accn, curr_frate_limit,
+        -:  134:                     curr_frate);
+        -:  135:
+    #####:  136:      printf ("DTM %12.9lf ", dtmnant);
+        -:  137:
+    #####:  138:    if (dtmnant > 0.0)
+        -:  139:       {
+        -:  140:
+    #####:  141:           double root_N1 = fxn_get_root_N1 (N, max_jerk, t_interpol,
+        -:  142:                        curr_tang_accn, curr_frate_limit,
+        -:  143:                        curr_frate);
+        -:  144:
+    #####:  145:           double root_N2 = fxn_get_root_N2 (N, max_jerk, t_interpol,
+        -:  146:                        curr_tang_accn, curr_frate_limit,
+        -:  147:                        curr_frate);
+        -:  148:
+    #####:  149:           printf ("N1 %12.9lf ", root_N1);
+    #####:  150:           printf ("N2 %12.9lf ", root_N2);
+        -:  151:
+        -:  152:
+        -:  153:        // TEMPORARY
+        -:  154:        // where SN is the total distance that will be travelled
+        -:  155:        // in N interpolation periods.
+        -:  156:        // HA HA HA. MUST ACCUMULATE
+        -:  157:
+        -:  158:
+        -:  159:
+        -:  160:
+        -:  161:
+    #####:  162:        double SN1  = 0.5; // TEMPORARY
+    #####:  163:        double SN2  = 2.0; // TEMPORARY
+        -:  164:
+    #####:  165:        if (SN1 > distS_look)
+        -:  166:           {
+        -:  167:             // CASE A.1 (Feedrate up, Acceleration up)
+    #####:  168:             next_frate_action_A = +1;
+        -:  169:           }
+    #####:  170:        else if (SN2 > distS_look)
+        -:  171:           {
+        -:  172:             // CASE A.2 (Feedrate down, Acceleration down)
+    #####:  173:             next_frate_action_A = -1;
+        -:  174:           }
+        -:  175:        else
+        -:  176:           {
+        -:  177:             // CASE A.1 (Feedrate up, Acceleration up)
+    #####:  178:             next_frate_action_A = +1;
+        -:  179:           }
+        -:  180:
+        -:  181:        }
+        -:  182:    else
+        -:  183:       {
+        -:  184:         // CASE A.1 (Feedrate up, Acceleration up)
+    #####:  185:         next_frate_action_A = +1;
+        -:  186:       }
+        -:  187:
+        -:  188:    }
+    #####:  189:  else if (curr_tang_accn < 0.0)
+        -:  190:    {
+        -:  191:      // CASE A.3 (Feedrate up, Acceleration up)
+    #####:  192:      next_frate_action_A = +1;
+        -:  193:    }
+        -:  194:  else
+        -:  195:    {
+        -:  196:      // CASE A.4 (Feedrate up, Acceleration up)
+    #####:  197:      next_frate_action_A = +1;
+        -:  198:    }
+        -:  199:
+        -:  200:
+        -:  201:  // TESTING ONLY
+    #####:  202:  next_frate_action_A = random_integer(-1 , 2);
+        -:  203:
+        -:  204:  // TEMPORARY
+        -:  205:  // next_frate_action_A = +1;
+        -:  206:
+    #####:  207:    return (next_frate_action_A);
+        -:  208:}
+        -:  209:
+        -:  210:// ==================================================================
+    #####:  211:int proc_run_next_frate_case_B (int prev_frate_action, int N, double u,
+        -:  212:                            double curr_frate_limit, double curr_frate,
+        -:  213:                            double curr_tang_accn, double distS_look)
+        -:  214:// ==================================================================
+        -:  215:{
+        -:  216:int next_frate_action_B;
+        -:  217:
+    #####:  218:     printf ("%6d INSIDE CASE B ", N);
+        -:  219:
+    #####:  220:     fprintf (FHdata_01, "%6d INSIDE CASE B ", N);
+        -:  221:
+        -:  222:     // TESTING ONLY
+    #####:  223:     next_frate_action_B = random_integer (-1, 2);
+        -:  224:
+        -:  225:
+        -:  226:    // TESTING HERE  TO FIX HERE <<<============================***********
+        -:  227:    // next_frate_action_B = -1;
+        -:  228:
+        -:  229:
+    #####:  230:return (next_frate_action_B);
+        -:  231:}
+        -:  232:
+        -:  233:// ==================================================================
+    #####:  234:int proc_run_next_frate_case_C (int prev_frate_action, int N, double u,
+        -:  235:                            double curr_frate_limit, double curr_frate,
+        -:  236:                            double curr_tang_accn, double distS_look)
+        -:  237:// ==================================================================
+        -:  238:{
+        -:  239:  int next_frate_action_C;
+        -:  240:
+    #####:  241:  printf ("%6d INSIDE CASE C ", N);
+        -:  242:
+    #####:  243:  fprintf (FHdata_01, "%6d INSIDE CASE C ", N);
+        -:  244:
+        -:  245:  // TESTING ONLY USING RANDOM NUMBER
+        -:  246:  // next_frate_action_C = random_integer(-1 , 2);
+        -:  247:
+        -:  248:  // NO CHANGE IN FEEDRATE (MAINTAIN PREVIOUS FEEDRATE)
+    #####:  249:  next_frate_action_C = 0;
+        -:  250:
+    #####:  251:  return (next_frate_action_C);
+        -:  252:}
+        -:  253:
+        -:  254:// ==================================================================
+        -:  255:// ALHAMDULILLAH 3 TIMES
+        -:  256:// ==================================================================
