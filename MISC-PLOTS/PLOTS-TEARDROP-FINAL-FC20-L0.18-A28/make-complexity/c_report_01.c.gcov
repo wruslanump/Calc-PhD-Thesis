@@ -1,0 +1,315 @@
+        -:    0:Source:/home/wruslan/workspaces-gnat/gnatstudio-c/gnat_c_cnc-04/src/reports/c_report_01.c
+        -:    1:// File: c_report_01.c
+        -:    2:
+        -:    3:#include "c_report_01.h"
+        -:    4:
+        -:    5:// wruslan@hpelbk8570w-debian10:~$ date
+        -:    6:// Sun 08 Jan 2023 03:26:06 AM +08
+        -:    7:
+        -:    8:// =================================================================
+        2:    9:void proc_write_01_epsilon_processing_error_statistics (FILE *FHdata_02,
+        -:   10:      char* CurveType, int N,
+        -:   11:      int count_step1_ERROR_1, int count_step1_ERROR_2,
+        -:   12:      int count_step2_ERROR_1, int count_step2_ERROR_2,
+        -:   13:      int count_step2_ERROR_3, int count_step2_ERROR_4) 
+        -:   14:// =================================================================
+        -:   15:{
+        -:   16:
+        2:   17:printf ("\n");  
+        2:   18:printf ("%s (1) EPSILON PROCESSING ERRORS \n", CurveType);
+        2:   19:printf ("%s STEP 1 ERRORS \n", CurveType);
+        2:   20:printf ("%s count_step1_ERROR_1 = %10d \n", CurveType, count_step1_ERROR_1);
+        2:   21:printf ("%s count_step1_ERROR_2 = %10d \n", CurveType, count_step1_ERROR_2);
+        2:   22:printf ("%s STEP 2 ERRORS \n", CurveType);
+        2:   23:printf ("%s count_step2_ERROR_1 = %10d \n", CurveType, count_step2_ERROR_1);
+        2:   24:printf ("%s count_step2_ERROR_2 = %10d \n", CurveType, count_step2_ERROR_2);
+        2:   25:printf ("%s count_step2_ERROR_3 = %10d \n", CurveType, count_step2_ERROR_3);
+        2:   26:printf ("%s count_step2_ERROR_4 = %10d \n", CurveType, count_step2_ERROR_4);
+        2:   27:printf("\n");
+        -:   28:
+        2:   29:fprintf (FHdata_02, "\n");
+        2:   30:fprintf (FHdata_02, "%s (1) EPSILON PROCESSING ERRORS \n", CurveType);
+        2:   31:fprintf (FHdata_02, "%s STEP 1 ERRORS \n", CurveType);
+        2:   32:fprintf (FHdata_02, "%s count_step1_ERROR_1 = %10d \n", CurveType, count_step1_ERROR_1);
+        2:   33:fprintf (FHdata_02, "%s count_step1_ERROR_2 = %10d \n", CurveType, count_step1_ERROR_2);
+        2:   34:fprintf (FHdata_02, "%s STEP 2 ERRORS \n", CurveType);
+        2:   35:fprintf (FHdata_02, "%s count_step2_ERROR_1 = %10d \n", CurveType, count_step2_ERROR_1);
+        2:   36:fprintf (FHdata_02, "%s count_step2_ERROR_2 = %10d \n", CurveType, count_step2_ERROR_2);
+        2:   37:fprintf (FHdata_02, "%s count_step2_ERROR_3 = %10d \n", CurveType, count_step2_ERROR_3);
+        2:   38:fprintf (FHdata_02, "%s count_step2_ERROR_4 = %10d \n", CurveType, count_step2_ERROR_4);
+        2:   39:fprintf (FHdata_02, "\n");
+        -:   40:
+        2:   41:}
+        -:   42:// =================================================================
+        2:   43:void proc_write_02_epsilon_count_range_value_statistics (FILE* FHdata_02,
+        -:   44:      char* CurveType, int N,
+        -:   45:      int cnt_eps_above_10E_6, double pcnt_above,
+        -:   46:      int cnt_eps_betwn_10E_7_to_10E_6, double pcnt_10E_7,
+        -:   47:      int cnt_eps_betwn_10E_8_to_10E_7, double pcnt_10E_8,
+        -:   48:      int cnt_eps_betwn_10E_9_to_10E_8, double pcnt_10E_9,
+        -:   49:      int cnt_eps_betwn_10E_10_to_10E_9, double pcnt_10E_10,
+        -:   50:      int cnt_eps_below_10E_10, double pcnt_below,
+        -:   51:      int cnt_eps_total_points, double pcnt_total )
+        -:   52:// =================================================================
+        -:   53:{
+        -:   54:
+        -:   55:  
+        2:   56:  printf ("%s (2) EPSILON COUNT RANGE VALUE STATISTICS \n", CurveType);
+        2:   57:  printf ("%s cnt_eps_above_10E_6             = %10d  (%lf %%) \n", CurveType, cnt_eps_above_10E_6, pcnt_above);
+        2:   58:  printf ("%s cnt_eps_betwn_10E_7_upto_10E_6  = %10d  (%lf %%) \n", CurveType, cnt_eps_betwn_10E_7_to_10E_6, pcnt_10E_7);
+        2:   59:  printf ("%s cnt_eps_betwn_10E_8_upto_10E_7  = %10d  (%lf %%) \n", CurveType, cnt_eps_betwn_10E_8_to_10E_7, pcnt_10E_8);
+        2:   60:  printf ("%s cnt_eps_betwn_10E_9_upto_10E_8  = %10d  (%lf %%) \n", CurveType, cnt_eps_betwn_10E_9_to_10E_8, pcnt_10E_9);
+        2:   61:  printf ("%s cnt_eps_betwn_10E_10_upto_10E_9 = %10d  (%lf %%) \n", CurveType, cnt_eps_betwn_10E_10_to_10E_9, pcnt_10E_10);
+        2:   62:  printf ("%s cnt_eps_below_10E_10            = %10d  (%lf %%) \n", CurveType, cnt_eps_below_10E_10, pcnt_below);
+        2:   63:  printf ("%s cnt_eps_total_points processed  = %10d  (%lf %%) \n", CurveType, cnt_eps_total_points, pcnt_total);
+        2:   64:  printf ("\n");
+        -:   65:
+        2:   66:  fprintf (FHdata_02, "%s (2) EPSILON COUNT RANGE VALUE STATISTICS \n", CurveType);
+        2:   67:  fprintf (FHdata_02, "%s cnt_eps_above_10E_6             = %10d  (%lf %%) \n", CurveType, cnt_eps_above_10E_6, pcnt_above);
+        2:   68:  fprintf (FHdata_02, "%s cnt_eps_betwn_10E_7_upto_10E_6  = %10d  (%lf %%) \n", CurveType, cnt_eps_betwn_10E_7_to_10E_6, pcnt_10E_7);
+        2:   69:  fprintf (FHdata_02, "%s cnt_eps_betwn_10E_8_upto_10E_7  = %10d  (%lf %%) \n", CurveType, cnt_eps_betwn_10E_8_to_10E_7, pcnt_10E_8);
+        2:   70:  fprintf (FHdata_02, "%s cnt_eps_betwn_10E_9_upto_10E_8  = %10d  (%lf %%) \n", CurveType, cnt_eps_betwn_10E_9_to_10E_8, pcnt_10E_9);
+        2:   71:  fprintf (FHdata_02, "%s cnt_eps_betwn_10E_10_upto_10E_9 = %10d  (%lf %%) \n", CurveType, cnt_eps_betwn_10E_10_to_10E_9, pcnt_10E_10);
+        2:   72:  fprintf (FHdata_02, "%s cnt_eps_below_10E_10            = %10d  (%lf %%) \n", CurveType, cnt_eps_below_10E_10, pcnt_below);
+        2:   73:  fprintf (FHdata_02, "%s cnt_eps_total_points processed  = %10d  (%lf %%) \n", CurveType, cnt_eps_total_points, pcnt_total);
+        2:   74:  fprintf (FHdata_02, "\n");
+        -:   75:
+        -:   76:
+        2:   77:}
+        -:   78:
+        -:   79:// =================================================================
+        2:   80:void proc_write_03_interpolated_point_statistics (FILE *FHdata_02,
+        -:   81:      char *CurveType, int N, int count_before_step1_belowtol,
+        -:   82:      double pcnt_before, int num_of_step1_processing, double pcnt_step1,
+        -:   83:      int num_of_step2_processing)
+        -:   84:// ==================================================================
+        -:   85:{
+        -:   86: 
+        2:   87:  printf ("%s (3) INTERPOLATED POINT STATISTICS \n", CurveType);
+        2:   88:  printf ("%s Count before step1, epsilon is already    below upper bound = %d ( %10.6lf  %%) \n", CurveType, count_before_step1_belowtol, pcnt_before);
+        2:   89:  printf ("%s Count during step1, pushdown epsilon to   below upper bound = %d ( %10.6lf  %%) \n", CurveType, num_of_step1_processing, pcnt_step1);
+        2:   90:  printf ("%s After step1 the interpolated points count below upper bound = %d (total interpolated points) \n", CurveType, num_of_step1_processing + count_before_step1_belowtol);
+        2:   91:  printf ("%s Count during step2, pushup into range (lower , upper) bound = %d (total pushup points) \n", CurveType, num_of_step2_processing);
+        2:   92:  printf ("\n");
+        -:   93:
+        2:   94:  fprintf (FHdata_02, "%s (3) INTERPOLATED POINT STATISTICS \n", CurveType);
+        2:   95:  fprintf (FHdata_02, "%s Count before step1, epsilon is already    below upper bound = %d ( %10.6lf  %%) \n", CurveType, count_before_step1_belowtol, pcnt_before);
+        2:   96:  fprintf (FHdata_02, "%s Count during step1, pushdown epsilon to   below upper bound = %d ( %10.6lf  %%) \n", CurveType, num_of_step1_processing, pcnt_step1);
+        2:   97:  fprintf (FHdata_02, "%s After step1 the interpolated points count below upper bound = %d (total interpolated points) \n", CurveType, num_of_step1_processing + count_before_step1_belowtol);
+        2:   98:  fprintf (FHdata_02, "%s Count during step2, pushup into range (lower , upper) bound = %d (total pushup points) \n", CurveType, num_of_step2_processing);
+        2:   99:  fprintf (FHdata_02, "\n");
+        -:  100:
+        2:  101:}
+        -:  102:
+        -:  103:// =================================================================
+        2:  104:void proc_write_04_adjust_currfrate_to_currfrate_limit (FILE* FHdata_02,
+        -:  105:      char *CurveType, int N, 
+        -:  106:      int count_rising_s_curve_points, double pcnt_rising,
+        -:  107:      int count_frate_islower_fratelimit, double pcnt_lower,
+        -:  108:      int count_frate_isequal_fratelimit, double pcnt_equal,
+        -:  109:      int count_frate_ishigher_fratelimit, double pcnt_higher,
+        -:  110:      int count_falling_s_curve_points, double pcnt_falling,
+        -:  111:      double sum_percentages )
+        -:  112:// ==================================================================
+        -:  113:{
+        -:  114:
+        -:  115:// WRITE TO SCREEN  
+        2:  116:printf ("%s (4) ADJUST (INCR/DECR) CURR_FRATE TO CALCULATED CURR_FRATE_LIMIT \n", CurveType);
+        2:  117:printf ("%s Count_rising_s_curve_points     = %d \t(%12.6lf %%) \n", CurveType, count_rising_s_curve_points, pcnt_rising );
+        2:  118:printf ("%s Count_frate_islower_fratelimit  = %d \t(%12.6lf %%) \n", CurveType, count_frate_islower_fratelimit, pcnt_lower);
+        2:  119:printf ("%s Count_frate_isequal_fratelimit  = %d \t(%12.6lf %%) \n", CurveType, count_frate_isequal_fratelimit, pcnt_equal);
+        2:  120:printf ("%s Count_frate_ishigher_fratelimit = %d \t(%12.6lf %%) \n", CurveType, count_frate_ishigher_fratelimit, pcnt_higher);
+        2:  121:printf ("%s Count_falling_s_curve_points    = %d \t(%12.6lf %%) \n", CurveType, count_falling_s_curve_points, pcnt_falling);
+        2:  122:printf ("%s Total interpolated points       = %d \t(%12.6lf %%) \n", CurveType, N, sum_percentages);
+        2:  123:printf("\n");
+        -:  124:
+        -:  125:// WRITE TO FILE
+        2:  126:fprintf (FHdata_02,"%s (4) ADJUST (INCR/DECR) CURR_FRATE TO CALCULATED CURR_FRATE_LIMIT \n", CurveType);
+        2:  127:fprintf (FHdata_02, "%s Count_rising_s_curve_points     = %d \t(%12.6lf %%) \n", CurveType, count_rising_s_curve_points, pcnt_rising );
+        2:  128:fprintf (FHdata_02, "%s Count_frate_islower_fratelimit  = %d \t(%12.6lf %%) \n", CurveType, count_frate_islower_fratelimit, pcnt_lower);
+        2:  129:fprintf (FHdata_02, "%s Count_frate_isequal_fratelimit  = %d \t(%12.6lf %%) \n", CurveType, count_frate_isequal_fratelimit, pcnt_equal);
+        2:  130:fprintf (FHdata_02, "%s Count_frate_ishigher_fratelimit = %d \t(%12.6lf %%) \n", CurveType, count_frate_ishigher_fratelimit, pcnt_higher);
+        2:  131:fprintf (FHdata_02, "%s Count_falling_s_curve_points    = %d \t(%12.6lf %%) \n", CurveType, count_falling_s_curve_points, pcnt_falling);
+        2:  132:fprintf (FHdata_02, "%s Total interpolated points       = %d \t(%12.6lf %%) \n", CurveType, N, sum_percentages);
+        2:  133:fprintf (FHdata_02, "\n");
+        -:  134: 
+        -:  135:
+        2:  136:}
+        -:  137:
+        -:  138:// =================================================================
+        2:  139:void proc_write_05_write_epsilon_chord_error_statistics (FILE* FHdata_02,
+        -:  140:      char *CurveType, int N, 
+        -:  141:      double min_eps, double avg_eps, double max_eps, double sum_eps,
+        -:  142:      int line_mineps, double u_mineps, double x_mineps, double y_mineps,
+        -:  143:      int line_maxeps, double u_maxeps, double x_maxeps, double y_maxeps )
+        -:  144:      
+        -:  145:// ==================================================================
+        -:  146:{
+        -:  147:
+        -:  148:// WRITE TO SCREEN  
+        -:  149:
+        2:  150:printf ("%s (5) CHORD ERROR (CURR_EPS) VARIABLE VALUE STATISTICS \n", CurveType);
+        2:  151:printf ("%s eps (min_eps, avg_eps, max_eps, sum_eps) = ( %.6e, %.6e, %.6e %.6e )\n", CurveType, min_eps, avg_eps, max_eps, sum_eps);
+        2:  152:printf ("%s At min_eps (line_mineps, u_mineps, x_mineps, y_mineps) = ( %6d %.6e %.6e %.6e )\n", CurveType, line_mineps, u_mineps, x_mineps, y_mineps);
+        2:  153:printf ("%s At max_eps (line_maxeps, u_maxeps, x_maxeps, y_maxeps) = ( %6d %.6e %.6e %.6e )\n", CurveType, line_maxeps, u_maxeps, x_maxeps, y_maxeps);
+        2:  154:printf("\n");
+        -:  155:
+        -:  156:// WRITE TO FILE  
+        -:  157:
+        2:  158:fprintf (FHdata_02, "%s (5) CHORD ERROR (CURR_EPS) VARIABLE VALUE STATISTICS \n", CurveType);
+        2:  159:fprintf (FHdata_02, "%s eps (min_eps, avg_eps, max_eps, sum_eps) = ( %.6e, %.6e, %.6e %.6e )\n", CurveType, min_eps, avg_eps, max_eps, sum_eps);
+        2:  160:fprintf (FHdata_02, "%s At min_eps (line_mineps, u_mineps, x_mineps, y_mineps) = ( %6d %.6e %.6e %.6e )\n", CurveType, line_mineps, u_mineps, x_mineps, y_mineps);
+        2:  161:fprintf (FHdata_02, "%s At max_eps (line_maxeps, u_maxeps, x_maxeps, y_maxeps) = ( %6d %.6e %.6e %.6e )\n", CurveType, line_maxeps, u_maxeps, x_maxeps, y_maxeps);
+        2:  162:fprintf (FHdata_02, "\n");
+        -:  163:
+        -:  164:
+        2:  165:}
+        -:  166:
+        -:  167:// ==================================================================
+        2:  168:void proc_write_06_write_radius_of_curvature_rho_statistics (FILE* FHdata_02,
+        -:  169:      char *CurveType, int N, 
+        -:  170:      double min_rho, double avg_rho, double max_rho, double sum_rho,
+        -:  171:      int line_minrho, double u_minrho, double x_minrho, double y_minrho,
+        -:  172:      int line_maxrho, double u_maxrho, double x_maxrho, double y_maxrho )
+        -:  173:// ==================================================================
+        -:  174:{
+        -:  175:
+        -:  176:// WRITE TO SCREEN
+        -:  177:
+        2:  178:printf ("%s (6) RADIUS OF CURVATURE (CURR_RHO) VARIABLE VALUE STATISTICS \n", CurveType);
+        2:  179:printf ("%s rho (min, avg, max, sum) = ( %.6e, %.6e, %.6e %.6e )\n", CurveType, min_rho, avg_rho, max_rho, sum_rho);
+        2:  180:printf ("%s At min_rho (line_minrho, u_minrho, x_minrho, y_minrho) = ( %6d %.6e %.6e %.6e )\n", CurveType, line_minrho, u_minrho, x_minrho, y_minrho);
+        2:  181:printf ("%s At max_rho (line_maxrho, u_maxrho, x_maxrho, y_maxrho) = ( %6d %.6e %.6e %.6e )\n", CurveType, line_maxrho, u_maxrho, x_maxrho, y_maxrho);
+        2:  182:printf("\n");
+        -:  183:
+        -:  184:// WRITE TO FILE
+        -:  185:
+        2:  186:fprintf (FHdata_02, "%s (6) RADIUS OF CURVATURE (CURR_RHO) VARIABLE VALUE STATISTICS \n", CurveType);
+        2:  187:fprintf (FHdata_02, "%s rho (min, avg, max, sum) = ( %.6e, %.6e, %.6e %.6e )\n", CurveType, min_rho, avg_rho, max_rho, sum_rho);
+        2:  188:fprintf (FHdata_02, "%s At min_rho (line_minrho, u_minrho, x_minrho, y_minrho) = ( %6d %.6e %.6e %.6e )\n", CurveType, line_minrho, u_minrho, x_minrho, y_minrho);
+        2:  189:fprintf (FHdata_02, "%s At max_rho (line_maxrho, u_maxrho, x_maxrho, y_maxrho) = ( %6d %.6e %.6e %.6e )\n", CurveType, line_maxrho, u_maxrho, x_maxrho, y_maxrho);
+        2:  190:fprintf (FHdata_02, "\n");
+        -:  191:
+        2:  192:}
+        -:  193:// ==================================================================
+        2:  194:void proc_write_07_write_tangential_acceleration_statistics (FILE* FHdata_02,
+        -:  195:      char *CurveType, int N, 
+        -:  196:      double min_tangaccn, double avg_tangaccn, double max_tangaccn, double sum_tangaccn,
+        -:  197:      int line_mintangaccn, double u_mintangaccn, double x_mintangaccn, double y_mintangaccn, 
+        -:  198:      int line_maxtangaccn, double u_maxtangaccn, double x_maxtangaccn, double y_maxtangaccn )
+        -:  199:      
+        -:  200:// ==================================================================
+        -:  201:{
+        -:  202:
+        -:  203:// WRITE TO SCREEN
+        -:  204:
+        2:  205:printf ("%s (7) TANGENTIAL ACCELERATION (CURR_TANG_ACCN) VARIABLE VALUE STATISTICS \n", CurveType);
+        2:  206:printf ("%s tangaccn (min, avg, max, sum) = ( %.6e, %.6e, %.6e %.6e )\n", CurveType, min_tangaccn, avg_tangaccn, max_tangaccn, sum_tangaccn);
+        2:  207:printf ("%s At min_tangaccn (line_mintangaccn, u_mintangaccn, x_mintangaccn, y_mintangaccn) = ( %6d %.6e %.6e %.6e )\n", CurveType, line_mintangaccn, u_mintangaccn, x_maxtangaccn, y_mintangaccn);
+        2:  208:printf ("%s At max-tangaccn (line_maxtangaccn, u_maxtangaccn, x_maxtangaccn, y_maxtangaccn) = ( %6d %.6e %.6e %.6e )\n", CurveType, line_maxtangaccn, u_maxtangaccn, y_maxtangaccn, y_maxtangaccn);
+        2:  209:printf ("\n");
+        -:  210:
+        -:  211:// WRITE TO FILE
+        -:  212:
+        2:  213:fprintf (FHdata_02, "%s (7) TANGENTIAL ACCELERATION (CURR_TANG_ACCN) VARIABLE VALUE STATISTICS \n", CurveType);
+        2:  214:fprintf (FHdata_02, "%s tangaccn (min, avg, max, sum) = ( %.6e, %.6e, %.6e %.6e )\n", CurveType, min_tangaccn, avg_tangaccn, max_tangaccn, sum_tangaccn);
+        2:  215:fprintf (FHdata_02, "%s At min_tangaccn (line_mintangaccn, u_mintangaccn, x_mintangaccn, y_mintangaccn) = ( %6d %.6e %.6e %.6e )\n", CurveType, line_mintangaccn, u_mintangaccn, x_mintangaccn, y_mintangaccn);
+        2:  216:fprintf (FHdata_02, "%s At max_tangaccn (line_maxtangaccn, u_maxtangaccn, x_maxtangaccn, y_maxtangaccn) = ( %6d %.6e %.6e %.6e )\n", CurveType, line_maxtangaccn, u_maxtangaccn, x_maxtangaccn, y_maxtangaccn);
+        2:  217:fprintf (FHdata_02, "\n");
+        -:  218:
+        2:  219:}
+        -:  220:
+        -:  221:// ==================================================================
+        2:  222:void proc_write_08_write_feedrate_statistics (FILE* FHdata_02,
+        -:  223:      char *CurveType, int N, 
+        -:  224:      double min_frate, double avg_frate, double max_frate, double sum_frate,
+        -:  225:      int line_minfrate, double u_minfrate, double x_minfrate, double y_minfrate, 
+        -:  226:      int line_maxfrate, double u_maxfrate, double x_maxfrate, double y_maxfrate )
+        -:  227:// ==================================================================
+        -:  228:{
+        -:  229:
+        -:  230:// WRITE TO SCREEN
+        -:  231:
+        2:  232:printf ("%s (8) FEEDRATE (CURR_FRATE) VARIABLE VALUE STATISTICS \n", CurveType);
+        2:  233:printf ("%s frate (min, avg, max, sum) = ( %.6e, %.6e, %.6e %.6e )\n", CurveType, min_frate, avg_frate, max_frate, sum_frate);
+        2:  234:printf ("%s At min_frate (line_minfrate, u_minfrate, x_minfrate, y_minfrate) = ( %6d %.6e %.6e %.6e )\n", CurveType, line_minfrate, u_minfrate, x_minfrate, y_minfrate);
+        2:  235:printf ("%s At max_frate (line_maxfrate, u_maxfrate, x_maxfrate, y_maxfrate) = ( %6d %.6e %.6e %.6e )\n", CurveType, line_maxfrate, u_maxfrate, x_maxfrate, y_maxfrate);
+        2:  236:printf ("\n");
+        -:  237:
+        -:  238:// WRITE TO FILE
+        -:  239:
+        2:  240:fprintf (FHdata_02, "%s (8) FEEDRATE (CURR_FRATE) VARIABLE VALUE STATISTICS \n", CurveType);
+        2:  241:fprintf (FHdata_02, "%s frate (min, avg, max, sum) = ( %.6e, %.6e, %.6e %.6e )\n", CurveType, min_frate, avg_frate, max_frate, sum_frate);
+        2:  242:fprintf (FHdata_02, "%s At min_frate (line_minfrate, u_minfrate, x_minfrate, y_minfrate) = ( %6d %.6e %.6e %.6e )\n", CurveType, line_minfrate, u_minfrate, x_minfrate, y_minfrate);
+        2:  243:fprintf (FHdata_02, "%s At max_frate (line_maxfrate, u_maxfrate, x_maxfrate, y_maxfrate) = ( %6d %.6e %.6e %.6e )\n", CurveType, line_maxfrate, u_maxfrate, x_maxfrate, y_maxfrate);
+        2:  244:fprintf (FHdata_02, "\n");
+        -:  245:
+        2:  246:}
+        -:  247:
+        -:  248:// ===================================================================
+        -:  249:void
+        2:  250:proc_write_09_write_algorithm_efficiency_statistics (
+        -:  251:  FILE *FHdata_02, char *CurveType, int N, double sum_chordlength,
+        -:  252:  double sum_eps, double sum_arc_length, double sum_arc_theta,
+        -:  253:  double sum_arc_area, double diff_arc_chord_length, double pcnt_diff_arc_chord_length )
+        -:  254:
+        -:  255:  {
+        -:  256:
+        -:  257:// WRITE TO SCREEN
+        2:  258:printf ("%s (9) ALGORITHM EXECUTION STATISTICS \n", CurveType);
+        2:  259:printf ("\n");
+        2:  260:printf ("%s TOTAL-INTERPOLATED-POINTS          =  %d    \n", CurveType, N);
+        2:  261:printf ("%s SUM-CHORD-ERROR-(mm)               =  %.12e \n", CurveType, sum_eps);
+        2:  262:printf ("%s SUM-CHORD-ERROR/TOT-INTERPOL-PNTS  =  %.12e \n", CurveType, sum_eps/(N-1));
+        2:  263:printf ("\n");
+        2:  264:printf ("%s SUM-ARC-LENGTH-(mm)                =  %.12e \n", CurveType, sum_arc_length);
+        2:  265:printf ("%s SUM-CHORD-LENGTH-(mm)              =  %.12e \n", CurveType, sum_chordlength);
+        2:  266:printf ("%s DIFF-ARC-LENGTH-CHORD-LENGTH-(mm)  =  %.12e \n", CurveType, diff_arc_chord_length);
+        2:  267:printf ("%s PCNT-DIFF-ARC-CHORD-LENGTH         =  %.12e \n", CurveType, pcnt_diff_arc_chord_length);
+        2:  268:printf ("\n");
+        2:  269:printf ("%s SUM-CHORD-ERROR/SUM-CHORD-LENGTH   =  %.12e \n", CurveType, sum_eps/sum_chordlength);
+        2:  270:printf ("\n");
+        2:  271:printf ("%s SUM-ARC-THETA-(rad)                =  %.12e \n", CurveType, sum_arc_theta);
+        2:  272:printf ("%s SUM-ARC-AREA-(mm2)                 =  %.12e \n", CurveType, sum_arc_area);
+        2:  273:printf ("\n");
+        2:  274:printf ("%s SUM-ARC-AREA/SUM-CHORD-LENGTH      =  %.12e \n", CurveType, sum_eps/sum_chordlength);
+        2:  275:printf ("\n");
+        2:  276:printf ("%s AVG-CHORD-ERROR-(mm)               =  %.12e \n", CurveType, sum_eps/(N-1));
+        2:  277:printf ("%s AVG-ARC-LENGTH-(mm)                =  %.12e \n", CurveType, sum_arc_length/(N-1));
+        2:  278:printf ("%s AVG-CHORD-LENGTH-(mm)              =  %.12e \n", CurveType, sum_chordlength/(N-1));
+        2:  279:printf ("%s AVG-ARC-THETA-(rad)                =  %.12e \n", CurveType, sum_arc_theta/(N-1));
+        2:  280:printf ("%s AVG-ARC-AREA-(mm2)                 =  %.12e \n", CurveType, sum_arc_area/(N-1));
+        2:  281:printf ("\n");
+        -:  282:  
+        -:  283:// WRITE TO FILE
+        2:  284:fprintf (FHdata_02, "%s (9) ALGORITHM EXECUTION STATISTICS \n", CurveType);
+        2:  285:fprintf (FHdata_02, "\n");
+        2:  286:fprintf (FHdata_02, "%s TOTAL-INTERPOLATED-POINTS          =  %d    \n", CurveType, N);
+        2:  287:fprintf (FHdata_02, "%s SUM-CHORD-ERROR-(mm)               =  %.12e \n", CurveType, sum_eps);
+        2:  288:fprintf (FHdata_02, "%s SUM-CHORD-ERROR/TOT-INTERPOL-PNTS  =  %.12e \n", CurveType, sum_eps/(N-1));
+        2:  289:fprintf (FHdata_02, "\n");
+        2:  290:fprintf (FHdata_02, "%s SUM-ARC-LENGTH-(mm)                =  %.12e \n", CurveType, sum_arc_length);
+        2:  291:fprintf (FHdata_02, "%s SUM-CHORD-LENGTH-(mm)              =  %.12e \n", CurveType, sum_chordlength);
+        2:  292:fprintf (FHdata_02, "%s DIFF-ARC-LENGTH-CHORD-LENGTH-(mm)  =  %.12e \n", CurveType, diff_arc_chord_length);
+        2:  293:fprintf (FHdata_02, "%s PCNT-DIFF-ARC-CHORD-LENGTH         =  %.12e \n", CurveType, pcnt_diff_arc_chord_length);
+        2:  294:fprintf (FHdata_02, "\n");
+        2:  295:fprintf (FHdata_02, "%s SUM-CHORD-ERROR/SUM-CHORD-LENGTH   =  %.12e \n", CurveType, sum_eps/sum_chordlength);
+        2:  296:fprintf (FHdata_02, "\n");
+        2:  297:fprintf (FHdata_02, "%s SUM-ARC-THETA-(rad)                =  %.12e \n", CurveType, sum_arc_theta);
+        2:  298:fprintf (FHdata_02, "%s SUM-ARC-AREA-(mm2)                 =  %.12e \n", CurveType, sum_arc_area);
+        2:  299:fprintf (FHdata_02, "\n");
+        2:  300:fprintf (FHdata_02, "%s SUM-ARC-AREA/SUM-CHORD-LENGTH      =  %.12e \n", CurveType, sum_eps/sum_chordlength);
+        2:  301:fprintf (FHdata_02, "\n");
+        2:  302:fprintf (FHdata_02, "%s AVG-CHORD-ERROR-(mm)               =  %.12e \n", CurveType, sum_eps/(N-1));
+        2:  303:fprintf (FHdata_02, "%s AVG-ARC-LENGTH-(mm)                =  %.12e \n", CurveType, sum_arc_length/(N-1));
+        2:  304:fprintf (FHdata_02, "%s AVG-CHORD-LENGTH-(mm)              =  %.12e \n", CurveType, sum_chordlength/(N-1));
+        2:  305:fprintf (FHdata_02, "%s AVG-ARC-THETA-(rad)                =  %.12e \n", CurveType, sum_arc_theta/(N-1));
+        2:  306:fprintf (FHdata_02, "%s AVG-ARC-AREA-(mm2)                 =  %.12e \n", CurveType, sum_arc_area/(N-1));
+        2:  307:fprintf (FHdata_02, "\n");
+        -:  308:  
+        2:  309:}
+        -:  310:
+        -:  311:// ==================================================================
+        -:  312:// ALHAMDULILLAH 3 TIMES WRY.
+        -:  313:// ==================================================================
+        -:  314:

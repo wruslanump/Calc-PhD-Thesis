@@ -1,0 +1,24 @@
+(base) :~/opt/rt-tests-2.4/Histogram$ sudo ./sudo-run-mklatencyplot.sh
+[sudo] password for wruslan: 
+# Bismillah 3 times WRY
+# 
+     sudo ./rt-tests-2.4/cyclictest -l10000000 -m -Sp90 -i200 -h400 -q >histo-output 
+     Running 10,000,000 cycles (30 minutes). Please wait ...
+# Alhamdulillah 3 times WRY
+
+(base) wruslan@HPLaptop-01-debian10:~/opt/rt-tests-2.4/Histogram$ 
+
+
+===========================================================
+wruslan@HP-Laptop-01-debian10
+Run cyclictest version 2.4 x86_64 
+# Total:               10,000,000 latency cycles  (approx. 30 minutes)
+# Cores:               CPU0  CPU1  CPU2  CPU3  CPU4  CPU5  CPU6  CPU7
+# Min Latencies (us):  00002 00002 00002 00002 00002 00002 00002 00002
+# Avg Latencies (us):  00002 00002 00002 00002 00002 00002 00002 00002
+# Max Latencies (us):  00021 00020 00031 00042 00016 00020 00020 00019
+# Histogram Overflows: 00000 00000 00000 00000 00000 00000 00000 00000
+
+===========================================================
+
+

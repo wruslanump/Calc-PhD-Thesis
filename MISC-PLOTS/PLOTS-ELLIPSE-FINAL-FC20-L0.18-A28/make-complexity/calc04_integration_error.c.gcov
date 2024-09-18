@@ -1,0 +1,86 @@
+        -:    0:Source:/home/wruslan/workspaces-gnat/gnatstudio-c/gnat_c_cnc-04/src/algo/calc04_integration_error.c
+        -:    1:// FILE: calc04_integration_error.c
+        -:    2:
+        -:    3:#include <stdio.h>
+        -:    4:
+        -:    5:// INCLUDED FOR THE FUNCTION DEFINITIONS
+        -:    6:#include "curves/c_accelern.h"
+        -:    7:#include "curves/c_position.h"
+        -:    8:#include "curves/c_velocity.h"
+        -:    9:#include "common/c_min_max_int_dbl_in_array.h"
+        -:   10:#include "common/c_random_int_dbl.h"
+        -:   11:
+        -:   12:
+        -:   13:// ==================================================================
+        2:   14:void proc_writeheader_data_calc_intgr_error (FILE* FHdata_calc_intgr_error)
+        -:   15:// ==================================================================
+        -:   16:{
+        -:   17:
+        2:   18:  fprintf (FHdata_calc_intgr_error,
+        -:   19:           "# DTStamp_FHdata_calc_intgr_error (integration error) %s \n",
+        -:   20:           get_datetime_stamp ());
+        -:   21:
+        2:   22:fprintf (FHdata_calc_intgr_error,
+        -:   23:           "# rtime[1], u[2], u_next[3], pos_x[4], pos_y[5], pos_r[6], "
+        -:   24:           "deltaS[7], chordlength[8], diff_length[9], sum_deltaS[10], "
+        -:   25:           "sum_chordlength[11], diff_sum[12], eps[13], rho[14]\n");
+        -:   26:
+        -:   27:
+        2:   28:}
+        -:   29:
+        -:   30:// ==================================================================
+        2:   31:void proc_writefooter_data_calc_intgr_error (FILE* FHdata_calc_intgr_error)
+        -:   32:// ==================================================================
+        -:   33:{
+        -:   34:
+        2:   35:  fprintf (FHdata_calc_intgr_error,
+        -:   36:           "# rtime[1], u[2], u_next[3], pos_x[4], pos_y[5], pos_r[6] "
+        -:   37:           "deltaS[7], chordlength[8], diff_length[9], sum_deltaS[10], "
+        -:   38:           "sum_chordlength[11], diff_sum[12], eps[13], rho[14]\n");
+        -:   39:
+        2:   40:  fprintf (FHdata_calc_intgr_error,
+        -:   41:           "# DTStamp_FHdata_calc_intgr_error (integration error) %s \n",
+        -:   42:           get_datetime_stamp ());
+        -:   43:
+        2:   44:}
+        -:   45:
+        -:   46:// ==================================================================
+    22594:   47:void proc_write_calc_intgr_error (FILE *FHdata_calc_intgr_error,
+        -:   48:      double next_arc_length, double sum_arc_length,
+        -:   49:      double next_arc_theta, double sum_arc_theta,
+        -:   50:      double next_arc_area, double sum_arc_area,                          
+        -:   51:      double rtime, double u, double u_next, 
+        -:   52:      double sum_deltaS, double sum_chordlength)
+        -:   53:
+        -:   54:// ==================================================================
+        -:   55:{
+        -:   56:
+    22594:   57:  double the_x = fxn_cpos_x (u);
+    22594:   58:  double the_y = fxn_cpos_y (u);
+    22594:   59:  double the_r = fxn_cpos_r (u);
+        -:   60:  
+    22594:   61:  double deltaS = fxn_calc_deltaS_use_rho_eps (u, u_next);
+    22594:   62:  double chordlength = fxn_calc_chordlength_use_paramcurve(u, u_next);
+    22594:   63:  double diff_length = deltaS - chordlength;
+    22594:   64:  double the_sum_deltaS = sum_deltaS + deltaS;
+    22594:   65:  double the_sum_chordlength = sum_chordlength + chordlength;
+    22594:   66:  double diff_sum = sum_deltaS - sum_chordlength;
+    22594:   67:  double the_eps = fxn_cpos_epsilon (u, u_next);
+    22594:   68:  double the_rho = fxn_cpos_rho(u);
+        -:   69:
+        -:   70:
+    22594:   71:  fprintf (FHdata_calc_intgr_error,
+        -:   72:           " %.12e, %.12e, %.12e, %.12e, %.12e, %.12e  \t"
+        -:   73:           " %5.3lf %12.9lf %12.9lf %9.6lf %9.6lf %9.6lf %12.9lf %12.9lf "
+        -:   74:           " %12.9lf %12.9lf %12.9lf %12.9lf %15.12lf %12.6lf \n",
+        -:   75:           next_arc_length, sum_arc_length, next_arc_theta, sum_arc_theta, next_arc_area, sum_arc_area,
+        -:   76:           rtime, u, u_next, the_x, the_y, the_r, deltaS, chordlength,
+        -:   77:           diff_length, sum_deltaS, sum_chordlength,diff_sum,the_eps,the_rho);
+        -:   78:
+    22594:   79:}
+        -:   80:
+        -:   81:
+        -:   82:// ==================================================================
+        -:   83:// ALHAMDULILLAH 3 TIMES.
+        -:   84:// ==================================================================
+        -:   85:

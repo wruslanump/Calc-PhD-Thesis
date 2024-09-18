@@ -1,0 +1,1676 @@
+        -:    0:Source:/home/wruslan/workspaces-gnat/gnatstudio-c/gnat_c_cnc-04/src/main_c_cnc_gnat.c
+        -:    1:// -- File	: nain_c_cnc_gnat.c
+        -:    2:// -- Date	: Wed 15 Jun 2022 02:09:23 PM +08
+        -:    3:// -- Date : Sun 08 Jan 2023 03:26:06 AM +08 COMPLETED ALGORITHM ver 15
+        -:    4:// -- Env	: Linux hpelbk8570w-debian10 4.19.0-23-rt-amd64
+        -:    5:// -- #1 SMP PREEMPT RT Debian 4.19.269-1 (2022-12-20) x86_64 GNU/Linux
+        -:    6:// -- Debian GNU/Linux 10 (buster)
+        -:    7:// -- Author: WRY wruslandr@gmail.com
+        -:    8://
+        -:    9:// GNAT Studio Community 2021 (20210423) hosted on x86_64-pc-linux-gnu
+        -:   10:// GNAT 9.3.0 targeting x86_64-linux-gnu
+        -:   11:// SPARK Community 2021 (20210519)
+        -:   12:// INSIDE GNAT STUDIO
+        -:   13:// STEP 1. ON TOP MENU, Build => Clean => Clean All
+        -:   14:// STEP 2. ON TOP MENU, Build => Project => Build All
+        -:   15:// STEP 3. ON TOP MENU, Build => Run => "Select executable"
+        -:   16:// ==================================================================
+        -:   17:
+        -:   18:// CHANGE THESE FOR EVERY RUN.
+        -:   19:// NAME OF PARAMETRIC CURVE
+        -:   20:char CurveType[32] = "FC20-L0.18-A28-ELLIPSE";
+        -:   21:char CurveTypeDesc[80] = "ELLIPSE FC=20 LAMDA=0.18 ALGO=28 SKIP STEP2 RUN-STEP1";
+        -:   22:
+        -:   23:// COMMENT LINE BELOW IF NOT CIRCLE
+        -:   24:// FOR VALIDATION OF CIRCUMFERENCE = sum_chord_length
+        -:   25:// AND TOTAL ANGLE 2PI RADIANS     = sum_arc_theta
+        -:   26:// <<<<======================== NOTE
+        -:   27://
+        -:   28:#include <gcov.h>
+        -:   29:#include <sys/gmon.h>
+        -:   30:#include <sys/gmon_out.h>
+        -:   31:
+        -:   32:#include <stdio.h>    // open(), printf(), fopen(), fprintf();
+        -:   33:#include <limits.h>   // perror()
+        -:   34:#include <math.h>     // pow(), MUST COMPILE WITH LIBRARY -lm
+        -:   35:#include <pthread.h>  // MUST COMPILE WITH LIBRARY -lpthread
+        -:   36:#include <stdbool.h>  // boolean variables
+        -:   37:#include <stdlib.h>   // atoi(), system(), rand(),
+        -:   38:#include <string.h>   // strtok(), strcpy()
+        -:   39:#include <sys/time.h> // For local date-time with (microseconds)
+        -:   40:#include <time.h>     // For high-res timer clock_gettime with (nanoseconds)
+        -:   41:#include <unistd.h>   // getcwd() CWD = current working directory
+        -:   42:
+        -:   43:// ORDER OF INCLUDE LOCAL HEADERS BELOW IS CRITICAL
+        -:   44:// LATER FILES REQUIRE AND USE PREVIOUS FILES
+        -:   45:#include "common/c_dtstamp.h" // HIRES DATE-TIME STAMP
+        -:   46:#include "common/c_min_max_int_dbl_in_array.h"
+        -:   47:#include "common/c_parallel_port.h"  // FOR PC PARALLEL PORT
+        -:   48:#include "common/c_random_int_dbl.h" // RANDOM NUMBERS
+        -:   49:
+        -:   50:// INCLUDE CODES FOR FILE HANDLING
+        -:   51:#include "files/module_open_close_files.h"
+        -:   52:
+        -:   53:// INCLUDE CODES FOR PARAMETRIC CURVE
+        -:   54:#include "curves/c_accelern.h"
+        -:   55:#include "curves/c_position.h"
+        -:   56:#include "curves/c_velocity.h"
+        -:   57:
+        -:   58:// INCLUDE CODES FOR ALGORITHMS
+        -:   59:#include "algo/calc00_parametric_curve.h"
+        -:   60:#include "algo/calc01_lookahead_length.h"
+        -:   61:#include "algo/calc02_tang_accn_limit.h"
+        -:   62:#include "algo/calc03_feedrate_limit.h"
+        -:   63:#include "algo/calc04_integration_error.h"
+        -:   64:#include "algo/calc05_action_next_frate.h"
+        -:   65:#include "algo/calc06_decide_next_frate.h"
+        -:   66:#include "algo/calc07_iterate_u_next.h"
+        -:   67:#include "algo/write_ngc_code.h"
+        -:   68:
+        -:   69:// IMPLEMENTATION OF REALTIME CODES
+        -:   70:#include "realtime/preempt_rt.h"
+        -:   71:
+        -:   72:// IMPLEMENTATION OF pthread MULTI-THREADING
+        -:   73:// https://stackoverflow.com/questions/15435087/how-to-set-pthread-max-stack-size
+        -:   74:// https://stackoverflow.com/questions/4369078/relation-between-stack-limit-and-threads
+        -:   75:// A thread's stack size is fixed at the time of thread creation.
+        -:   76:// Only the main thread can dynamically grow its stack
+        -:   77:
+        -:   78:// #include "pthread/pass_data_to_pthreads.h"
+        -:   79:// #include "pthread/pthread_create_join.h"
+        -:   80:
+        -:   81:// IMPLEMENTATION OF PARALLEL PORT HARDWARE
+        -:   82:#include "parallel_pci/pci_parallel_port.h"
+        -:   83:#include "parallel_usb/usb_parallel_port.h"
+        -:   84:
+        -:   85:// Testing the use of Boost Library.
+        -:   86:#include "cpp_codes/test_libboost.hpp"
+        -:   87:
+        -:   88:#include "reports/c_report_01.h"
+        -:   89:
+        -:   90:// ==================================================================
+        -:   91:/*
+        -:   92:The problem of parametric curve interpolation can be expressed as,
+        -:   93:given the following five(5) values:
+        -:   94:
+        -:   95:(1) the parametric curve C (u) ;
+        -:   96:(2) the command feedrate F;
+        -:   97:(3) the interpolation period T;
+        -:   98:(4) the current (k-th interpolation period) motion status:
+        -:   99:    that is, feedrate frate[k] and acceleration accn[k] ;
+        -:  100:(5) the current reference point C(u[k]) .
+        -:  101:
+        -:  102:then calculate the reference point C(u[k+1]) for the next interpolation period.
+        -:  103:
+        -:  104:And the result should be subject to machine dynamics constraints
+        -:  105:and chord error tolerance [23] : The constraints comprise:
+        -:  106:
+        -:  107:(6) Axial velocities and accelerations should be limited to avoid
+        -:  108:saturating the drive;
+        -:  109:
+        -:  110:(7) The jerk should be limited to avoid the excitation of vibrations
+        -:  111:in components in the machine assembly;
+        -:  112:
+        -:  113:(8) The chord error increases with feedrate and curvature, so the
+        -:  114:feedrate should be limited to achieve high interpolation accuracy,
+        -:  115:while the productivity should be kept as high as possible.
+        -:  116:
+        -:  117:(9) The interpolator plans S-shaped feedrate profiles at the beginning
+        -:  118:and end of the parametric curve.
+        -:  119:
+        -:  120:Machine epsilon (macheps) for 64-bit double = 1.11E-16 or 2.22E-16.
+        -:  121:
+        -:  122:*/
+        -:  123:
+        -:  124:// =================================================================
+        -:  125:// (1) FIX FOR(RECURSIVE NON STOP)
+        -:  126:// EXAMPLE WHEN u NOT CHANGING 5 CONSECUTIVE OCCURANCES
+        -:  127:int u_val_constant_1 = 0;
+        -:  128:int u_val_constant_2 = 0;
+        -:  129:int u_val_constant_3 = 0;
+        -:  130:int u_val_constant_4 = 0;
+        -:  131:int u_val_constant_5 = 0;
+        -:  132:// (2) FIX FOR (RECURSIVE NON STOP)
+        -:  133:// EXAMPLE WHEN u_next = 0.000000000000000 5 CONSECUTIVE OCCURANCES
+        -:  134:int u_next_zero_1 = 0;
+        -:  135:int u_next_zero_2 = 0;
+        -:  136:int u_next_zero_3 = 0;
+        -:  137:int u_next_zero_4 = 0;
+        -:  138:int u_next_zero_5 = 0;
+        -:  139:
+        -:  140:// (3) FIX FOR (RECURSIVE NON STOP)
+        -:  141:int line_count_limit;
+        -:  142:
+        -:  143:int display_line_limit_03K_BELOW = 0;
+        -:  144:int display_line_limit_03K = 0;
+        -:  145:int display_line_limit_05K = 0;
+        -:  146:int display_line_limit_10K = 0;
+        -:  147:int display_line_limit_15K = 0;
+        -:  148:int display_line_limit_20K = 0;
+        -:  149:int display_line_limit_25K = 0;
+        -:  150:int display_line_limit_30K = 0;
+        -:  151:int display_line_limit_35K = 0;
+        -:  152:int display_line_limit_40K = 0;
+        -:  153:int display_line_limit_45K = 0;
+        -:  154:int display_line_limit_50K = 0;
+        -:  155:int display_line_limit_50K_ABOVE = 0;
+        -:  156:int display_line_limit_100K_ABOVE = 0;
+        -:  157:int display_line_limit_200K_ABOVE = 0;
+        -:  158:
+        -:  159:// CHANGE THIS LAST LIMIT IF REQUIRED (1 million)
+        -:  160:int LAST_LINE_LIMIT = 1000000;
+        -:  161:
+        -:  162:void proc_display_exit_status ();
+        -:  163:// ==================================================================
+        -:  164:void
+    #####:  165:proc_display_exit_status ()
+        -:  166:{
+        -:  167:  // ==================================================================
+    #####:  168:  printf (" STATUS: 0 = NOT ACTIVATED, 1 ACTIVATED \n");
+        -:  169:  // printf (" \n");
+        -:  170:
+    #####:  171:  printf ("EXIT ON u VALUE NOT CHANGING CONSECUTIVELY\n");
+    #####:  172:  printf ("u_val_constant_1 = %d \n", u_val_constant_1);
+    #####:  173:  printf ("u_val_constant_2 = %d \n", u_val_constant_2);
+    #####:  174:  printf ("u_val_constant_3 = %d \n", u_val_constant_3);
+    #####:  175:  printf ("u_val_constant_4 = %d \n", u_val_constant_4);
+    #####:  176:  printf ("u_val_constant_5 = %d \n", u_val_constant_5);
+        -:  177:
+    #####:  178:  printf ("EXIT ON u_next VALUE BECOMES ZERO CONSECUTIVELY\n");
+    #####:  179:  printf ("u_next_zero_1 = %d \n", u_next_zero_1);
+    #####:  180:  printf ("u_next_zero_2 = %d \n", u_next_zero_2);
+    #####:  181:  printf ("u_next_zero_3 = %d \n", u_next_zero_3);
+    #####:  182:  printf ("u_next_zero_4 = %d \n", u_next_zero_4);
+    #####:  183:  printf ("u_next_zero_5 = %d \n", u_next_zero_5);
+        -:  184:
+    #####:  185:  printf ("EXIT ON INTERPOLATED POINTS EXCEEDING 50,000 LINE LIMIT\n");
+    #####:  186:  printf ("display_line_limit_03K_BELOW = %d \n", display_line_limit_03K_BELOW);
+    #####:  187:  printf ("display_line_limit_03K = %d \n", display_line_limit_03K);
+    #####:  188:  printf ("display_line_limit_05K = %d \n", display_line_limit_05K);
+    #####:  189:  printf ("display_line_limit_10K = %d \n", display_line_limit_10K);
+    #####:  190:  printf ("display_line_limit_15K = %d \n", display_line_limit_15K);
+    #####:  191:  printf ("display_line_limit_20K = %d \n", display_line_limit_20K);
+    #####:  192:  printf ("display_line_limit_25K = %d \n", display_line_limit_25K);
+    #####:  193:  printf ("display_line_limit_30K = %d \n", display_line_limit_30K);
+    #####:  194:  printf ("display_line_limit_35K = %d \n", display_line_limit_35K);
+    #####:  195:  printf ("display_line_limit_40K = %d \n", display_line_limit_40K);
+    #####:  196:  printf ("display_line_limit_45K = %d \n", display_line_limit_45K);
+    #####:  197:  printf ("display_line_limit_50K = %d \n", display_line_limit_50K);
+    #####:  198:  printf ("display_line_limit_50K_ABOVE = %d \n", display_line_limit_50K_ABOVE);
+    #####:  199:  printf ("display_line_limit_100K_ABOVE = %d \n", display_line_limit_100K_ABOVE);
+        -:  200:
+    #####:  201:}
+        -:  202:
+        -:  203:// ==================================================================
+        -:  204:// GLOBAL VARIABLES FOR MAIN PROGRAM
+        -:  205:// ==================================================================
+        -:  206:
+        -:  207:// VARIABLE FOR MARKING END OF LOOP (true/false)
+        -:  208:bool loop_u_done = false;
+        -:  209:
+        -:  210:
+        -:  211:// PARAMETER RANGE
+        -:  212:double u_start = 0.000000000;
+        -:  213:double u_ended = 1.000000000;
+        -:  214:
+        -:  215:// TESTING AND DEBUGGING
+        -:  216:// BY LIMITING POINTS INTERPOLATED
+        -:  217:// double u_ended = 0.500000000;
+        -:  218:
+        -:  219:// FOR FUNCTION CALL get_u_next_secondorder_parametric (....)
+        -:  220:int N = 0;                 // Interpolation step number
+        -:  221:double u = 0.0000000;      // parameter
+        -:  222:double u_next = 0.0000000; // initial step (VALUE DOES NOT MATTER)
+        -:  223:
+        -:  224:double rtime = 0.0;        // Cumulative runtime = (N*t_interpol) in seconds
+        -:  225:double t_interpol = 0.001; // Interpolation time (period) = 1 ms per step.
+        -:  226:
+        -:  227:// The interpolator parameters are set as shown in Table 1,
+        -:  228:// and the command feedrate is 20 mm/s.
+        -:  229:// double const frate_command = 10.0; // mm/s
+        -:  230:double const frate_command = 20.0; // mm/s
+        -:  231:// double const frate_command = 30.0; // mm/s
+        -:  232:// double const frate_command = 40.0; // mm/s
+        -:  233://
+        -:  234:// FEEDRATE LIMIT-4 FOR ACCN
+        -:  235:// double const lamda_N = 0.10; // A constant safety factor (0.0 : 1.0)
+        -:  236:double const lamda_N = 0.18; // A constant safety factor (0.0 : 1.0)
+        -:  237:// double const lamda_N = 0.20; // A constant safety factor (0.0 : 1.0)
+        -:  238:// double const lamda_N = 0.50; // A constant safety factor (0.0 : 1.0)
+        -:  239://
+        -:  240:// The same interpolator parameters shown in Table 1 are used. The
+        -:  241:// command feedrate is set as 2 mm/s. Table 2 shows the interpolation time
+        -:  242:// for both curves using the controller.
+        -:  243:// double frate_command = 2.0; // mm/s
+        -:  244:
+        -:  245:double max_jerk = 200.0;   // Jerk limit mm/s2 as provided in Table 1.
+        -:  246:double error_tol = 1.0E-6; // TAKE NOTE CHORD-ERROR TOLERANCE
+        -:  247:
+        -:  248:double uppertol_bound = 10.00E-7; // meaning 1.0E(-6)
+        -:  249:double lowertol_bound = 9.99E-7;
+        -:  250:int count_eps_aboverange = 0; // For eps above uppertol_bound
+        -:  251:int count_eps_withinrange = 0;
+        -:  252:int count_eps_belowrange = 0; // For eps below lowertol_bound
+        -:  253:int sum_eps_allranges = 0;
+        -:  254:int count_before_step1_belowtol = 0;
+        -:  255:
+        -:  256:// CALCULATIONS FOR U-NEXT BASED ON CHORD ERROR (EPSILON)
+        -:  257:// STEP 1 PUSH DOWN EPS TO BELOW UPPERTOL_BOUND
+        -:  258:double step1_unext = 0.0;
+        -:  259:int num_of_step1_processing = 0;
+        -:  260:
+        -:  261:// STEP 2 RAISE EPS TO BE IN RANGE (uppertol_bound ,lowertol_bound)
+        -:  262:double step2_unext = 0.0;
+        -:  263:int num_of_step2_processing = 0;
+        -:  264:int count_error_step2 = 0;
+        -:  265:
+        -:  266:// GLOBAL ERROR VARIABLES STATISTICS
+        -:  267:// IN CODE: src/algo/calc07_iterate_u_next.c
+        -:  268:// ERRORS IN STEP1
+        -:  269:int count_step1_ERROR_1 = 0;
+        -:  270:int count_step1_ERROR_2 = 0;
+        -:  271:
+        -:  272:// ERRORS IN STEP2
+        -:  273:int count_step2_ERROR_1 = 0;
+        -:  274:int count_step2_ERROR_2 = 0;
+        -:  275:int count_step2_ERROR_3 = 0;
+        -:  276:int count_step2_ERROR_4 = 0;
+        -:  277:
+        -:  278:// FINAL EPS CHORD-ERROR ACCOUNTING STATISTICS
+        -:  279:int cnt_eps_above_10E_6 = 0; // uppertol_bound
+        -:  280:int cnt_eps_betwn_10E_7_to_10E_6 = 0;
+        -:  281:int cnt_eps_betwn_10E_8_to_10E_7 = 0;
+        -:  282:int cnt_eps_betwn_10E_9_to_10E_8 = 0;
+        -:  283:int cnt_eps_betwn_10E_10_to_10E_9 = 0;
+        -:  284:int cnt_eps_below_10E_10 = 0;
+        -:  285:int cnt_eps_total_points = 0;
+        -:  286:
+        -:  287:int cnt_region_1 = 0;
+        -:  288:
+        -:  289:// EQUATION (8) FOR FRATE UNIT VECTORS
+        -:  290:double curr_alpha = 0.0; // x_frate(velocity) unit vector
+        -:  291:double curr_beta = 0.0;  // y-frate(velocity) unit vector
+        -:  292:
+        -:  293:// CURRENT VALUES BEFORE FEEDRATE DECISION (EQUATION 19)
+        -:  294:
+        -:  295:double curr_norm_accn = 0.0; // Current normal acceleration
+        -:  296:double curr_tang_accn = 0.0; // Current tangential acceleration
+        -:  297:double curr_frate = 0.0;
+        -:  298:double curr_deltaS = 0.0;
+        -:  299:
+        -:  300:// CHANGES BECAUSE (rho_N, eps_N, lamda_N) CHANGES EVERY STEP
+        -:  301:double curr_frate_limit = 0.0;
+        -:  302:double diff_fratelimit = 100.0; // = (curr_frate_limit - curr_frate);
+        -:  303:
+        -:  304:// FEEDRATE DECISION ACTION AND
+        -:  305:// NEXT VARIABLE VALUES ACCORDING EQUATION (19)
+        -:  306:int next_frate_action = 0; // DECISION VALUES = [+1, 0, -1]
+        -:  307:int prev_frate_action = 0;
+        -:  308:
+        -:  309:double next_tang_accn = 0.0;
+        -:  310:double next_frate = 0.0;
+        -:  311:double next_deltaS = 0.0;
+        -:  312:
+        -:  313:double curr_eps = 0.0; // chord-error epsilon at N (u, u_next)
+        -:  314:double next_eps = 0.0;
+        -:  315:
+        -:  316:double curr_rho = 0.0; // rho = (1/radius of curvature) at N (u);
+        -:  317:double next_rho = 0.0;
+        -:  318:
+        -:  319:
+        -:  320:// ARC_LENGTH, ARC_THETA ARC_AREA
+        -:  321:double curr_arc_length = 0.0;
+        -:  322:double next_arc_length = 0.0;
+        -:  323:double curr_arc_theta = 0.0;
+        -:  324:double next_arc_theta = 0.0;
+        -:  325:double curr_arc_area = 0.0;
+        -:  326:double next_arc_area = 0.0;
+        -:  327:
+        -:  328:double sum_arc_length = 0.0;
+        -:  329:double sum_arc_theta  = 0.0;
+        -:  330:double sum_arc_area = 0.0;
+        -:  331:
+        -:  332:double diff_arc_chord_length = 0.0;
+        -:  333:double pcnt_diff_arc_chord_length = 0.0;
+        -:  334:
+        -:  335:// FROM TABLE 1
+        -:  336:/*
+        -:  337:double xVee_max = 30.0;
+        -:  338:double yVee_max = 30.0;
+        -:  339:double xAcc_max = 30.0;
+        -:  340:double yAcc_max = 30.0;
+        -:  341:*/
+        -:  342:
+        -:  343:double max_tang_accn;
+        -:  344:double min_tang_accn;
+        -:  345:double csv_tang_accn; // Conservative tangential acceleration;
+        -:  346:// csv_tang_accn = 20.0;     // GIVES VALUE DECN PROFILE = 1 TRAPEZOIDAL
+        -:  347:// csv_tang_accn = 65.0;     // GIVES VALUE DECN PROFILE = 0 TRIANGULAR
+        -:  348:// NOTE: min_tang_accn is set to -(csv_tang_accn) when higher
+        -:  349:// than the later.
+        -:  350:int decn_profile; // DECELERATION PROFILE (+1 Trapezoid, -1 Triangular)
+        -:  351:
+        -:  352:double criteria; // FOR COMPARISON BETWEEN curr_frate AND curr_frate_limit
+        -:  353:
+        -:  354:// Chord length calculated using parametric curve using u, and u_next
+        -:  355://
+        -:  356:double curr_chordlength; // Before u_next update
+        -:  357:double next_chordlength; // After  u_next update
+        -:  358:
+        -:  359:// deltaS calculated using rho and epsilon
+        -:  360:// = fxn_calc_deltaS_use_rho_eps (u, u_next);
+        -:  361:double curr_deltaS;
+        -:  362:double next_deltaS;
+        -:  363:// Diff Comparison = (next_deltaS - chord_length);
+        -:  364:double diff_deltaS_chordlength;
+        -:  365:
+        -:  366:// Chord length is calculated using (u, u_next) and parametric equation.
+        -:  367:// Value value of chord_length is very close to curr_deltaS. Excellent.
+        -:  368:// length(u, u_next) = point [x(u),y(u)] to point [x(u+u_next),y(u+u_next)]
+        -:  369:double sum_chordlength = 0.0;
+        -:  370:double sum_deltaS = 0.0;
+        -:  371:// Diff Comparison = (sum_deltaS - sum_chordlength);
+        -:  372:double diff_sum_deltaS_sum_chordlength;
+        -:  373:
+        -:  374:// TERM t_look = time_look ==> The dynamic time lookahead length (time_look)
+        -:  375:// is calculated as the "time" required for a full stop.
+        -:  376:// TERM points_look ==> The number of lookahead points is the quotient
+        -:  377:// of (time_look) divided by T, the interpolation period.
+        -:  378:double time_look;   // Dynamic time lookahead length t_look
+        -:  379:double points_look; // Number of points forward = time_look/t_interpol
+        -:  380:double distS_look;  // ???
+        -:  381:
+        -:  382:// TAYLOR'S RECURSIVE APPROXIMATION FOR u(t)
+        -:  383:// FUNCTION: get_u_next_firstorder_runtime  (u, t_interpol, next_frate);
+        -:  384:// FUNCTION: get_u_next_secondorder_runtime (u, t_interpol, next_frate);
+        -:  385:
+        -:  386:double curr_unext1stOrder = 0.0;
+        -:  387:double curr_unext2ndOrder = 0.0;
+        -:  388:double next_unext1stOrder = 0.0;
+        -:  389:double next_unext2ndOrder = 0.0;
+        -:  390:
+        -:  391:double curr_xfrate = 0.0;
+        -:  392:double curr_yfrate = 0.0;
+        -:  393:double next_xfrate = 0.0;
+        -:  394:double next_yfrate = 0.0;
+        -:  395:
+        -:  396:// MUST ADJUST shape1 and shape2 TO MEET RISING S-CURVE SHAPE
+        -:  397:// THE RISING S-CURVE for next_frate
+        -:  398:// FUNCTION: = (curr_frate_limit)/pow ((1 + exp (-rsu * rshape1)), rshape2);
+        -:  399:// (prefix r stands for rising)
+        -:  400:// Planned Rising S-Curve for u = [u_start : end_u_rise]
+        -:  401:// All parameters  below are adjustable.
+        -:  402:double u_end_rise = 0.05; // GOOD 0.100
+        -:  403:double rshape1 = 5.0;     // Shape factor of rising S-Curve
+        -:  404:double rshape2 = 8.0;     // Shape factor of rising S-Curve
+        -:  405:double ru1;               // = u_start;
+        -:  406:double ru2;               // = end_u_rise;
+        -:  407:// For linear parameter transformation (u) to (rsu)
+        -:  408:double rsu1 = 0.00; // For linear parameter transformation (u) to (rsu)
+        -:  409:double rsu2 = 3.00;
+        -:  410:double rm, rkonst, rsu;
+        -:  411:
+        -:  412:// MUST ADJUST shape1 and shape2 TO MEET FALLING S-CURVE SHAPE
+        -:  413:// THE FALLING S-CURVE for next_frate
+        -:  414:// FUNCTION: curr_frate_limit*(1 - 1/pow((1 + exp(-fsu*fshape1)), fshape2));
+        -:  415:// prefix (f stands for falling)
+        -:  416:// Planned Falling S-Curve for u = [start_u_fall : u_ended]
+        -:  417:// All parameters  below are adjustable.
+        -:  418:double u_start_fall = 0.95; // GOOD 0.95, 0.998
+        -:  419:double fshape1 = 5.0;       // Shape factor of falling S-Curve
+        -:  420:double fshape2 = 8.0; // Shape factor of falling S-curve // GOOD 8.00, 10.0
+        -:  421:double fu1;           // = u_start_fall;
+        -:  422:double fu2;           // = u_ended;
+        -:  423:// For linear parameter transformation (u) to (fsu)
+        -:  424:double fsu1 = 0.00;
+        -:  425:double fsu2 = 3.00; // GOOD 3.00, 2.00
+        -:  426:double fm, fkonst, fsu;
+        -:  427:
+        -:  428:// FOR WRITING TO NGC G-CODE FILE
+        -:  429:double ngc_depth = 2.0;
+        -:  430:// ANY SCALING TO BE DONE AS SOURCE src/curves/c_position.c
+        -:  431:// THIS MAINTAINS THE ERROR TOLERANCE 10(-6)
+        -:  432:double ngc_scale = 1.0;
+        -:  433:
+        -:  434:// STATISTICS COUNTING TOTAL POINTS,
+        -:  435:// ABOVE_TOL_POINTS, BELOW_TOL_POINTS
+        -:  436:int count_total_points = 0;
+        -:  437:int already_belowtol_points = 0;
+        -:  438:int count_abovetol_points = 0;
+        -:  439:int count_belowtol_points = 0;
+        -:  440:double pcnt_abovetol = 0.0;
+        -:  441:double pcnt_belowtol = 0.0;
+        -:  442:
+        -:  443:// STATISTICS ALGORITHM EXECUTION VALUES
+        -:  444:// (MIN, MAX, LINENO_MAX, LINENO_MAX )
+        -:  445:
+        -:  446:double max_frate = 0.0;
+        -:  447:double min_frate = 0.0;
+        -:  448:double u_maxfrate = 0.0;
+        -:  449:double u_minfrate = 0.0;
+        -:  450:double x_maxfrate = 0.0;
+        -:  451:double x_minfrate = 0.0;
+        -:  452:double y_maxfrate = 0.0;
+        -:  453:double y_minfrate = 0.0;
+        -:  454:int line_maxfrate = 0;
+        -:  455:int line_minfrate = 0;
+        -:  456:double sum_frate = 0.0;
+        -:  457:double avg_frate = 0.0;
+        -:  458:
+        -:  459:double max_tangaccn = 0.0;
+        -:  460:double min_tangaccn = 0.0;
+        -:  461:double u_maxtangaccn = 0.0;
+        -:  462:double u_mintangaccn = 0.0;
+        -:  463:double x_maxtangaccn = 0.0;
+        -:  464:double x_mintangaccn = 0.0;
+        -:  465:double y_maxtangaccn = 0.0;
+        -:  466:double y_mintangaccn = 0.0;
+        -:  467:int line_maxtangaccn = 0;
+        -:  468:int line_mintangaccn = 0;
+        -:  469:double sum_tangaccn = 0.0;
+        -:  470:double avg_tangaccn = 0.0;
+        -:  471:
+        -:  472:double max_rho = 0.0;
+        -:  473:double min_rho = 0.0;
+        -:  474:double u_maxrho = 0.0;
+        -:  475:double u_minrho = 0.0;
+        -:  476:double x_maxrho = 0.0;
+        -:  477:double x_minrho = 0.0;
+        -:  478:double y_maxrho = 0.0;
+        -:  479:double y_minrho = 0.0;
+        -:  480:int line_maxrho = 0;
+        -:  481:int line_minrho = 0;
+        -:  482:double sum_rho = 0.0;
+        -:  483:double avg_rho = 0.0;
+        -:  484:
+        -:  485:double max_eps = 0.0;
+        -:  486:double min_eps = 0.0;
+        -:  487:double u_maxeps = 0.0;
+        -:  488:double u_mineps = 0.0;
+        -:  489:double x_maxeps = 0.0;
+        -:  490:double x_mineps = 0.0;
+        -:  491:double y_maxeps = 0.0;
+        -:  492:double y_mineps = 0.0;
+        -:  493:int line_maxeps = 0;
+        -:  494:int line_mineps = 0;
+        -:  495:double sum_eps = 0.0;
+        -:  496:double avg_eps = 0.0;
+        -:  497:
+        -:  498:// REPORT S-CURVE RISING & FALLING
+        -:  499:// ================================
+        -:  500:int count_rising_s_curve_points = 0;
+        -:  501:int count_falling_s_curve_points = 0;
+        -:  502:
+        -:  503:// REPORT PROCESSING CURR_FRATE VS CURR_FRATE_LIMIT
+        -:  504:// ================================================
+        -:  505:int count_frate_islower_fratelimit = 0;  // CASE 1
+        -:  506:int count_frate_ishigher_fratelimit = 0; // CASE 2
+        -:  507:int count_frate_isequal_fratelimit = 0;  // CASE 3
+        -:  508:
+        -:  509:// INTERPOLATED POINTS ACCOUNTING
+        -:  510:double pcnt_rising = 0.0;
+        -:  511:double pcnt_lower = 0.0;
+        -:  512:double pcnt_equal = 0.0;
+        -:  513:double pcnt_higher = 0.0;
+        -:  514:double pcnt_falling = 0.0;
+        -:  515:double sum_percentages = 0.0;
+        -:  516:double pcnt_already_belowtol = 0.0;
+        -:  517:
+        -:  518:// START MAIN PROGRAM
+        -:  519:// ==================================================================
+        2:  520:int main (int argc, char *argv[])
+        -:  521:// ===================================================================  
+        -:  522:{
+        -:  523:
+        -:  524: 
+        -:  525:  // START MAIN PROGRAM
+        -:  526:  // ==================================================================
+        2:  527:  WRY_starting_salutation ();
+        -:  528:
+        -:  529:  // OPEN ALL FILES
+        2:  530:  proc_open_all_files ();
+        2:  531:  proc_writeheader_all_files ();
+        -:  532:
+        -:  533:  // FOR WRITING TO HEADER OF NGC G-CODE FILE ONLY (PASS 2 PARAMETERS)
+        2:  534:  proc_writeheader_data_ngc_code (FHdata_ngc_code, CurveTypeDesc, ngc_depth, ngc_scale);
+        -:  535:
+        2:  536:  start_timer (1);
+        2:  537:  DTStamp ();
+        2:  538:  printf ("Start while loop \n");
+        -:  539:
+        -:  540:  // ================================================================
+        -:  541:  // WHILE PARAMETRIC LOOP U IS NOT DONE
+        -:  542:  // ================================================================
+    22594:  543:  while (!loop_u_done)
+        -:  544:    {
+        -:  545:      
+        -:  546:      // THE METHOD TO AVOID CONFUSION IS AS FOLLOWS
+        -:  547:      // IN THIS LOOP, EACH CALCULATION COMPUTES A "next_variable" USING
+        -:  548:      // THE "curr_variable". THEN AT END OF LOOP, EACH "next_variable"
+        -:  549:      // IS ASSIGNED BACK TO "curr_variable". SO IN THE NEXT LOOP ITERATION
+        -:  550:      // IT USES THE "curr_variable" AGAIN.
+        -:  551:
+        -:  552:      // **********************************************
+        -:  553:      // DISPLAY TO SCREEN.
+    22592:  554:      printf ("%s ", CurveType);
+    22592:  555:      printf (" %5.3lf %12.9lf %12.9lf %6.3lf %.6e  %.6e  %.6e  %7.3lf %7.3lf "
+        -:  556:              "%7.3lf  %.6e %10.6lf %10.6lf %10.6lf %10.6lf %12.9lf %10.6lf "
+        -:  557:              "%10.6lf %6.2lf",
+        -:  558:              rtime, u, u_next, t_interpol, curr_unext1stOrder,
+        -:  559:              curr_unext2ndOrder, (curr_unext1stOrder - curr_unext2ndOrder),
+        -:  560:              fxn_cpos_x (u), fxn_cpos_y (u), fxn_cpos_r (u), curr_eps,
+        -:  561:              curr_rho, curr_tang_accn, curr_frate_limit, curr_frate,
+        -:  562:              (curr_frate_limit - curr_frate), curr_xfrate, curr_yfrate,
+        -:  563:              frate_command);
+        -:  564:
+        -:  565:      // ================================================================
+        -:  566:      // FEEDRATE CURR_FRATE - CALCULATE RUN STATISTICS CURRENT STEP
+        -:  567:      // ================================================================
+        -:  568:      // GET MAX EPS
+    22592:  569:      if (curr_frate > max_frate)
+        -:  570:        {
+     3026:  571:          max_frate = curr_frate;
+     3026:  572:          u_maxfrate = u;
+     3026:  573:          x_maxfrate = fxn_cpos_x (u);
+     3026:  574:          y_maxfrate = fxn_cpos_y (u);
+     3026:  575:          line_maxfrate = (int)(rtime * 1000);
+        -:  576:        }
+        -:  577:      // GET MIN EPS
+    22592:  578:      if (curr_frate < min_frate)
+        -:  579:        {
+    #####:  580:          min_frate = curr_frate;
+    #####:  581:          u_minfrate = u;
+    #####:  582:          x_minfrate = fxn_cpos_x (u);
+    #####:  583:          y_minfrate = fxn_cpos_y (u);
+    #####:  584:          line_minfrate = (int)(rtime * 1000);
+        -:  585:        }
+        -:  586:      // RUNNING AVERAGE FRATE
+    22592:  587:      sum_frate = sum_frate + curr_frate;
+    22592:  588:      if (count_total_points == 0)
+        -:  589:        {
+        2:  590:          avg_frate = (sum_frate);
+        -:  591:        }
+        -:  592:      else
+        -:  593:        {
+    22590:  594:          avg_frate = (sum_frate / count_total_points);
+        -:  595:        }
+        -:  596:
+        -:  597:      // ================================================================
+        -:  598:      // CHORD ERROR EPS - CALCULATE RUN STATISTICS CURRENT STEP
+        -:  599:      // ================================================================
+        -:  600:      // GET MAX EPS
+    22592:  601:      if (curr_eps > max_eps)
+        -:  602:        {
+       24:  603:          max_eps = curr_eps;
+       24:  604:          u_maxeps = u;
+       24:  605:          x_maxeps = fxn_cpos_x (u);
+       24:  606:          y_maxeps = fxn_cpos_y (u);
+       24:  607:          line_maxeps = (int)(rtime * 1000);
+        -:  608:        }
+        -:  609:      // GET MIN EPS
+    22592:  610:      if (curr_eps < min_eps)
+        -:  611:        {
+    #####:  612:          min_eps = curr_eps;
+    #####:  613:          u_mineps = u;
+    #####:  614:          x_mineps = fxn_cpos_x (u);
+    #####:  615:          y_mineps = fxn_cpos_y (u);
+    #####:  616:          line_mineps = (int)(rtime * 1000);
+        -:  617:        }
+        -:  618:      // RUNNING AVERAGE EPS
+    22592:  619:      sum_eps = sum_eps + curr_eps;
+    22592:  620:      if (count_total_points == 0)
+        -:  621:        {
+        2:  622:          avg_eps = (sum_eps);
+        -:  623:        }
+        -:  624:      else
+        -:  625:        {
+    22590:  626:          avg_eps = (sum_eps / count_total_points);
+        -:  627:        }
+        -:  628:
+        -:  629:      // ================================================================
+        -:  630:      // RADIUS OF CURVATURE RHO - CALCULATE RUN STATISTICS CURRENT STEP
+        -:  631:      // ================================================================
+    22592:  632:      if (curr_rho > max_rho)
+        -:  633:        {
+     5724:  634:          max_rho = curr_rho;
+     5724:  635:          u_maxrho = u;
+     5724:  636:          x_maxrho = fxn_cpos_x (u);
+     5724:  637:          y_maxrho = fxn_cpos_y (u);
+     5724:  638:          line_maxrho = (int)(rtime * 1000);
+        -:  639:        }
+        -:  640:
+    22592:  641:      if (curr_rho < min_rho)
+        -:  642:        {
+    #####:  643:          min_rho = curr_rho;
+    #####:  644:          u_minrho = u;
+    #####:  645:          x_minrho = fxn_cpos_x (u);
+    #####:  646:          y_minrho = fxn_cpos_y (u);
+    #####:  647:          line_minrho = (int)(rtime * 1000);
+        -:  648:        }
+        -:  649:
+    22592:  650:      sum_rho = sum_rho + curr_rho;
+    22592:  651:      if (count_total_points == 0)
+        -:  652:        {
+        2:  653:          avg_rho = (sum_rho);
+        -:  654:        }
+        -:  655:      else
+        -:  656:        {
+    22590:  657:          avg_rho = (sum_rho / count_total_points);
+        -:  658:        }
+        -:  659:
+        -:  660:      // ================================================================
+        -:  661:      // TANGENTIAL ACCELERATION - CALCULATE RUN STATISTICS CURRENT STEP
+        -:  662:      // ================================================================
+    22592:  663:      if (curr_tang_accn > max_tangaccn)
+        -:  664:        {
+      186:  665:          max_tangaccn = curr_tang_accn;
+      186:  666:          u_maxtangaccn = u;
+      186:  667:          x_maxtangaccn = fxn_cpos_x (u);
+      186:  668:          y_maxtangaccn = fxn_cpos_y (u);
+      186:  669:          line_maxtangaccn = (int)(rtime * 1000);
+        -:  670:        }
+        -:  671:
+    22592:  672:      if (curr_tang_accn < min_tangaccn)
+        -:  673:        {
+      938:  674:          min_tangaccn = curr_tang_accn;
+      938:  675:          u_mintangaccn = u;
+      938:  676:          x_mintangaccn = fxn_cpos_x (u);
+      938:  677:          y_mintangaccn = fxn_cpos_y (u);
+      938:  678:          line_mintangaccn = (int)(rtime * 1000);
+        -:  679:        }
+        -:  680:
+    22592:  681:      sum_tangaccn = sum_tangaccn + curr_tang_accn;
+    22592:  682:      if (count_total_points == 0)
+        -:  683:        {
+        2:  684:          avg_tangaccn = (sum_tangaccn);
+        -:  685:        }
+        -:  686:      else
+        -:  687:        {
+    22590:  688:          avg_tangaccn = (sum_tangaccn / count_total_points);
+        -:  689:        }
+        -:  690:      // ==============================================================
+        -:  691:
+        -:  692:      // ===========================================================
+        -:  693:      // (1) GET ACCELERATION LIMITS FROM FUNCTION
+        -:  694:      // ===========================================================
+        -:  695:      // CODES: #include "algo/calc02_tang_accn_limit.h"
+    22592:  696:      min_tang_accn = fxn_get_min_tang_accn (u);
+    22592:  697:      max_tang_accn = fxn_get_max_tang_accn (u);
+        -:  698:
+        -:  699:      // So the dynamic lookahead length is calculated as the "time" required
+        -:  700:      // for a full stop.
+        -:  701:
+        -:  702:      // The conservative tangent deceleration is set to the minimum value
+        -:  703:      // among axial acceleration limits, it is used as the maximum
+        -:  704:      // deceleration value and results in the conservative lookahead length.
+        -:  705:
+        -:  706:      // CHANGES IN csv_tang_accn DUE TO CHANGES IN alpha, beta IN EQN (16)(17)
+    22592:  707:      csv_tang_accn = -(min_tang_accn);
+        -:  708:
+        -:  709:      // printf ("%12.6lf ", min_tang_accn);
+        -:  710:      // printf ("%12.6lf ", max_tang_accn);
+        -:  711:
+        -:  712:      // (2) GET DECELERATION PROFILE FROM FUNCTION
+        -:  713:      // ===========================================================
+        -:  714:      // CODES: #include "algo/calc01_lookahead_length.c"
+        -:  715:
+    22592:  716:      decn_profile = fxn_get_deceleration_profile (
+        -:  717:        u, u_next, csv_tang_accn, curr_tang_accn, max_jerk, curr_frate);
+        -:  718:
+        -:  719:      // printf ("profile %3d ", decn_profile);
+        -:  720:
+        -:  721:      // (3) GET LOOKAHEAD LENGTH (time_look) BASED ON decn_profile
+        -:  722:      // ===========================================================
+        -:  723:      // CODES: #include "algo/calc01_lookahead_length.c"
+        -:  724:      // The number of lookahead points is the quotient of time_look
+        -:  725:      // divided by t_interpol.
+        -:  726:
+    22592:  727:      time_look = fxn_get_time_lookahead_length (u, u_next, csv_tang_accn,
+        -:  728:                                                 curr_tang_accn, max_jerk,
+        -:  729:                                                 curr_frate, decn_profile);
+        -:  730:
+        -:  731:      // ASSUME S_look = distS_look BELOW
+    22592:  732:      points_look = (time_look) / (t_interpol); // POINTS LOOKAHEAD
+    22592:  733:      distS_look = (time_look) * (curr_frate);  // DISTANCE LOOKAHEAD ???
+        -:  734:
+        -:  735:      // printf ("%12.6lf ", time_look);
+        -:  736:      // printf ("%12.6lf ", points_look);
+        -:  737:      // printf ("%12.6lf | ", distS_look);
+        -:  738:
+        -:  739:      // (4) GET CURRENT FEEDRATE LIMIT
+        -:  740:      // ===========================================================
+        -:  741:      // CODES: #include "algo/calc03_feedrate_limit.c"
+        -:  742:      // NOTE: CALCULATE LIMIT USING frate_command AND NOT THE curr_frate
+        -:  743:      // curr_frate_limit = MINIMUM OF 4 values:
+        -:  744:      // (FRate_limit_1, FRate_limit_2, FRate_limit_3, FRate_limit_4)
+        -:  745:      // NOTE: double frate_command = 20.0; // mm/s CONSTANT
+        -:  746:      // ***********  IMPORTANT ***********************
+    22592:  747:      curr_frate_limit = fxn_get_feedrate_limit (rtime, u, u_next,
+        -:  748:                 frate_command, t_interpol, curr_rho, curr_eps, lamda_N);
+        -:  749:
+        -:  750:      // ===========================================================
+        -:  751:      // (5.1) PLAN RISING FEEDRATE S-CURVE BEGINNING OF PARAMETRIC CURVE
+        -:  752:      // FROM FEEDRATE ZERO TO FEEDRATE curr_frate_limit (curr_frate??)
+        -:  753:      // RISING S-CURVE SECTION OF PARAMETRIC CURVE
+        -:  754:      // ============================================================
+    22592:  755:      if (u <= u_end_rise)
+        -:  756:        {
+      740:  757:          count_rising_s_curve_points = count_rising_s_curve_points + 1;
+        -:  758:
+        -:  759:          // FOR DEBUGGING
+        -:  760:          // printf ("\n%s u =      %12.9lf FRRise-S-curve at codeline 623 main
+        -:  761:          // \n", CurveType, u);
+        -:  762:
+      740:  763:          printf (" RiseScurve ");
+        -:  764:          // fprintf (FHdata_01, " FRRise-S-curve ");
+        -:  765:
+      740:  766:          double curr_frate_0 = curr_frate;
+        -:  767:
+        -:  768:          // Convert parameter(u) to S-Curve parameter (rsu) linear relation
+        -:  769:          // rsu = (rm)*(u) + rkonst ==> linear equation (y = mx + c)
+      740:  770:          ru1 = u_start;
+      740:  771:          ru2 = u_end_rise;
+      740:  772:          rm = (rsu2 - rsu1) / (ru2 - ru1); // slope value
+      740:  773:          rkonst = rsu2 - (rm)*ru2;         // constant value
+        -:  774:
+        -:  775:          // Transformation equation becomes
+      740:  776:          rsu = (rm) * (u) + rkonst;
+        -:  777:
+        -:  778:          // ITERATION WILL REACH VALUE curr_frate_limit AT TOP
+        -:  779:          // OF S-CURVE WHEN VALUE rsu = 3.0
+        -:  780:          next_frate
+      740:  781:            = (curr_frate_limit) / pow ((1 + exp (-rsu * rshape1)), rshape2);
+        -:  782:
+      740:  783:          next_tang_accn = (next_frate - curr_frate_0) / t_interpol;
+      740:  784:          if (next_tang_accn > max_tang_accn)
+        -:  785:            {
+      142:  786:              next_tang_accn = max_tang_accn;
+        -:  787:            }
+        -:  788:
+      740:  789:          if (next_tang_accn < min_tang_accn)
+        -:  790:            {
+    #####:  791:              next_tang_accn = min_tang_accn;
+        -:  792:            }
+        -:  793:
+      740:  794:          curr_frate = next_frate;
+      740:  795:          curr_tang_accn = next_tang_accn;
+        -:  796:
+        -:  797:        } // END RISING S-CURVE
+        -:  798:
+        -:  799:      // =============================================================
+        -:  800:      // (5.2) COMPUTE MIDDLE SECTION OF PARAMETRIC CURVE
+        -:  801:      // =============================================================
+    22592:  802:      if (u > u_end_rise && u <= u_start_fall)
+        -:  803:        {
+        -:  804:
+        -:  805:          // =========================================================
+        -:  806:          // CASE 1 : CURRENT FEEDRATE BELOW LIMIT
+        -:  807:          // =========================================================
+    21112:  808:          if (curr_frate < curr_frate_limit) // frate below limit
+        -:  809:            {
+    14968:  810:              count_frate_islower_fratelimit += 1;
+        -:  811:
+    14968:  812:              printf (" FRBelowLimit ");
+        -:  813:              // fprintf (FHdata_01, " Case-FRBelow-Limit ");
+        -:  814:
+    14968:  815:              double omega = 0.0;
+    14968:  816:              double curr_tang_accn_0 = curr_tang_accn;
+    14968:  817:              double curr_frate_0 = curr_frate;
+        -:  818:
+        -:  819:              // START BYPASS
+  5515558:  820:              while (curr_frate < curr_frate_limit) // INCREASE curr_frate
+        -:  821:                {
+  5500590:  822:                  curr_frate = curr_frate
+  5500590:  823:                               + fabs (omega * max_jerk) * pow (t_interpol, 2);
+  5500590:  824:                  omega = omega + 0.0001; // GOOD VALUE
+        -:  825:                }
+        -:  826:              // END BYPASS
+        -:  827:
+        -:  828:              // GO ONE STEP BACK TO MAKE next_frate VALUE
+        -:  829:              // JUST BELOW curr_frate_limit = THE LIMIT
+        -:  830:              next_frate
+    14968:  831:                = curr_frate - fabs (omega * max_jerk) * pow (t_interpol, 2);
+    14968:  832:              next_tang_accn = (next_frate - curr_frate_0) / t_interpol;
+        -:  833:
+    14968:  834:              if (next_frate == curr_frate_0) // NO CHANGE IN curr_frate
+        -:  835:                {
+     8826:  836:                  next_tang_accn = 0.0;
+        -:  837:                }
+        -:  838:
+    14968:  839:              if (next_tang_accn > max_tang_accn) // STAY WITHIN ACCN LIMIT
+        -:  840:                {
+       24:  841:                  next_tang_accn = max_tang_accn;
+        -:  842:                }
+        -:  843:
+    14968:  844:              if (next_tang_accn < min_tang_accn) // STAY WITHIN ACCN LIMIT
+        -:  845:                {
+    #####:  846:                  next_tang_accn = min_tang_accn;
+        -:  847:                }
+        -:  848:
+        -:  849:            } // END CASE 1 :
+        -:  850:
+        -:  851:          // =========================================================
+        -:  852:          // CASE 2 : curr_frate ABOVE curr_frate_limit
+        -:  853:          // =========================================================
+     6144:  854:          else if (curr_frate > curr_frate_limit) // frate above limit
+        -:  855:            {
+        -:  856:
+     6144:  857:              count_frate_ishigher_fratelimit += 1;
+        -:  858:
+        -:  859:              // FOR DEBUGGING
+        -:  860:              // printf ("\n%s u =       %12.9lf Case-FRAbove-Limit at codeline
+        -:  861:              // 725 main \n", CurveType, u);
+        -:  862:
+     6144:  863:              printf (" FRAboveLimit ");
+        -:  864:              // fprintf (FHdata_01, " Case-FRAbove-Limit ");
+        -:  865:
+     6144:  866:              double omega = 0.0;
+     6144:  867:              double curr_frate0 = curr_frate;
+        -:  868:
+        -:  869:              // START BYPASS
+        -:  870:              // DECREASE curr_frate
+  5479926:  871:              while (curr_frate > curr_frate_limit)
+        -:  872:                {
+  5473782:  873:                  curr_frate = curr_frate
+  5473782:  874:                               - fabs (omega * max_jerk) * pow (t_interpol, 2);
+  5473782:  875:                  omega = omega + 0.0001; // GOOD VALUE
+        -:  876:                }
+        -:  877:              // END BYPASS
+        -:  878:
+        -:  879:              // MAKE next_frate JUST BELOW curr_frate_limit
+        -:  880:              // Already automatically done as the while..loop exits.
+     6144:  881:              next_frate = curr_frate;
+     6144:  882:              next_tang_accn = (next_frate - curr_frate0) / t_interpol;
+        -:  883:
+     6144:  884:              if (next_frate == curr_frate0) // NO CHANGE IN curr_frate FRATE
+        -:  885:                {
+    #####:  886:                  next_tang_accn = 0.0;
+        -:  887:                }
+        -:  888:
+     6144:  889:              if (next_tang_accn > max_tang_accn) // STAY WITHIN ACCN LIMIT
+        -:  890:                {
+    #####:  891:                  next_tang_accn = max_tang_accn;
+        -:  892:                }
+        -:  893:
+     6144:  894:              if (next_tang_accn < min_tang_accn) // STAY WITHIN ACCN LIMIT
+        -:  895:                {
+       24:  896:                  next_tang_accn = min_tang_accn;
+        -:  897:                }
+        -:  898:
+        -:  899:            } // END CASE B :
+        -:  900:
+        -:  901:          // ==========================================================
+        -:  902:          // CASE 3 : curr_frate EQUALS curr_frate_limit
+        -:  903:          // ==========================================================
+    21112:  904:          if (curr_frate == curr_frate_limit)
+        -:  905:            {
+        -:  906:
+    #####:  907:              count_frate_isequal_fratelimit += 1;
+        -:  908:
+        -:  909:              // FOR DEBUGGING
+        -:  910:              // printf ("%s u =       %12.lf Case-FREqual-Limit at codeline 773
+        -:  911:              // main \n", CurveType, u);
+        -:  912:
+    #####:  913:              printf ("FREqual-Limit ");
+        -:  914:              // fprintf (FHdata_01, " Case-FREqual-Limit");
+        -:  915:
+    #####:  916:              next_frate = curr_frate;
+    #####:  917:              next_tang_accn = curr_tang_accn;
+        -:  918:
+        -:  919:            } // END CASE C
+        -:  920:
+        -:  921:        } // END if (u...)
+        -:  922:
+        -:  923:      // ============================================================
+        -:  924:      // (5.3) PLAN FALLING FEEDRATE S-CURVE AT END OF PARAMETRIC CURVE
+        -:  925:      // FROM FEEDRATE VALUE curr_frate  TO  VALUE ZER0
+        -:  926:      // ============================================================
+    22592:  927:      if (u > u_start_fall && u <= u_ended)
+        -:  928:        {
+        -:  929:
+      740:  930:          count_falling_s_curve_points = count_falling_s_curve_points + 1;
+        -:  931:
+      740:  932:          printf (" FallScurve ");
+        -:  933:          // fprintf (FHdata_01, " FRFall-S-curve ");
+        -:  934:
+        -:  935:          // Convert parameter(u) to S-Curve parameter (fsu) linear relation
+        -:  936:          // fsu = (fm)*(u) + ykonst ==> linear equation (y = mx + c)
+      740:  937:          fu1 = u_start_fall;
+      740:  938:          fu2 = u_ended;
+      740:  939:          fm = (fsu2 - fsu1) / (fu2 - fu1);
+      740:  940:          fkonst = fsu2 - (fm)*fu2;
+        -:  941:
+        -:  942:          // Transformation u to fsu equation becomes
+      740:  943:          fsu = (fm) * (u) + fkonst;
+        -:  944:
+        -:  945:          // ITERATION WILL REDUCE next_frate TO REACH VALUE ZERO
+        -:  946:          // OF S-CURVE WHEN VALUE OF su = 3.0
+      740:  947:          next_frate = curr_frate_limit
+      740:  948:                       * (1 - 1 / pow ((1 + exp (-fsu * fshape1)), fshape2));
+      740:  949:          next_tang_accn = (next_frate - curr_frate) / t_interpol;
+        -:  950:
+      740:  951:          if (next_tang_accn > max_tang_accn)
+        -:  952:            {
+    #####:  953:              next_tang_accn = max_tang_accn;
+        -:  954:            }
+      740:  955:          if (next_tang_accn < min_tang_accn)
+        -:  956:            {
+      202:  957:              next_tang_accn = min_tang_accn;
+        -:  958:            }
+        -:  959:
+        -:  960:        } // END FALLING S-CURVE
+        -:  961:
+        -:  962:      // ============================================================
+        -:  963:      // (8) CALCULATE NEXT SERVO REFERENCE POINT C(u + u_next)
+        -:  964:      // RECURSIVE TAYLOR'S APPROXIMATION FOR u(t)
+        -:  965:      // NEED TO SEND CURRENT FRATE TO USE IN U_NEXT SECOND ORDER CALCULATION
+        -:  966:      // ============================================================
+        -:  967:
+        -:  968:      // USING UNIT VELOCITY VECTOR COMPONENTS FOR X-FEEDRATE AND Y-FEEDRATE
+    22592:  969:      next_xfrate = next_frate * (fxn_cvel_x (u) / fxn_cvel_r (u));
+    22592:  970:      next_yfrate = next_frate * (fxn_cvel_y (u) / fxn_cvel_r (u));
+        -:  971:
+        -:  972:      // FIRST ORDER TAYLOR'S RECURSIVE APPROXIMATION FOR U_NEXT
+    22592:  973:      next_unext1stOrder = get_u_next_firstorder_runtime (
+        -:  974:        rtime, u, u_next, t_interpol, frate_command);
+        -:  975:
+        -:  976:      // FIRST ORDER TAYLOR'S RECURSIVE APPROXIMATION FOR U_NEXT
+    22592:  977:      next_unext2ndOrder = get_u_next_secondorder_runtime (
+        -:  978:        rtime, u, u_next, t_interpol, frate_command);
+        -:  979:
+        -:  980:      // GET THE NEXT u_next (INCREMENT IN PARAMETER u) USING next_frate
+    22592:  981:      u_next = get_u_next_secondorder_runtime (rtime, u, u_next, t_interpol,
+        -:  982:                                               frate_command);
+        -:  983:
+        -:  984:      // COUNTING POINTS ABOVE AND BELOW TOLERANCE EPS
+    22592:  985:      count_total_points = count_total_points + 1;
+        -:  986:
+        -:  987:      // START BYPASS STEP 1
+        -:  988:      // *************************************************
+        -:  989:      // STEP 1 PUSH DOWN EPS TO BELOW UPPERTOL_BOUND
+        -:  990:      // *************************************************
+        -:  991:      // GET THE NEXT u_next SUCH THAT epsilon IS BELOW ERROR TOLERANCE.
+        -:  992:      // CODE LOCATION: src/algo/calc07_iterate_u_next.c
+        -:  993:
+    22592:  994:      if (fxn_cpos_epsilon (u, u_next) > uppertol_bound)
+        -:  995:        {
+        -:  996:          // CAPTURE NUMBER OF POINTS WRETE EPS IS ABOVE TOLERANCE
+     3440:  997:          count_abovetol_points = count_abovetol_points + 1;
+        -:  998:
+        -:  999:          // GO TO REDUCE EPS TO BELOW TOLERANCE
+     3440: 1000:          step1_unext = fxn_get_u_next_with_constrained_eps (
+        -: 1001:            u, u_next, uppertol_bound, &count_step1_ERROR_1,
+        -: 1002:            &count_step1_ERROR_2);
+        -: 1003:
+     3440: 1004:          num_of_step1_processing += 1;
+        -: 1005:
+        -: 1006:          // NEW VALUE u_next UPDATED  **************** IMPORTANT
+     3440: 1007:          u_next = step1_unext;
+        -: 1008:        }
+        -: 1009:      else
+        -: 1010:        { // BEFORE STEP 1, EPS ALREADY BELOW uppertol_bound
+    19152: 1011:          count_before_step1_belowtol += 1;
+        -: 1012:        }
+        -: 1013:
+        -: 1014:      // IF EPS IS ALREADY BELOW TOL (BYPASS IF LOOP ABOVE)
+        -: 1015:      // ALSO TO CONFIRM THAT THE IF..LOOP ABOVE WORKS AND NOW
+    22592: 1016:      count_belowtol_points = count_belowtol_points + 1;
+        -: 1017:
+        -: 1018:      // **********************************************************
+        -: 1019:      // STEP 2 RAISE EPS TO RANGE (uppertol_bound ,lowertol_bound)
+        -: 1020:      // **********************************************************
+        -: 1021:      // GET THE NEXT u_next SUCH THAT eps IS WITHIN RANGE
+        -: 1022:      // CODE LOCATION: src/algo/calc07_iterate_u_next.c
+        -: 1023:
+    22592: 1024:      if (curr_eps > uppertol_bound)
+        -: 1025:        {
+    #####: 1026:          count_eps_aboverange += 1;
+        -: 1027:        }
+    22592: 1028:      else if ((curr_eps < uppertol_bound) && (curr_eps > lowertol_bound))
+        -: 1029:        {
+     2230: 1030:          count_eps_withinrange += 1;
+        -: 1031:        }
+    20362: 1032:      else if (curr_eps < lowertol_bound)
+        -: 1033:        {
+    20362: 1034:          count_eps_belowrange += 1; // INCREMENT COUNT
+        -: 1035:        }
+        -: 1036:      // END BYPASS STEP 1
+        -: 1037:
+        -: 1038:      // ********************************************
+        -: 1039:      // ALWAYS GUARANTEE u MOVES FORWARD (ALWAYS POSITIVE - use fabs())
+        -: 1040:      // THIS IS THE NEW VALUE FOR u_next
+    22592: 1041:      u_next = fabs (u_next);
+        -: 1042:
+        -: 1043:
+        -: 1044:
+        -: 1045:      // ============================================================
+        -: 1046:      // (6) AFTER NEW u_next, COMPARE next_deltaS AND next_chord_length
+        -: 1047:      // ============================================================
+        -: 1048:
+        -: 1049:      // COMPARE next_deltaS WITH next_chordlength
+        -: 1050:      // CODES INSIDE: curves/c_position.c
+    22592: 1051:      next_deltaS = fxn_calc_deltaS_use_rho_eps (u, u_next);
+    22592: 1052:      next_chordlength = fxn_calc_chordlength_use_paramcurve (u, u_next);
+    22592: 1053:      diff_deltaS_chordlength = (next_deltaS - next_chordlength);
+        -: 1054:
+        -: 1055:      // COMPARE sum_deltaS WITH sum_chordlength
+    22592: 1056:      sum_deltaS = sum_deltaS + next_deltaS;
+    22592: 1057:      sum_chordlength = sum_chordlength + next_chordlength;
+    22592: 1058:      diff_sum_deltaS_sum_chordlength = (sum_deltaS - sum_chordlength);
+        -: 1059:
+        -: 1060:      // ===========================================================
+        -: 1061:      // ACCUMULATE ARC LENGTHS, ARC_THETA, ARC_AREA
+        -: 1062:      // IMPT: CODES INSIDE: curves/c_position.c
+        -: 1063:      // ===========================================================
+    22592: 1064:      printf("\n");
+        -: 1065:
+        -: 1066:      // *********************************************************
+        -: 1067:      // NaN, an acronym for Not a Number is an exception that usually
+        -: 1068:      // occurs in the cases when an expression results in a number that
+        -: 1069:      // is undefined or can't be represented. It is used for floating-point
+        -: 1070:      // operations. For example: The square root of negative numbers.
+        -: 1071:      // Division by zero.
+        -: 1072:      //
+        -: 1073:
+        -: 1074:      // ==========================================================
+        -: 1075:      // GOOD PART 1 sum_arc_length (Using curve equation itself)
+        -: 1076:      // ==========================================================
+        -: 1077:
+    22592: 1078:      next_arc_length = fxn_calc_arc_length (N, u, u_next, next_chordlength, next_eps, next_rho);
+        -: 1079:      // printf ("GOOD MAIN RECVD: next_arc_length \t= %.12e (mm)\n", next_arc_length);
+        -: 1080:
+        -: 1081:      // INCREMENT SUM ARC LENGTH
+    22592: 1082:      sum_arc_length = sum_arc_length + next_arc_length;
+        -: 1083:
+        -: 1084:      // isnan (sum_arc_length)
+        -: 1085:      //  ? printf ("sum_arc_length is NaN \t\t== Not a Number \n")
+        -: 1086:      //  : printf ("sum_arc_length is \t\t= REAL \n");
+        -: 1087:
+        -: 1088:      // printf ("CORRECT MAIN OUTPUT: sum_arc_length \t= %.12e (mm)\n", sum_arc_length);
+        -: 1089:
+        -: 1090:      // ==========================================================
+        -: 1091:      // GOOD PART 2 sum_arc_theta
+        -: 1092:      // ==========================================================
+        -: 1093:      next_arc_theta
+    22592: 1094:        = fxn_calc_arc_theta (N, u, next_chordlength, next_eps, next_rho);
+        -: 1095:      // printf("MAIN OUTPUT: next_arc_theta \t= %.12e rad.\n", next_arc_theta);
+        -: 1096:
+    22592: 1097:      sum_arc_theta = sum_arc_theta + next_arc_theta;
+        -: 1098:      // printf ("CORRECT MAIN OUTPUT: sum_arc_theta \t= %.12e (rad)\n", sum_arc_theta);
+        -: 1099:
+        -: 1100:
+        -: 1101:      // ==========================================================
+        -: 1102:      // GOOD PART 3 sum_arc_area
+        -: 1103:      // ==========================================================
+        -: 1104:      next_arc_area
+    22592: 1105:        = fxn_calc_arc_area (N, u, next_chordlength, next_eps, next_rho);
+        -: 1106:      // printf("MAIN OUTPUT: next_arc_area \t\t= %.12e (mm2)\n", next_arc_area);
+        -: 1107:
+    22592: 1108:      sum_arc_area = sum_arc_area + next_arc_area;
+        -: 1109:      // printf ("CORRECT MAIN OUTPUT: sum_arc_area \t= %.12e (mm2)\n", sum_arc_area);
+        -: 1110:
+        -: 1111:      // printf ("\n");
+        -: 1112:      
+        -: 1113:      
+        -: 1114:      // ============================================================
+        -: 1115:      // (7) GET EPSILON AND RHO FROM PARAMETRIC FUNCTION
+        -: 1116:      // ============================================================
+        -: 1117:      // AFTER OBTAINING u_next VALUE CALCULATE NEXT EPSILON
+        -: 1118:      // CODES INSIDE: curves/c_position.c AND curves/c_pos_epsilon.h
+    22592: 1119:      next_eps = fxn_cpos_epsilon (u, u_next);
+        -: 1120:
+        -: 1121:      // DEBUGGING
+        -: 1122:      // printf ("next_eps = %.9e \n", next_eps);
+        -: 1123:
+        -: 1124:      // GET RHO = RECIPROCAL RADIUS OF CURVATURE
+        -: 1125:      // CODES INSIDE: curves/c_position.c AND curves/c_pos_rho.h
+    22592: 1126:      next_rho = fxn_cpos_rho (u + u_next/2.0);
+        -: 1127:
+        -: 1128:      // ===========================================================
+        -: 1129:      // (8) FINAL EPS CHORD-ERROR ACCOUNTING STATISTICS
+        -: 1130:      // ===========================================================
+    22592: 1131:      if (next_eps >= 1.0E-6)
+        -: 1132:        {
+    #####: 1133:          cnt_eps_above_10E_6 += 1;
+        -: 1134:        }
+    22592: 1135:      else if ((next_eps < 1.0E-6) && (next_eps >= 1.0E-7))
+        -: 1136:        {
+    22592: 1137:          cnt_eps_betwn_10E_7_to_10E_6 += 1;
+        -: 1138:        }
+    #####: 1139:      else if ((next_eps < 1.0E-7) && (next_eps >= 1.0E-8))
+        -: 1140:        {
+    #####: 1141:          cnt_eps_betwn_10E_8_to_10E_7 += 1;
+        -: 1142:        }
+    #####: 1143:      else if ((next_eps < 1.0E-8) && (next_eps >= 1.0E-9))
+        -: 1144:        {
+    #####: 1145:          cnt_eps_betwn_10E_9_to_10E_8 += 1;
+        -: 1146:        }
+    #####: 1147:      else if ((next_eps < 1.0E-9) && (next_eps >= 1.0E-10))
+        -: 1148:        {
+    #####: 1149:          cnt_eps_betwn_10E_10_to_10E_9 += 1;
+        -: 1150:        }
+    #####: 1151:      else if (next_eps < 1.0E-10)
+        -: 1152:        {
+    #####: 1153:          cnt_eps_below_10E_10 += 1;
+        -: 1154:        }
+        -: 1155:      else
+        -: 1156:        {
+    #####: 1157:          printf (" ERROR: IN CHECKING EPS FINAL STATISTICS. \n ");
+        -: 1158:        }
+        -: 1159:
+        -: 1160:      // FOR EPS STATISTICS TOTAL COUNTS PROCESSED
+    22592: 1161:      cnt_eps_total_points += 1;
+        -: 1162:
+        -: 1163:      // ============================================================
+        -: 1164:
+        -: 1165:      // END DEBUG PRINT  **************** IMPT *************
+    22592: 1166:      printf ("\n"); // TEMP
+    22592: 1167:      fprintf (FHdata_01, "\n");
+        -: 1168:
+        -: 1169: 
+        -: 1170:// ==========================================================          
+        -: 1171:// WRITE TO SCREEN FOR DEBUGGING (SAME AS data_01.txt)
+        -: 1172:
+        -: 1173:/*      
+        -: 1174:printf ("%s ", CurveType);
+        -: 1175:printf (" BISMILLAH "
+        -: 1176:        " %6.3lf %.12lf %.12lf "
+        -: 1177:        " NAL= %.12e NCL= %.12e "
+        -: 1178:        " SAL= %.12e SCL= %.12e "
+        -: 1179:        " DAC= %.12e "
+        -: 1180:        " PDAC= %.12e "
+        -: 1181:        " NAT= %.12e SAT= %.12e "
+        -: 1182:        " NAA= %.12e SAA= %.12e "
+        -: 1183:        " \n",
+        -: 1184:        rtime, u, u_next,
+        -: 1185:        next_arc_length, next_chordlength,
+        -: 1186:        sum_arc_length, sum_chordlength,
+        -: 1187:        diff_arc_chord_length,
+        -: 1188:        pcnt_diff_arc_chord_length,
+        -: 1189:        next_arc_theta, sum_arc_theta, 
+        -: 1190:        next_arc_area, sum_arc_area);
+        -: 1191:*/
+        -: 1192:
+        -: 1193:
+        -: 1194:// WRITE TO FILE 01 (data_01.txt) FOR DEBUGGING
+        -: 1195:
+    22592: 1196:fprintf (FHdata_01, "%s ", CurveType);
+    22592: 1197:fprintf (FHdata_01, " ALHAMDULILLAH "
+        -: 1198:   " %6.3lf %.12lf %.12lf "
+        -: 1199:   " NAL= %.12e NCL= %.12e "
+        -: 1200:   " SAL= %.12e SCL= %.12e "
+        -: 1201:   " DAC= %.12e "
+        -: 1202:   " PDAC= %.12e "
+        -: 1203:   " NAT= %.12e SAT= %.12e "
+        -: 1204:   " NAA= %.12e SAA=%.12e ",
+        -: 1205:    rtime, u, u_next, 
+        -: 1206:    next_arc_length, next_chordlength, 
+        -: 1207:    sum_arc_length, sum_chordlength, 
+        -: 1208:    diff_arc_chord_length,
+        -: 1209:    pcnt_diff_arc_chord_length,   
+        -: 1210:    next_arc_theta, sum_arc_theta, 
+        -: 1211:    next_arc_area, sum_arc_area);
+        -: 1212:
+        -: 1213:
+        -: 1214:// END DEBUGGING IN data_01.txt
+        -: 1215:// ===================================================================   
+        -: 1216:
+        -: 1217:
+        -: 1218:      
+        -: 1219:      // WRITE TO FILE BEFORE INCREMENT LOOP
+    22592: 1220:      proc_write_raw_curves (FHdata_raw_curve, rtime, u, u_next);
+        -: 1221:
+    22592: 1222:      proc_write_calc_tang_accn (FHdata_calc_tang_accn, N, curr_tang_accn,
+        -: 1223:                                 rtime, u , u_next);
+        -: 1224:
+    22592: 1225:      proc_write_calc_t_look (FHdata_calc_t_look, rtime, u, u_next,
+        -: 1226:                              curr_tang_accn, curr_frate, csv_tang_accn,
+        -: 1227:                              max_jerk);
+        -: 1228:
+    22592: 1229:      proc_write_calc_frate_limit (FHdata_calc_frate_limit, rtime, u, u_next,
+        -: 1230:                                   curr_frate, t_interpol, curr_rho, curr_eps,
+        -: 1231:                                   lamda_N, curr_frate);
+        -: 1232:
+    22592: 1233:      diff_arc_chord_length      = (sum_arc_length - sum_chordlength);
+    22592: 1234:      pcnt_diff_arc_chord_length = 100.0 * (diff_arc_chord_length/sum_arc_length);
+        -: 1235:      
+    22592: 1236:      proc_write_calc_intgr_error (FHdata_calc_intgr_error,
+        -: 1237:                                   next_arc_length, sum_arc_length,
+        -: 1238:                                   next_arc_theta, sum_arc_theta,
+        -: 1239:                                   next_arc_area, sum_arc_area,
+        -: 1240:                                   rtime, u, u_next, sum_deltaS,
+        -: 1241:                                   sum_chordlength, diff_arc_chord_length,
+        -: 1242:                                   pcnt_diff_arc_chord_length);
+        -: 1243:
+    22592: 1244:      proc_write_calc_u_next (FHdata_calc_u_next, rtime, u, u_next, t_interpol,
+        -: 1245:                              curr_tang_accn, curr_frate, curr_frate_limit,
+        -: 1246:                              frate_command);
+        -: 1247:
+        -: 1248:      // WRITE TO GCODE FILE INSIDE FOLDER: ngcode
+        -: 1249:      // FILENAME: data_ngc_code.ngc
+    22592: 1250:      proc_write_data_ngc_code (FHdata_ngc_code, rtime, u, u_next, t_interpol,
+        -: 1251:                                curr_tang_accn, curr_frate, curr_frate_limit,
+        -: 1252:                                ngc_depth, ngc_scale, frate_command);
+        -: 1253:
+        -: 1254:      // ============================================================
+        -: 1255:      // INCREMENT THE WHILE PARAMETER LOOP: while (!loop_u_done)
+        -: 1256:      // IMPORTANT FOR LAST U-NEXT
+    22592: 1257:      double u_beforelast = u;
+        -: 1258:
+    22592: 1259:      double u_static_before = u;
+    22592: 1260:      u = u + u_next;
+    22592: 1261:      double u_static_after = u;
+        -: 1262:     
+    22592: 1263:      N = N + 1;
+    22592: 1264:      rtime = N * t_interpol;
+        -: 1265:
+        -: 1266:      // VARIABLE VALUES FOR THE NEXT LOOP ITERATION
+    22592: 1267:      prev_frate_action = next_frate_action;
+    22592: 1268:      curr_tang_accn = next_tang_accn;
+        -: 1269:
+    22592: 1270:      curr_unext1stOrder = next_unext1stOrder;
+    22592: 1271:      curr_unext2ndOrder = next_unext2ndOrder;
+        -: 1272:
+    22592: 1273:      curr_frate = next_frate;
+    22592: 1274:      curr_xfrate = next_xfrate;
+    22592: 1275:      curr_yfrate = next_yfrate;
+        -: 1276:
+    22592: 1277:      curr_deltaS = next_deltaS;
+    22592: 1278:      curr_chordlength = next_chordlength;
+    22592: 1279:      curr_eps = next_eps;
+    22592: 1280:      curr_rho = next_rho;
+        -: 1281:
+    22592: 1282:      curr_arc_length = next_arc_length;
+    22592: 1283:      curr_arc_theta = next_arc_theta;
+    22592: 1284:      curr_arc_area  = next_arc_area;
+        -: 1285:      
+        -: 1286:
+        -: 1287:      // =============================================================
+        -: 1288:      // (1) VERY IMPORTANT FIX (RECURSIVE NON STOP)
+        -: 1289:      // EXAMPLE WHEN u_next = 0.000000000000000 5 CONSECUTIVE OCCURANCES
+        -: 1290:
+   22592*: 1291:      if ((fabs (u_static_after - u_static_before) < 1E-16) && (u_val_constant_1 == 0)) {
+    #####: 1292:          u_val_constant_1 = 1;
+    #####: 1293:          printf(" NOTE: u_val_constant FIRST  occurance of (NO CHANGE IN U) < 1.0E-16) \n");
+        -: 1294:      }
+        -: 1295:          
+   22592*: 1296:      if ((fabs (u_static_after - u_static_before) < 1E-16) && (u_val_constant_1 == 1)) {
+    #####: 1297:          u_val_constant_2 = 1;
+    #####: 1298:          printf(" NOTE: u_val_constant SECOND occurance of (NO CHANGE IN U) < 1.0E-16) \n");
+        -: 1299:      }
+        -: 1300:
+   22592*: 1301:      if ((fabs (u_static_after - u_static_before) < 1E-16) && (u_val_constant_1 == 1) && (u_val_constant_2 == 1) ) {
+    #####: 1302:          u_val_constant_3 = 1 ;
+    #####: 1303:          printf(" NOTE: u_val_constant THIRD  occurance of (NO CHANGE IN U) < 1.0E-16) \n");
+        -: 1304:      }
+        -: 1305:          
+   22592*: 1306:      if ((fabs (u_static_after - u_static_before) < 1E-16) && (u_val_constant_1 == 1) && (u_val_constant_2 == 1) && (u_val_constant_3 == 1)) {
+    #####: 1307:          u_val_constant_4 = 1;
+    #####: 1308:          printf(" NOTE: u_val_constant FOURTH occurance of (NO CHANGE IN U) < 1.0E-16) \n");    
+        -: 1309:      }
+        -: 1310:
+   22592*: 1311:      if ((fabs (u_static_after - u_static_before) < 1E-16) && (u_val_constant_1 == 1) && (u_val_constant_2 == 1) && (u_val_constant_3 == 1) && (u_val_constant_4 == 1) ){
+    #####: 1312:          u_val_constant_5 = 1 ;
+    #####: 1313:          printf(" NOTE: u_val_constant FIFTH  occurance of (NO CHANGE IN U) < 1.0E-16)\n");
+        -: 1314:
+    #####: 1315:          printf(" RUN ERROR .... RECURSIVE NON STOP \n");
+    #####: 1316:          printf(" Five(5) consecutive occurances of (NO CHANGE IN U) < 1.0E-16 \n");
+        -: 1317:
+    #####: 1318:          printf (" Execute exit(1) at line 1273 in main(). \n");
+        -: 1319:
+    #####: 1320:          proc_display_exit_status();
+    #####: 1321:          exit(1);       
+        -: 1322:      }
+        -: 1323:  
+        -: 1324:      // ==========================================================
+        -: 1325:      // (2) VERY IMPORTANT FIX (RECURSIVE NON STOP)
+        -: 1326:      // EXAMPLE WHEN u_next = 0.000000000000000 5 CONSECUTIVE OCCURANCES
+        -: 1327:        
+   22592*: 1328:      if ((u_next < 1.0E-14) && (u_next_zero_1 == 0)) {
+    #####: 1329:          u_next_zero_1 = 1;
+    #####: 1330:          printf(" NOTE: u_next_zero FIRST  occurance of (u_next < 1.0E-14)\n");
+        -: 1331:      }
+        -: 1332:
+   22592*: 1333:      if ((u_next < 1.0E-14) && (u_next_zero_1 == 1)) {
+    #####: 1334:          u_next_zero_2 = 1;
+    #####: 1335:          printf(" NOTE: u_next_zero SECOND occurance of (u_next < 1.0E-14)\n");
+        -: 1336:      }
+        -: 1337:
+   22592*: 1338:      if ((u_next < 1.0E-14) && (u_next_zero_1 == 1) && (u_next_zero_2 == 1)) {
+    #####: 1339:          u_next_zero_3 = 1;
+    #####: 1340:          printf(" NOTE: u_next_zero THIRD  occurance of (u_next < 1.0E-14)\n");
+        -: 1341:      }
+        -: 1342:
+   22592*: 1343:      if ((u_next < 1.0E-14) && (u_next_zero_1 == 1) && (u_next_zero_2 == 1) && (u_next_zero_3 == 1)) {
+    #####: 1344:          u_next_zero_4 = 1;
+    #####: 1345:          printf(" NOTE: u_next_zero FOURTH occurance of (u_next < 1.0E-14)\n");
+        -: 1346:      }
+        -: 1347:
+   22592*: 1348:      if ((u_next < 1.0E-14) && (u_next_zero_1 == 1) && (u_next_zero_2 == 1) && (u_next_zero_3 == 1) && (u_next_zero_4 == 1)) {
+    #####: 1349:          u_next_zero_5 = 1;
+    #####: 1350:          printf(" NOTE: u_next_zero FIFTH  occurance of (u_next < 1.0E-14)\n");
+        -: 1351:
+    #####: 1352:          printf(" RUN ERROR .... RECURSIVE NON STOP \n");
+    #####: 1353:          printf(" Five(5) consecutive occurances of (u_next < 1.0E-14) \n");
+        -: 1354:
+    #####: 1355:          printf (" Execute exit(1) at line 1310 in main(). \n");
+        -: 1356:
+    #####: 1357:          proc_display_exit_status();
+    #####: 1358:          exit(1);       
+        -: 1359:      }
+        -: 1360:
+        -: 1361:      // ==========================================================
+        -: 1362:      // (3) VERY IMPORTANT FIX (RECURSIVE NON STOP)
+        -: 1363:      // EXAMPLE WHEN u_next = 0.000000000000000
+        -: 1364:
+    22592: 1365:      line_count_limit = (int)(rtime * 1000);
+        -: 1366:
+    22592: 1367:      if (line_count_limit < 3000) {
+     5998: 1368:          display_line_limit_03K_BELOW = 1;
+        -: 1369:      }
+        -: 1370:
+    22592: 1371:      switch (line_count_limit) {
+        2: 1372:          case 3000:
+        2: 1373:              display_line_limit_03K = 1;
+        2: 1374:              break;
+        2: 1375:          case 5000:
+        2: 1376:              display_line_limit_05K = 1;
+        2: 1377:              break;
+        2: 1378:          case 10000:
+        2: 1379:              display_line_limit_10K = 1;
+        2: 1380:              break;
+    #####: 1381:          case 15000:
+    #####: 1382:              display_line_limit_15K = 1;
+    #####: 1383:              break;
+    #####: 1384:          case 20000:
+    #####: 1385:              display_line_limit_20K = 1;
+    #####: 1386:              break;
+    #####: 1387:          case 25000:
+    #####: 1388:              display_line_limit_25K = 1;
+    #####: 1389:              break;
+    #####: 1390:          case 30000:
+    #####: 1391:              display_line_limit_30K = 1;
+    #####: 1392:              break;
+    #####: 1393:          case 35000:
+    #####: 1394:              display_line_limit_35K = 1;
+    #####: 1395:              break;
+    #####: 1396:          case 40000:
+    #####: 1397:              display_line_limit_40K = 1;
+    #####: 1398:              break;
+    #####: 1399:          case 45000:
+    #####: 1400:              display_line_limit_45K = 1;
+    #####: 1401:              break;
+    #####: 1402:          case 50000:
+    #####: 1403:              display_line_limit_50K = 1;
+    #####: 1404:              break;
+        -: 1405:
+    22586: 1406:          default:
+    22586: 1407:             break;
+        -: 1408:              
+        -: 1409:      }
+        -: 1410:      
+    22592: 1411:      if (line_count_limit > 50000) {
+        -: 1412:            
+    #####: 1413:          display_line_limit_50K_ABOVE = 1;
+        -: 1414:      }
+    22592: 1415:      if (line_count_limit > 100000) {
+        -: 1416:            
+    #####: 1417:          display_line_limit_100K_ABOVE = 1;
+        -: 1418:      }
+        -: 1419:
+        -: 1420:     
+    22592: 1421:     if (line_count_limit > LAST_LINE_LIMIT) {
+        -: 1422:            
+    #####: 1423:          display_line_limit_200K_ABOVE = 1;
+    #####: 1424:          printf (" RUN ERROR .... RECURSIVE NON STOP EXECUTION \n");
+    #####: 1425:          printf (" More than 200,000 lines generated \n");
+    #####: 1426:          printf (" Execute exit(1) at line 1380 in main(). \n");
+        -: 1427:          
+    #####: 1428:          proc_display_exit_status();
+    #####: 1429:          exit(1);                 
+        -: 1430:     }
+        -: 1431:
+        -: 1432:
+        -: 1433:      // ============================================================
+        -: 1434:      // CHECK FOR LAST LINE WHERE u_ended = 1.000000000;
+        -: 1435:      // ============================================================
+    22592: 1436:      if (u >= u_ended)
+        -: 1437:        {
+        -: 1438:
+        2: 1439:          loop_u_done = true; // NOW LOOP U IS DONE
+        -: 1440:
+        2: 1441:          u_next = (u_ended - u_beforelast); // LAST INCREMENT
+        2: 1442:          u = u_ended; // FORCE u BACKWARD TO EXACT END POINT
+        2: 1443:          N = N;       // LAST LINE NUMBER
+        2: 1444:          rtime = N * t_interpol;
+        -: 1445:
+        2: 1446:          next_tang_accn = 0.0; // DOUBLE
+        2: 1447:          next_frate = 0.0;
+        2: 1448:          next_deltaS = fxn_calc_deltaS_use_rho_eps (u_beforelast, u_next);
+        -: 1449:          next_chordlength
+        2: 1450:            = fxn_calc_chordlength_use_paramcurve (u_beforelast, u_next);
+        2: 1451:          next_eps = fxn_cpos_epsilon (u_beforelast, u_next);
+        2: 1452:          next_rho = fxn_cpos_rho (u_beforelast + u_next / 2.0);
+        -: 1453:
+        -: 1454:          // VARIABLE VALUES FOR RECORD OF LAST LINE IN FILE
+        -: 1455:          // prev_frate_action = next_frate_action;
+        2: 1456:          curr_tang_accn = next_tang_accn;
+        2: 1457:          curr_frate = next_frate;
+        2: 1458:          curr_deltaS = next_deltaS;
+        2: 1459:          curr_chordlength = next_chordlength;
+        2: 1460:          curr_eps = next_eps;
+        2: 1461:          curr_rho = next_rho;
+        -: 1462:
+        -: 1463:// =============================================
+        -: 1464:          // WRITE LAST LINE TO FILE
+        2: 1465:          proc_write_raw_curves (FHdata_raw_curve, rtime, u, u_next);
+        -: 1466:
+        2: 1467:          proc_write_calc_tang_accn (FHdata_calc_tang_accn, N, curr_tang_accn,
+        -: 1468:                                     rtime, u, u_next);
+        -: 1469:
+        2: 1470:          proc_write_calc_t_look (FHdata_calc_t_look, rtime, u, u_next,
+        -: 1471:                                  curr_tang_accn, curr_frate, csv_tang_accn,
+        -: 1472:                                  max_jerk);
+        -: 1473:
+        2: 1474:          proc_write_calc_frate_limit (FHdata_calc_frate_limit, rtime, u,
+        -: 1475:                                       u_next, frate_command, t_interpol,
+        -: 1476:                                       curr_rho, curr_eps, lamda_N, curr_frate);
+        -: 1477:
+        2: 1478:          proc_write_calc_intgr_error (
+        -: 1479:            FHdata_calc_intgr_error, next_arc_length, sum_arc_length,
+        -: 1480:            next_arc_theta, sum_arc_theta, next_arc_area, sum_arc_area, rtime,
+        -: 1481:            u, u_next, sum_deltaS, sum_chordlength,
+        -: 1482:            diff_arc_chord_length, pcnt_diff_arc_chord_length);
+        -: 1483:
+        -: 1484:
+        2: 1485:          proc_write_calc_u_next (FHdata_calc_u_next, rtime, u, u_next,
+        -: 1486:                                  t_interpol, curr_tang_accn, curr_frate,
+        -: 1487:                                  curr_frate_limit, frate_command);
+        -: 1488:
+        -: 1489:
+        -: 1490:// ==========================================================          
+        -: 1491:// WRITE TO SCREEN FOR DEBUGGING (SAME AS data_01.txt)
+        -: 1492:
+        -: 1493:      
+        2: 1494:printf ("%s ", CurveType);
+        2: 1495:printf (" ALHAMDULILLAH "
+        -: 1496:        " %6.3lf %.12lf %.12lf "
+        -: 1497:        " NAL= %.12e NCL= %.12e "
+        -: 1498:        " SAL= %.12e SCL= %.12e "
+        -: 1499:        " DAC= %.12e "
+        -: 1500:        " PDAC= %.12e "
+        -: 1501:        " NAT= %.12e SAT= %.12e "
+        -: 1502:        " NAA= %.12e SAA= %.12e ",
+        -: 1503:        rtime, u, u_next,
+        -: 1504:        next_arc_length, next_chordlength,
+        -: 1505:        sum_arc_length, sum_chordlength,
+        -: 1506:        diff_arc_chord_length,
+        -: 1507:        pcnt_diff_arc_chord_length,
+        -: 1508:        next_arc_theta, sum_arc_theta, 
+        -: 1509:        next_arc_area, sum_arc_area);
+        -: 1510:
+        -: 1511:
+        -: 1512:// WRITE TO FILE 01 (data_01.txt) FOR DEBUGGING
+        -: 1513:
+        2: 1514:fprintf (FHdata_01, "%s ", CurveType);
+        2: 1515:fprintf (FHdata_01, " BISMILLAH "
+        -: 1516:   " %6.3lf %.12lf %.12lf "
+        -: 1517:   " NAL= %.12e NCL= %.12e "
+        -: 1518:   " SAL= %.12e SCL= %.12e "
+        -: 1519:   " DAC= %.12e "
+        -: 1520:   " PDAC= %.12e "
+        -: 1521:   " NAT= %.12e SAT= %.12e "
+        -: 1522:   " NAA= %.12e SAA=%.12e ",
+        -: 1523:    rtime, u, u_next, 
+        -: 1524:    next_arc_length, next_chordlength, 
+        -: 1525:    sum_arc_length, sum_chordlength, 
+        -: 1526:    diff_arc_chord_length,
+        -: 1527:    pcnt_diff_arc_chord_length,   
+        -: 1528:    next_arc_theta, sum_arc_theta, 
+        -: 1529:    next_arc_area, sum_arc_area);
+        -: 1530:
+        -: 1531:
+        -: 1532:// END DEBUGGING IN data_01.txt
+        -: 1533:// ===================================================================   
+        -: 1534:
+        -: 1535:          
+        -: 1536:          // WRITE TO GCODE FILE INSIDE FOLDER: ngcode
+        -: 1537:          // FILENAME: data_ngc_code.ngc
+        2: 1538:          proc_write_data_ngc_code (
+        -: 1539:            FHdata_ngc_code, rtime, u, u_next, t_interpol, curr_tang_accn,
+        -: 1540:            curr_frate, curr_frate_limit, ngc_depth, ngc_scale, frate_command);
+        -: 1541:
+        -: 1542:        } // END IF LAST LINE
+        -: 1543:
+        -: 1544:    } // END WHILE LOOP
+        -: 1545:
+        -: 1546:  // ================================================================
+        2: 1547:  DTStamp ();
+        2: 1548:  printf ("Ended while loop \n");
+        2: 1549:  stop_timer (1);
+        -: 1550:
+        -: 1551:  // CALCULATIONS FOR RUN REPORT STATISTICS
+        2: 1552:  already_belowtol_points = count_total_points - count_abovetol_points;
+        2: 1553:  pcnt_abovetol = (double)(100.0 * count_abovetol_points / N);
+        2: 1554:  pcnt_belowtol = (double)(100.0 * count_belowtol_points / N);
+        2: 1555:  pcnt_already_belowtol = (double)(100.0 * already_belowtol_points / N);
+        2: 1556:  pcnt_rising = (double)(100.0 * count_rising_s_curve_points / N);
+        2: 1557:  pcnt_lower = (double)(100.0 * count_frate_islower_fratelimit / N);
+        2: 1558:  pcnt_equal = (double)(100.0 * count_frate_isequal_fratelimit / N);
+        2: 1559:  pcnt_higher = (double)(100.0 * count_frate_ishigher_fratelimit / N);
+        2: 1560:  pcnt_falling = (double)(100.0 * count_falling_s_curve_points / N);
+        -: 1561:  sum_percentages
+        2: 1562:    = pcnt_rising + pcnt_lower + pcnt_equal + pcnt_higher + pcnt_falling;
+        -: 1563:  sum_eps_allranges
+        2: 1564:    = count_eps_aboverange + count_eps_withinrange + count_eps_belowrange;
+        2: 1565:  double pcnt_before
+        2: 1566:    = (double)(100.0 * count_before_step1_belowtol / sum_eps_allranges);
+        2: 1567:  double pcnt_step1
+        2: 1568:    = (double)(100.0 * num_of_step1_processing / sum_eps_allranges);
+        -: 1569:
+        2: 1570:  double pcnt_above = (100.0 * cnt_eps_above_10E_6 / cnt_eps_total_points);
+        2: 1571:  double pcnt_10E_7
+        2: 1572:    = (100.0 * cnt_eps_betwn_10E_7_to_10E_6 / cnt_eps_total_points);
+        2: 1573:  double pcnt_10E_8
+        2: 1574:    = (100.0 * cnt_eps_betwn_10E_8_to_10E_7 / cnt_eps_total_points);
+        2: 1575:  double pcnt_10E_9
+        2: 1576:    = (100.0 * cnt_eps_betwn_10E_9_to_10E_8 / cnt_eps_total_points);
+        2: 1577:  double pcnt_10E_10
+        2: 1578:    = (100.0 * cnt_eps_betwn_10E_10_to_10E_9 / cnt_eps_total_points);
+        2: 1579:  double pcnt_below = (100.0 * cnt_eps_below_10E_10 / cnt_eps_total_points);
+        2: 1580:  double pcnt_total = (100.0 * cnt_eps_total_points / N);
+        -: 1581:
+        2: 1582:  DTStamp ();
+        2: 1583:  printf ("Write run report statistics to screen and file. \n");
+        -: 1584:  // DTStamp ();
+        2: 1585:  fprintf (FHdata_02, "Write run report statistics to screen and file. \n");
+        -: 1586:
+        -: 1587:  // =================================================================
+        2: 1588:  proc_write_01_epsilon_processing_error_statistics (FHdata_02, CurveType, N, 
+        -: 1589:       count_step1_ERROR_1, count_step1_ERROR_2,
+        -: 1590:       count_step2_ERROR_1, count_step2_ERROR_2, 
+        -: 1591:       count_step2_ERROR_3, count_step2_ERROR_4);
+        -: 1592:
+        -: 1593:  // ==================================================================
+        2: 1594:  proc_write_02_epsilon_count_range_value_statistics (FHdata_02, CurveType, N,
+        -: 1595:        cnt_eps_above_10E_6, pcnt_above,
+        -: 1596:        cnt_eps_betwn_10E_7_to_10E_6, pcnt_10E_7,
+        -: 1597:        cnt_eps_betwn_10E_8_to_10E_7, pcnt_10E_8,
+        -: 1598:        cnt_eps_betwn_10E_9_to_10E_8, pcnt_10E_9,
+        -: 1599:        cnt_eps_betwn_10E_10_to_10E_9, pcnt_10E_10,
+        -: 1600:        cnt_eps_below_10E_10, pcnt_below,
+        -: 1601:        cnt_eps_total_points, pcnt_total );
+        -: 1602:
+        -: 1603:  // =================================================================
+        2: 1604:  proc_write_03_interpolated_point_statistics (
+        -: 1605:    FHdata_02, CurveType, N, count_before_step1_belowtol, pcnt_before,
+        -: 1606:    num_of_step1_processing, pcnt_step1, num_of_step2_processing);
+        -: 1607:
+        -: 1608:  // =================================================================
+        2: 1609:  proc_write_04_adjust_currfrate_to_currfrate_limit (
+        -: 1610:    FHdata_02, CurveType, N, count_rising_s_curve_points, pcnt_rising,
+        -: 1611:    count_frate_islower_fratelimit, pcnt_lower, count_frate_isequal_fratelimit,
+        -: 1612:    pcnt_equal, count_frate_ishigher_fratelimit, pcnt_higher,
+        -: 1613:    count_falling_s_curve_points, pcnt_falling, sum_percentages);
+        -: 1614:
+        -: 1615:  // ==================================================================
+        2: 1616:  proc_write_05_write_epsilon_chord_error_statistics (
+        -: 1617:    FHdata_02, CurveType, N, min_eps, avg_eps, max_eps, sum_eps, line_mineps,
+        -: 1618:    u_mineps, x_mineps, y_mineps, line_maxeps, u_maxeps, x_maxeps, y_maxeps);
+        -: 1619:
+        -: 1620:  // ==================================================================
+        2: 1621:  proc_write_06_write_radius_of_curvature_rho_statistics (
+        -: 1622:    FHdata_02, CurveType, N, min_rho, avg_rho, max_rho, sum_rho, line_minrho,
+        -: 1623:    u_minrho, x_minrho, y_minrho, line_maxrho, u_maxrho, x_maxrho, y_maxrho);
+        -: 1624:
+        -: 1625:  // ==================================================================
+        2: 1626:  proc_write_07_write_tangential_acceleration_statistics (
+        -: 1627:    FHdata_02, CurveType, N, min_tangaccn, avg_tangaccn, max_tangaccn,
+        -: 1628:    sum_tangaccn, line_mintangaccn, u_mintangaccn, x_mintangaccn, y_mintangaccn,
+        -: 1629:    line_maxtangaccn, u_maxtangaccn, x_maxtangaccn, y_maxtangaccn);
+        -: 1630:
+        -: 1631:  // ==================================================================
+        2: 1632:  proc_write_08_write_feedrate_statistics (
+        -: 1633:    FHdata_02, CurveType, N, min_frate, avg_frate, max_frate, sum_frate,
+        -: 1634:    line_minfrate, u_minfrate, x_minfrate, y_minfrate, line_maxfrate,
+        -: 1635:    u_maxfrate, x_maxfrate, y_maxfrate);
+        -: 1636:
+        -: 1637:  // ==================================================================
+        2: 1638:  proc_write_09_write_algorithm_efficiency_statistics (
+        -: 1639:    FHdata_02, CurveType, N, sum_chordlength, sum_eps, sum_arc_length,
+        -: 1640:    sum_arc_theta, sum_arc_area,
+        -: 1641:    diff_arc_chord_length, pcnt_diff_arc_chord_length);
+        -: 1642:  
+        -: 1643:  
+        -: 1644:
+        -: 1645:  // ================================================================
+        -: 1646:  // WRITE ALL FOOTER FILES
+        2: 1647:  proc_writefooter_all_files ();
+        -: 1648:
+        -: 1649:  // WRITE NGC codes footer
+        2: 1650:  proc_writefooter_data_ngc_code (FHdata_ngc_code);
+        -: 1651:
+        -: 1652:  // CLOSE ALL FILES
+        2: 1653:  proc_close_all_files ();
+        -: 1654:
+        -: 1655:  // =======================================================
+        -: 1656:  // printf ("BEGIN TESTING \n");
+        -: 1657:  // =========================================================
+        -: 1658:
+        -: 1659:  
+        -: 1660:  // printf ("ENDED TESTING \n");
+        -: 1661:  // ==================================================================
+        -: 1662:
+        2: 1663:  total_program_duration ();
+        2: 1664:  WRY_ending_salutation ();
+        2: 1665:  return (0);
+        -: 1666:}
+        -: 1667:// ==================================================================
+        -: 1668:// ALHAMDULILLAH 3 TIMES.
+        -: 1669:// ==================================================================
+        -: 1670:/*
+        -: 1671:
+        -: 1672:
+        -: 1673:
+        -: 1674:*/
+        -: 1675:// ==================================================================

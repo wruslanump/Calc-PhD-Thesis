@@ -1,0 +1,157 @@
+        -:    0:Source:/home/wruslan/workspaces-gnat/gnatstudio-c/gnat_c_cnc-04/src/algo/calc01_lookahead_length.c
+        -:    1:// FILE: calc01_lookahead_length.c
+        -:    2:
+        -:    3:#include <math.h>
+        -:    4:#include <stdio.h>
+        -:    5:
+        -:    6:// INCLUDED FOR THE FUNCTION DEFINITIONS
+        -:    7:#include "curves/c_position.h"
+        -:    8:#include "curves/c_velocity.h"
+        -:    9:#include "curves/c_accelern.h"
+        -:   10:
+        -:   11:#include "algo/calc01_lookahead_length.h"
+        -:   12:#include "algo/calc02_tang_accn_limit.h"
+        -:   13:
+        -:   14:
+        -:   15:
+        -:   16:// The dynamic lookahead length is calculated as the time required
+        -:   17:// for a full stop.
+        -:   18:// The number of lookahead points is the quotient of t_look divided
+        -:   19:// by t_interpol.
+        -:   20:
+        -:   21:// double curr_frate;   // Current feedrate (F_0)
+        -:   22:// double curr_accn_t;  // Current tangential acceleration (accn_t_0)
+        -:   23:// double accn_csv_t;   // Conservative tangential deceleration value
+        -:   24:
+        -:   25:// double t_look;   // dynamic lookahead length (is time duration to full stop)
+        -:   26:// double max_jerk;
+        -:   27:// double profile_ctiteria;
+        -:   28:// double u, u_next;
+        -:   29:
+        -:   30:// ==================================================================
+    45186:   31:int fxn_get_deceleration_profile (double u, double u_next, double accn_csv_t,
+        -:   32:                          double curr_accn_t, double max_jerk,
+        -:   33:                          double curr_frate)
+        -:   34:// ==================================================================
+        -:   35:{
+        -:   36:int profile;   // Value 0 for triangular, 1 for trapezoidal
+    45186:   37:double temp1 = (2.0)*(accn_csv_t)*(accn_csv_t) - (curr_accn_t)*(curr_accn_t);
+    45186:   38:double temp2 = (2.0)*(max_jerk);
+        -:   39:
+    45186:   40:double criteria = (temp1)/(temp2);
+        -:   41:
+    45186:   42:if (criteria < curr_frate)
+        -:   43:   {
+    43098:   44:     profile = 1;  // TRAPEZOIDAL DECELERATION
+        -:   45:   } else {
+     2088:   46:     profile = 0;  // TRIANGULAR DECELERATION
+        -:   47:   }
+        -:   48:
+    45186:   49:return (profile);
+        -:   50:}
+        -:   51:
+        -:   52:// ==================================================================
+        -:   53:double
+    45186:   54:fxn_get_time_lookahead_length (double u, double u_next, double csv_tang_accn,
+        -:   55:                               double curr_tang_accn, double max_jerk,
+        -:   56:                               double curr_frate, int decn_profile)
+        -:   57:
+        -:   58:// ==================================================================
+        -:   59:{
+        -:   60:
+        -:   61:   double time_look;  // Time to decelerate to a full stop.
+        -:   62:
+        -:   63:
+    45186:   64:   if (decn_profile == 1) // TRAPEZOIDAL
+        -:   65:   {
+    43098:   66:     double temp1 = (curr_frate / csv_tang_accn);
+    43098:   67:     double temp2 = (curr_tang_accn + csv_tang_accn) / (max_jerk);
+    43098:   68:     double temp3 = (curr_tang_accn * curr_tang_accn);
+    43098:   69:     double temp4 = (2.0)*(csv_tang_accn)*(max_jerk);
+        -:   70:
+    43098:   71:     time_look = temp1 + temp2 + (temp3/temp4);
+        -:   72:
+        -:   73:   }
+        -:   74:
+        -:   75:
+    45186:   76:   if (decn_profile == 0) // TRIANGULAR
+        -:   77:   {
+     2088:   78:     double temp1 = (4.0) * (curr_frate) * (max_jerk);
+     2088:   79:     double temp2 = (2.0) * (curr_tang_accn * curr_tang_accn);
+     2088:   80:     double temp3 = sqrt (temp1 + temp2);
+        -:   81:
+     2088:   82:     time_look = (curr_tang_accn + temp3)/(max_jerk);
+        -:   83:
+        -:   84:   }
+        -:   85:
+    45186:   86:return (time_look);
+        -:   87:}
+        -:   88:
+        -:   89:
+        -:   90:// ==================================================================
+        2:   91:void proc_writeheader_data_calc_t_look (FILE* FHdata_calc_t_look)
+        -:   92:// ==================================================================
+        -:   93:{
+        -:   94:
+        2:   95:  fprintf (FHdata_calc_t_look,
+        -:   96:           "# DTStamp_FHdata_calc_t_look (time_lookahead_length) %s \n",
+        -:   97:           get_datetime_stamp ());
+        -:   98:
+        2:   99:    fprintf (FHdata_calc_t_look,
+        -:  100:    "# rtime[1], u[2], u_next[3], accn_csv_t[4], curr_accn_t[5], max_jerk[6], "
+        -:  101:    "curr_frate[7], profile[8], t_look[9] eps[10] rho[11] min_tang_accn[12] max_tang_accn[13] \n");
+        -:  102:
+        -:  103:
+        2:  104:}
+        -:  105:
+        -:  106:// ==================================================================
+        2:  107:void proc_writefooter_data_calc_t_look (FILE* FHdata_calc_t_look)
+        -:  108:// ==================================================================
+        -:  109:{
+        -:  110:
+        2:  111:   fprintf (FHdata_calc_t_look,
+        -:  112:    "# rtime[1], u[2], u_next[3], accn_csv_t[4], curr_accn_t[5], max_jerk[6], "
+        -:  113:    "curr_frate[7], profile[8], t_look[9] eps[10] rho[11] min_tang_accn[12] max_tang_accn[13] \n");
+        -:  114:
+        2:  115:   fprintf (FHdata_calc_t_look,
+        -:  116:            "# DTStamp_FHdata_calc_t_look (time_lookahead_length) %s \n",
+        -:  117:            get_datetime_stamp ());
+        -:  118:
+        -:  119:
+        2:  120:}
+        -:  121:
+        -:  122:// ==================================================================
+    22594:  123:void proc_write_calc_t_look (FILE *FHdata_calc_t_look, double rtime, double u,
+        -:  124:                double u_next, double curr_tang_accn, double curr_frate,
+        -:  125:                double csv_tang_accn, double max_jerk)
+        -:  126:
+        -:  127:// ==================================================================
+        -:  128:{
+        -:  129:
+    22594:  130:  int decn_profile = fxn_get_deceleration_profile (u, u_next, csv_tang_accn,
+        -:  131:                                     curr_tang_accn, max_jerk, curr_frate);
+        -:  132:
+    22594:  133:  double time_look = fxn_get_time_lookahead_length (u, u_next, csv_tang_accn,
+        -:  134:                                     curr_tang_accn, max_jerk, curr_frate, decn_profile);
+        -:  135:
+    22594:  136:  double eps = fxn_cpos_epsilon (u, u_next);
+    22594:  137:  double rho = fxn_cpos_rho (u);
+        -:  138:
+        -:  139:  // CODES IN "algo/calc02_tang_accn_limit.h"
+    22594:  140:  double min_tang_accn = fxn_get_min_tang_accn (u);
+    22594:  141:  double max_tang_accn = fxn_get_max_tang_accn (u);
+        -:  142:
+        -:  143:
+    22594:  144:  fprintf (FHdata_calc_t_look,
+        -:  145:           "%12.6lf %12.9lf %12.9lf %12.9lf %12.9lf %12.9lf %12.9lf %3d %12.6lf "
+        -:  146:           "%18.15lf %12.6lf %12.6lf %12.6lf \n",
+        -:  147:           rtime, u, u_next, csv_tang_accn, curr_tang_accn, max_jerk, curr_frate,
+        -:  148:           decn_profile, time_look, eps, rho, min_tang_accn, max_tang_accn);
+        -:  149:
+        -:  150:
+    22594:  151:}
+        -:  152:
+        -:  153:// ==================================================================
+        -:  154:// ALHAMDULILLAH 3 TIMES WRY
+        -:  155:// ==================================================================
+        -:  156:

@@ -1,0 +1,90 @@
+        -:    0:Source:/home/wruslan/workspaces-gnat/gnatstudio-c/gnat_c_cnc-04/src/realtime/preempt_rt.c
+        -:    1:/*
+        -:    2: * preempt_rt.c
+        -:    3: *
+        -:    4: *  Created on: Feb 25, 2020
+        -:    5: *      Author: wruslan
+        -:    6: */
+        -:    7:
+        -:    8:#include <stdio.h>
+        -:    9:#include <stdlib.h>
+        -:   10:#include <pthread.h>
+        -:   11:#include <sched.h>
+        -:   12:#include <limits.h>
+        -:   13:#include <sys/mman.h>
+        -:   14:#include <error.h>
+        -:   15:
+        -:   16:#include "common/c_dtstamp.h"
+        -:   17:
+        -:   18:// ========================================================
+        -:   19:// GLOBAL VARIABLES
+        -:   20:// ==========================================================
+        -:   21:// Used for pthreads
+        -:   22:
+        -:   23:struct sched_param 	param;
+        -:   24:pthread_attr_t 		  attr;
+        -:   25:
+        -:   26:int ret_lock, ret_pthread_init;
+        -:   27:int ret_stacksize, ret_schedpolicy;
+        -:   28:int ret_param_sched_priority, ret_inheritsched;
+        -:   29:
+        -:   30:// TO FIGURE THIS OUT
+        -:   31:#define PTHREAD_STACK_MIN  4096
+        -:   32:
+        -:   33:// ========================================================
+    #####:   34:void execute_pthread_settings(void) {
+        -:   35:// ========================================================
+        -:   36:
+        -:   37:   // (1) Lock memory
+    #####:   38:	ret_lock = mlockall(MCL_CURRENT|MCL_FUTURE);
+    #####:   39:    if(ret_lock == -1) {
+    #####:   40:            DTStamp(); printf("(1) %m: mlockall memory current/future failed. ret_lock \t= %d \n", ret_lock);
+    #####:   41:            exit(1);
+        -:   42:    } else {
+    #####:   43:			DTStamp(); printf("(1) %m: mlockall memory current/future success. ret_lock \t= %d \n", ret_lock);
+        -:   44:	}
+        -:   45:
+        -:   46:    // (2) Initialize pthread attributes (default values)
+    #####:   47:    ret_pthread_init = pthread_attr_init(&attr);
+    #####:   48:    if (ret_pthread_init) {
+    #####:   49:        DTStamp(); printf("(2) %m: pthread init attributes failed. ret_pth_init \t= %d \n", ret_pthread_init);
+        -:   50:    } else {
+    #####:   51:		DTStamp(); printf("(2) %m: pthread init attributes success. ret_pth_init \t= %d \n", ret_pthread_init);
+        -:   52:	}
+        -:   53:
+        -:   54:    // (3) Set a specific stack size
+    #####:   55:    ret_stacksize = pthread_attr_setstacksize(&attr, PTHREAD_STACK_MIN);
+    #####:   56:    if (ret_stacksize) {
+    #####:   57:        DTStamp(); printf("(3) %m: pthread setstacksize failed. ret_stacksize \t= %d \n", ret_stacksize);
+        -:   58:    } else {
+    #####:   59:		DTStamp(); printf("(3) %m: pthread setstacksize success. ret_stacksize \t= %d \n", ret_stacksize);
+        -:   60:	}
+        -:   61:
+        -:   62:    // (4) Set scheduler policy
+    #####:   63:    ret_schedpolicy = pthread_attr_setschedpolicy(&attr, SCHED_FIFO);
+    #####:   64:    if (ret_schedpolicy) {
+    #####:   65:        DTStamp(); printf("(4) %m: pthread setschedpolicy failed. ret_schedpolicy \t= %d \n", ret_schedpolicy);
+        -:   66:    } else {
+    #####:   67:		DTStamp(); printf("(4) %m: pthread setschedpolicy success. ret_schedpolicy \t= %d \n", ret_schedpolicy);
+        -:   68:	}
+        -:   69:
+        -:   70:	// (5) Set priority of pthread
+    #####:   71:    param.sched_priority = 80;
+    #####:   72:    ret_param_sched_priority = pthread_attr_setschedparam(&attr, &param);
+    #####:   73:    if (ret_param_sched_priority) {
+    #####:   74:        DTStamp(); printf("(5) %m: pthread setschedparam priority failed. ret_param_sched_priority \t= %d \n", ret_param_sched_priority);
+        -:   75:    } else {
+    #####:   76:		DTStamp(); printf("(5) %m: pthread setschedparam priority success. ret_param_sched_priority \t= %d \n", ret_param_sched_priority);
+        -:   77:	}
+        -:   78:
+        -:   79:    // (6) Use scheduling parameters of attr
+    #####:   80:    ret_inheritsched  = pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
+    #####:   81:    if ( ret_inheritsched) {
+    #####:   82:		DTStamp(); printf("(6) %m: pthread setsinheritsched failed. ret_inheritsched = %d \n", ret_inheritsched);
+        -:   83:    } else {
+    #####:   84:		DTStamp(); printf("(6) %m: pthread setsinheritsched success. ret_inheritsched = %d \n", ret_inheritsched);
+        -:   85:	}
+        -:   86:
+    #####:   87:}
+        -:   88:// ========================================================
+        -:   89:

@@ -1,0 +1,22 @@
+
+====================================================================
+STEP 2
+wruslan@HPLaptop-01-ub20:~/WRY-UMP-Thesis-Calc-Reports-74/HISTOGRAM-data-capture-python/03-Teardrop-U-point-distribution$ ls -al
+total 7928
+drwxrwxr-x 2 wruslan wruslan    4096 Oct  7 11:46 .
+drwxrwxr-x 5 wruslan wruslan    4096 Oct  7 11:39 ..
+-rwxrwxrwx 1 wruslan wruslan 2546644 Oct  5 10:40 data-FC10-Teardrop-L018-A28-data_calc_u_next.txt
+-rwxrwxrwx 1 wruslan wruslan 1885138 Oct  5 10:43 data-FC20-Teardrop-L018-A28-data_calc_u_next.txt
+-rwxrwxrwx 1 wruslan wruslan 1822686 Oct  5 10:47 data-FC30-Teardrop-L018-A28-data_calc_u_next.txt
+-rwxrwxrwx 1 wruslan wruslan 1822686 Oct  5 11:11 data-FC40-Teardrop-L018-A28-data_calc_u_next.txt
+-rw-rw-r-- 1 wruslan wruslan    1193 Oct  7 11:46 Histo-data-FC10-Teardrop-L018-A28-data_calc_u_next.txt
+-rw-rw-r-- 1 wruslan wruslan    1187 Oct  7 11:46 Histo-data-FC20-Teardrop-L018-A28-data_calc_u_next.txt
+-rw-rw-r-- 1 wruslan wruslan    1187 Oct  7 11:45 Histo-data-FC30-Teardrop-L018-A28-data_calc_u_next.txt
+-rw-rw-r-- 1 wruslan wruslan    1188 Oct  7 11:43 Histo-data-FC40-Teardrop-L018-A28-data_calc_u_next.txt
+-rw-rw-r-- 1 wruslan wruslan    8458 Oct  7 11:46 python-capture-FCXX-general-histogram-data_calc_u_next.py
+wruslan@HPLaptop-01-ub20:~/WRY-UMP-Thesis-Calc-Reports-74/HISTOGRAM-data-capture-python/03-Teardrop-U-point-distribution$ 
+FINISHED STEP 2
+
+=====================================================================
+
+

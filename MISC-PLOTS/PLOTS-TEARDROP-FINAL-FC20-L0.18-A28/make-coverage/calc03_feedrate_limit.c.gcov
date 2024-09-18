@@ -1,0 +1,277 @@
+        -:    0:Source:/home/wruslan/workspaces-gnat/gnatstudio-c/gnat_c_cnc-04/src/algo/calc03_feedrate_limit.c
+        -:    1:// FILE: calc03_feedrate_limit.c
+        -:    2:
+        -:    3:
+        -:    4:#include <limits.h>   // perror()
+        -:    5:#include <math.h>     // pow(), MUST COMPILE WITH LIBRARY -lm
+        -:    6:#include <pthread.h>  // MUST COMPILE WITH LIBRARY -lpthread
+        -:    7:#include <stdbool.h>  // boolean variables
+        -:    8:#include <stdio.h>    // open(), printf(), fopen(), fprintf();
+        -:    9:#include <stdlib.h>   // atoi(), system(), rand(),
+        -:   10:#include <string.h>   // strtok(), strcpy()
+        -:   11:#include <sys/time.h> // For local date-time with (microseconds)
+        -:   12:#include <time.h>     // For high-res timer clock_gettime with (nanoseconds)
+        -:   13:#include <unistd.h>   // getcwd()
+        -:   14:
+        -:   15:// INCLUDED FOR THE FUNCTION DEFINITIONS
+        -:   16:#include "curves/c_accelern.h"
+        -:   17:#include "curves/c_position.h"
+        -:   18:#include "curves/c_velocity.h"
+        -:   19:#include "common/c_min_max_int_dbl_in_array.h"
+        -:   20:
+        -:   21:#include "algo/calc03_feedrate_limit.h"
+        -:   22:
+        -:   23:// #include "algo/write_calc_u_next.h"
+        -:   24:// #include "algo/write_raw_curves.h"
+        -:   25:// #include "algo/calc00_eps_rho.h"
+        -:   26:// #include "algo/calc01_lookahead_length.h"
+        -:   27:// #include "algo/calc02_tang_accn_limit.h"
+        -:   28:// #include "algo/calc03_feedrate_limit.h"
+        -:   29:#include "algo/calc04_integration_error.h"
+        -:   30:// #include "algo/calc05_action_next_frate.h"
+        -:   31:// #include "algo/calc06_decide_next_frate.h"
+        -:   32:
+        -:   33:// GLOBAL VARIABLES
+        -:   34:double eps_N;
+        -:   35:double rho_N;
+        -:   36:// double lamda_N; // CONSTANT (0.0 : 1.0)
+        -:   37:int rN;
+        -:   38:
+        -:   39:double FRate_limit;
+        -:   40:double FRate_limit_1;
+        -:   41:double FRate_limit_2;
+        -:   42:double FRate_limit_3;
+        -:   43:double FRate_limit_4;
+        -:   44:
+        -:   45:double Vel_alpha;
+        -:   46:double Vel_beta;
+        -:   47:
+        -:   48:// FROM TABLE 1
+        -:   49:
+        -:   50:double xVee_max = 30.0;
+        -:   51:double yVee_max = 30.0;
+        -:   52:double xAcc_max = 30.0;
+        -:   53:double yAcc_max = 30.0;
+        -:   54:
+        -:   55:
+        -:   56:// FILE *FHdata_calc_frate_limit;
+        -:   57:
+        -:   58:// ==================================================================
+    22592:   59:double fxn_get_feedrate_limit (double rtime, double ru, double ru_next,  double FRate_command, double rT_interpol, double rho_N, double eps_N, double lamda_N)
+        -:   60:// ==================================================================
+        -:   61:{
+        -:   62:
+        -:   63:// DEBUG 2 *************************
+        -:   64:// printf ("%s ", CurveType );
+        -:   65:// printf ("A9-TEA DEBUG 2 %5.3lf %12.9lf %12.9lf FRate_command = %10.6lf \n", rtime, ru, ru_next, FRate_command);
+        -:   66:
+        -:   67:
+    22592:   68:  eps_N = fxn_cpos_epsilon(ru, ru_next);
+    22592:   69:  rho_N = fxn_cpos_rho(ru);
+        -:   70:
+        -:   71:  double arr_FRate_limit_net[4];
+    22592:   72:  arr_FRate_limit_net[0] = get_algo_feedrate_limit_1 (ru, FRate_command, rT_interpol, rho_N, eps_N, lamda_N);
+    22592:   73:  arr_FRate_limit_net[1] = get_algo_feedrate_limit_2 (ru, FRate_command, rT_interpol, rho_N, eps_N, lamda_N);
+    22592:   74:  arr_FRate_limit_net[2] = get_algo_feedrate_limit_3 (ru, ru_next, FRate_command, rT_interpol, rho_N, eps_N, lamda_N);
+    22592:   75:  arr_FRate_limit_net[3] = get_algo_feedrate_limit_4 (ru, FRate_command, rT_interpol, rho_N, eps_N, lamda_N);
+        -:   76:
+    22592:   77:  FRate_limit_1 = arr_FRate_limit_net[0];
+    22592:   78:  FRate_limit_2 = arr_FRate_limit_net[1];
+    22592:   79:  FRate_limit_3 = arr_FRate_limit_net[2];
+    22592:   80:  FRate_limit_4 = arr_FRate_limit_net[3];
+        -:   81:
+        -:   82:  // MINIMUM OF 4 ELEMENTS
+    22592:   83:  FRate_limit = fxn_get_min_element_arraydoubles (arr_FRate_limit_net, 4);
+        -:   84:
+        -:   85:// DEBUG 3 *************************
+        -:   86:// printf ("%s ", CurveType );
+        -:   87:// printf ("A9-TEA DEBUG 3 %5.3lf %12.9lf %12.9lf FRate_command = %10.6lf FRate_limit = %15.9lf \n", rtime, ru, ru_next, FRate_command, FRate_limit);
+        -:   88:
+        -:   89:  // THE MINIMUM LIMIT RETURNED
+    22592:   90:  return (FRate_limit);
+        -:   91:}
+        -:   92:
+        -:   93:// ==================================================================
+    45186:   94:double get_algo_feedrate_limit_1 ( double ru, double FRate_command, double rT_interpol, double rho_N, double eps_N, double lamda_N)
+        -:   95:// ==================================================================
+        -:   96:{
+        -:   97:
+        -:   98:// PROBLEM IS HERE   ********* ALTERNATING ************* FRate_command WHY?
+        -:   99:// printf ("A9-TEA DEBUG 4.1 %12.9lf FRate_command = %10.6lf FRate_limit_1 = %15.9lf \n", ru, FRate_command, FRate_limit_1);
+        -:  100:
+        -:  101:
+    45186:  102:FRate_limit_1 = FRate_command;
+        -:  103:
+        -:  104:// DEBUG PRINT
+        -:  105: // printf("(here-3) -FRate_command = %6.e \n", FRate_command);
+        -:  106: //  printf("(here-4) -FRate_limit_1 = %6.e \n", FRate_limit_1);
+        -:  107:
+        -:  108:
+        -:  109:
+        -:  110:// DEBUG 4 *************************
+        -:  111:// printf ("%s ", CurveType );
+        -:  112:// printf ("A9-TEA DEBUG 4.2 %12.9lf FRate_command = %10.6lf FRate_limit_1 = %15.9lf \n", ru, FRate_command, FRate_limit_1);
+        -:  113:
+    45186:  114:  return (FRate_limit_1);
+        -:  115:
+        -:  116:  // return (30.000);
+        -:  117:}
+        -:  118:
+        -:  119:// ==================================================================
+    45186:  120:double get_algo_feedrate_limit_2 (double ru, double FRate_command, double rT_interpol, double rho_N, double eps_N, double lamda_N)
+        -:  121:// ==================================================================
+        -:  122:{
+        -:  123:
+        -:  124:  // printf ("A9-TEA DEBUG 5.1 %12.9lf FRate_command = %10.6lf FRate_Limit_2 = %15.9lf \n", ru, FRate_command, FRate_limit_2);
+        -:  125:
+    45186:  126:  Vel_alpha = fxn_cvel_x(ru) /fxn_cvel_r(ru);
+    45186:  127:  Vel_beta  = fxn_cvel_y(ru) /fxn_cvel_r(ru);
+        -:  128:
+    45186:  129:  double temp1 = xVee_max / fabs(Vel_alpha);
+    45186:  130:  double temp2 = yVee_max / fabs(Vel_beta);
+        -:  131:
+        -:  132:  double arr_FRate_limit_2[2];
+    45186:  133:  arr_FRate_limit_2[0] = temp1;
+    45186:  134:  arr_FRate_limit_2[1] = temp2;
+        -:  135:
+        -:  136:  // MINIMUM OF 2 ELEMENTS
+    45186:  137:  FRate_limit_2 = fxn_get_min_element_arraydoubles (arr_FRate_limit_2, 2);
+        -:  138:
+        -:  139:
+        -:  140:// DEBUG 5 *************************
+        -:  141:// printf ("%s ", CurveType );
+        -:  142:// printf ("A9-TEA DEBUG 5.2 %12.9lf FRate_command = %10.6lf FRate_Limit_2 = %15.9lf \n", ru, FRate_command, FRate_limit_2);
+        -:  143:
+        -:  144:
+    45186:  145:  return (FRate_limit_2);
+        -:  146:}
+        -:  147:
+        -:  148:// ==================================================================
+    45186:  149:double get_algo_feedrate_limit_3 ( double ru, double ru_next, double FRate_command, double rT_interpol, double rho_N, double eps_N, double lamda_N)
+        -:  150:// ==================================================================
+        -:  151:{
+        -:  152:  // DEBUG 6 *************************
+        -:  153:  // printf ("A9-TEA DEBUG 6.1 %12.9lf FRate_command = %10.6lf FRate_Limit_3 = %15.9lf \n", ru, FRate_command, FRate_limit_3);
+        -:  154:
+    45186:  155:  double eps = fxn_cpos_epsilon (ru, ru_next);
+    45186:  156:  double rho = fxn_cpos_rho(ru);
+        -:  157:
+        -:  158:  // USING HALF CHORD-LENGTH
+    45186:  159:  double temp1 = fabs ( sqrt((2.0*rho*eps) - (eps*eps)) );
+    45186:  160:  double temp2 = (2.0 / rT_interpol) * temp1;
+        -:  161:
+    45186:  162:  FRate_limit_3 = temp2;
+        -:  163:
+        -:  164:// DEBUG 6 *************************
+        -:  165:// printf ("%s ", CurveType );
+        -:  166:// printf ("A9-TEA DEBUG 6.2 %12.9lf FRate_command = %10.6lf FRate_Limit_3 = %15.9lf \n", ru, FRate_command, FRate_limit_3);
+        -:  167:
+        -:  168:
+    45186:  169:  return (FRate_limit_3);
+        -:  170:}
+        -:  171:
+        -:  172:// ==================================================================
+    45186:  173:double get_algo_feedrate_limit_4  (double ru, double FRate_command, double rT_interpol, double rho_N, double eps_N, double lamda_N)
+        -:  174:// ==================================================================
+        -:  175:{
+        -:  176:
+        -:  177:  // DEBUG 7 *************************
+        -:  178:  // printf ("%s ", CurveType );
+        -:  179:  // printf ("A9-TEA DEBUG 7.1 %12.9lf FRate_command = %10.6lf FRate_Limit_4 = %15.9lf \n", ru, FRate_command, FRate_limit_4);
+        -:  180:
+        -:  181:
+    45186:  182:  Vel_alpha = fxn_cvel_x(ru) /fxn_cvel_r(ru);
+    45186:  183:  Vel_beta  = fxn_cvel_y(ru) /fxn_cvel_r(ru);
+    45186:  184:  rho_N = fxn_cpos_rho(ru);
+        -:  185:
+    45186:  186:  double theC = sqrt (lamda_N * rho_N * xAcc_max / fabs (Vel_beta));  // GLOBAL xAcc_max
+    45186:  187:  double theD = sqrt (lamda_N * rho_N * yAcc_max / fabs (Vel_alpha)); // GLOBAL yAcc_max
+        -:  188:
+        -:  189:  double arr_FRate_limit_4[2];
+    45186:  190:  arr_FRate_limit_4[0] = theC;
+    45186:  191:  arr_FRate_limit_4[1] = theD;
+        -:  192:
+        -:  193:  // MINIMUM OF 2 ELEMENTS
+    45186:  194:  FRate_limit_4 = fxn_get_min_element_arraydoubles (arr_FRate_limit_4, 2);
+        -:  195:
+        -:  196:// DEBUG 7 *************************
+        -:  197:// printf ("%s ", CurveType );
+        -:  198:// printf ("A9-TEA DEBUG 7.2 %12.9lf FRate_command = %10.6lf FRate_Limit_4 = %15.9lf \n", ru, FRate_command, FRate_limit_4);
+        -:  199:
+    45186:  200:  return (FRate_limit_4);
+        -:  201:}
+        -:  202:
+        -:  203:// ==================================================================
+        2:  204:void proc_writeheader_data_calc_frate_limit (FILE* FHdata_calc_frate_limit)
+        -:  205:// ==================================================================
+        -:  206:{
+        -:  207:
+        2:  208:  fprintf (FHdata_calc_frate_limit,
+        -:  209:           "# DTStamp_FHdata_calc_frate_limit (feedrate limit) %s \n",
+        -:  210:           get_datetime_stamp ());
+        -:  211:
+        2:  212:  fprintf (FHdata_calc_frate_limit,
+        -:  213:           "# rtime[1], u[2], u_next[3], FRate_limit_1[4], FRate_limit_2[5], "
+        -:  214:           "FRate_limit_3[6], FRate_limit_4[7], FRate_limit[8], curr_frate[9], "
+        -:  215:           "BEFORE_diff_frate[[10], eps_N[11], rho_N[12] \n");
+        -:  216:
+        2:  217:}
+        -:  218:
+        -:  219:// ==================================================================
+        2:  220:void proc_writefooter_data_calc_frate_limit (FILE* FHdata_calc_frate_limit)
+        -:  221:// ==================================================================
+        -:  222:{
+        -:  223:
+        2:  224:   fprintf (FHdata_calc_frate_limit,
+        -:  225:           "# rtime[1], u[2], u_next[3], FRate_limit_1[4], FRate_limit_2[5], "
+        -:  226:           "FRate_limit_3[6], FRate_limit_4[7], FRate_limit[8], curr_frate[9], "
+        -:  227:           "BEFORE_diff_frate[[10], eps_N[11], rho_N[12] \n");
+        -:  228:
+        2:  229:   fprintf (FHdata_calc_frate_limit,
+        -:  230:            "# DTStamp_FHdata_calc_frate_limit (feedrate limit) %s \n",
+        -:  231:            get_datetime_stamp ());
+        -:  232:
+        2:  233:}
+        -:  234:
+        -:  235:
+        -:  236:// ==================================================================
+    22594:  237:void proc_write_calc_frate_limit (FILE *FHdata_calc_frate_limit, double rtime,
+        -:  238:                             double ru, double ru_next, double FRate_command,
+        -:  239:                             double rT_interpol, double rho_N, double eps_N,
+        -:  240:                             double lamda_N,
+        -:  241:                             double curr_frate)
+        -:  242:// ==================================================================
+        -:  243:{
+        -:  244:
+    22594:  245:  eps_N = fxn_cpos_epsilon(ru, ru_next);
+    22594:  246:  rho_N = fxn_cpos_rho(ru);
+        -:  247:
+        -:  248:  double arr_FRate_limit_net[4];
+    22594:  249:  arr_FRate_limit_net[0] = get_algo_feedrate_limit_1 (ru, FRate_command, rT_interpol, rho_N, eps_N, lamda_N);
+    22594:  250:  arr_FRate_limit_net[1] = get_algo_feedrate_limit_2 (ru, FRate_command, rT_interpol, rho_N, eps_N, lamda_N);
+    22594:  251:  arr_FRate_limit_net[2] = get_algo_feedrate_limit_3 (ru, ru_next, FRate_command, rT_interpol, rho_N, eps_N, lamda_N);
+    22594:  252:  arr_FRate_limit_net[3] = get_algo_feedrate_limit_4 (ru, FRate_command, rT_interpol, rho_N, eps_N, lamda_N);
+        -:  253:
+    22594:  254:  FRate_limit_1 = arr_FRate_limit_net[0];
+    22594:  255:  FRate_limit_2 = arr_FRate_limit_net[1];
+    22594:  256:  FRate_limit_3 = arr_FRate_limit_net[2];
+    22594:  257:  FRate_limit_4 = arr_FRate_limit_net[3];
+        -:  258:
+        -:  259:  // MINIMUM OF 4 ELEMENTS
+    22594:  260:  FRate_limit = fxn_get_min_element_arraydoubles (arr_FRate_limit_net, 4);
+        -:  261:
+        -:  262:  // DEBUG PRINT
+        -:  263:  // printf("(here-1) -FRate_command = %6.e \n", FRate_command);
+        -:  264:  // printf("(here-2) -FRate_limit_1 = %6.e \n", FRate_limit_1);
+        -:  265:
+    22594:  266:  double BEFORE_diff_frate = (FRate_limit - curr_frate);
+        -:  267:
+    22594:  268:  fprintf (FHdata_calc_frate_limit,
+        -:  269:                "%12.6lf %12.9lf %12.9lf %15.9lf %15.9lf %15.9lf %15.9lf %15.9lf %15.9lf %15.9lf %18.15lf %15.6lf \n",
+        -:  270:                rtime, ru, ru_next, FRate_limit_1, FRate_limit_2, FRate_limit_3, FRate_limit_4, FRate_limit, curr_frate, BEFORE_diff_frate, eps_N, rho_N);
+        -:  271:
+    22594:  272:}
+        -:  273:
+        -:  274:// ==================================================================
+        -:  275:// ALHAMDULILLAH 3 TIMES WRY
+        -:  276:// ==================================================================

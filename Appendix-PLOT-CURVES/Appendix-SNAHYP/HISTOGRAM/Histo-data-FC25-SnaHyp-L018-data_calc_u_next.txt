@@ -1,0 +1,29 @@
+#  Bismillah Hirrahma Nirrahim 
+#  Date : 2023-11-02
+#  Time : 08:09:17 MYT (+8 UTC)
+#  Code : Python-capture-FC-histogram-data_calc_u_next.py
+#  File : Histo-data-FC25-SnaHyp-L018-data_calc_u_next.txt
+# 
+#  Brief description:
+#  Counts of interpolated points over the independent parameter u 
+#  within the range of u-values [0.00, 1.00]. The sharp turns and corners 
+#  generates higher number of interpolated points due to shorter 
+#  chord lengths, i.e. to maintain error tolerance below 10(-6) mm. 
+# 
+#   U_COUNT_BIN   U_COUNT_VALUE  LOW  <=u-range<  HIGH 
+ 1  U_COUNT_01   		1856			 0.00      		  0.10 
+ 2  U_COUNT_02   		3584			 0.10      		  0.20 
+ 3  U_COUNT_03   		2470			 0.20      		  0.30 
+ 4  U_COUNT_04   		1257			 0.30      		  0.40 
+ 5  U_COUNT_05   		1945			 0.40      		  0.50 
+ 6  U_COUNT_06   		1589			 0.50      		  0.60 
+ 7  U_COUNT_07   		769			 0.60      		  0.70 
+ 8  U_COUNT_08   		794			 0.70      		  0.80 
+ 9  U_COUNT_09   		798			 0.80      		  0.90 
+10  U_COUNT_10   		1556			 0.90      		  1.00 
+# 
+#   U_COUNT_TOTAL    	= 16618
+#   TOTAL_DATA_LINES 	= 16618
+# 
+#  Note: Each count represents a single interpolated point.
+#  Alhamdulillah Hirrabil Alamin 

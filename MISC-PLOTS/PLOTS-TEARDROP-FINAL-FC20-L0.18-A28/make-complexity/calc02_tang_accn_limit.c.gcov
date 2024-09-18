@@ -1,0 +1,243 @@
+        -:    0:Source:/home/wruslan/workspaces-gnat/gnatstudio-c/gnat_c_cnc-04/src/algo/calc02_tang_accn_limit.c
+        -:    1:// FILE: calc02_tang_accn_limit.c
+        -:    2:
+        -:    3:#include <stdio.h>
+        -:    4:
+        -:    5:// INCLUDED FOR THE FUNCTION DEFINITIONS
+        -:    6:#include "curves/c_accelern.h"
+        -:    7:#include "curves/c_position.h"
+        -:    8:#include "curves/c_velocity.h"
+        -:    9:#include "common/c_min_max_int_dbl_in_array.h"
+        -:   10:
+        -:   11:#include "algo/calc02_tang_accn_limit.h"
+        -:   12:
+        -:   13:// ==================================================================
+   316308:   14:double fxn_get_alpha (double u)
+        -:   15:// ==================================================================
+        -:   16:{
+        -:   17:  double alpha;
+        -:   18:
+        -:   19:  // USING VELOCITY FUNCTION  DEFINED IN EQUATION (8)
+        -:   20:  // double temp1 = fxn_cvel_x (u);
+        -:   21:  // double temp2 = fxn_cvel_r (u);
+        -:   22:
+        -:   23:  // USING ACCELERATION FUNCTION
+   316308:   24:  double temp1 = fxn_cacc_x (u);
+   316308:   25:  double temp2 = fxn_cacc_r (u);
+        -:   26:
+   316308:   27:  alpha = (temp1/temp2);
+        -:   28:
+   316308:   29:  return (alpha);
+        -:   30:}
+        -:   31:
+        -:   32:// ==================================================================
+   316308:   33:double fxn_get_beta (double u)
+        -:   34:// ==================================================================
+        -:   35:{
+        -:   36:  double beta;
+        -:   37:
+        -:   38:  // USING VELOCITY FUNCTION DEFINED IN EQUATION (8)
+        -:   39:  // double temp1 = fxn_cvel_y (u);
+        -:   40:  // double temp2 = fxn_cvel_r (u);
+        -:   41:
+        -:   42:  // USING ACCELERATION FUNCTION
+   316308:   43:  double temp1 = fxn_cacc_y (u);
+   316308:   44:  double temp2 = fxn_cacc_r (u);
+        -:   45:
+   316308:   46:  beta = (temp1/temp2);
+        -:   47:
+   316308:   48:  return (beta);
+        -:   49:}
+        -:   50:
+        -:   51:// ==================================================================
+        -:   52:/*
+        -:   53:FROM EQUATION (10)
+        -:   54:accn_x = (alpha)*(accn_t) - (beta)*(accn_n);
+        -:   55:accn_y = (beta)*(accn_t) + (alpha)*(accn_n);
+        -:   56:
+        -:   57:accn_t = ((alpha)*(accn_x) + (beta)*(accn_y))/(alpha*alpha + beta*beta);
+        -:   58:acct_n = ((alpha)*(accn_y) - (beta)*(accn_x))/(alpha*alpha + beta*beta);
+        -:   59:
+        -:   60:FROM EQUATION (15)
+        -:   61:CHECK01 AND CHECK02 BELOW
+        -:   62:accn_t = (1.0/alpha)*(accn_x) + (beta/alpha)*(accn_n);
+        -:   63:accn_t = (1.0/beta )*(accn_y) - (alpha/beta)*(accn_n);
+        -:   64:
+        -:   65:*/
+        -:   66:
+        -:   67:// TANGENTIAL ACCELERATION
+        -:   68:// ==================================================================
+    #####:   69:double fxn_get_curr_tang_accn (double u)
+        -:   70:// =================================================================
+        -:   71:{
+        -:   72:
+        -:   73:double curr_tang_accn;
+        -:   74:
+        -:   75:// DEFINED USING EQUATION (8)
+    #####:   76:double alpha = fxn_get_alpha (u);
+    #####:   77:double beta  = fxn_get_beta (u);
+        -:   78:
+        -:   79:// USING ACCELERATION FUNCTION
+        -:   80:// EFROM QUATION (15)
+    #####:   81:double cacc_x = fxn_cacc_x (u);    // ax IN EQUATION 15
+    #####:   82:double cacc_y = fxn_cacc_y (u);    // ay IN EQUATION 15
+        -:   83:
+    #####:   84:double temp1 = ((alpha)*(cacc_x) + (beta)*(cacc_y));
+    #####:   85:double temp2 = (alpha*alpha + beta*beta);
+    #####:   86:curr_tang_accn = (temp1/temp2);
+        -:   87:
+    #####:   88:return(curr_tang_accn);
+        -:   89:}
+        -:   90:
+        -:   91:// NORMAL ACCELERATION
+        -:   92:// ==================================================================
+   158154:   93:double fxn_get_curr_norm_accn (double u)
+        -:   94:// ==================================================================
+        -:   95:{
+        -:   96:
+        -:   97:double curr_norm_accn;
+        -:   98:
+        -:   99:// USING VELOCITY FUNCTION
+   158154:  100:double alpha = fxn_get_alpha (u);
+   158154:  101:double beta = fxn_get_beta (u);
+        -:  102:
+        -:  103:// DEFINED USING EQUATION (15)
+   158154:  104:double cacc_x = fxn_cacc_x (u);
+   158154:  105:double cacc_y = fxn_cacc_y (u);
+        -:  106:
+   158154:  107:double temp1 = ((alpha)*(cacc_y) - (beta)*(cacc_x));
+   158154:  108:double temp2 = (alpha * alpha + beta * beta);
+        -:  109:
+   158154:  110:curr_norm_accn = (temp1/temp2);
+        -:  111:
+   158154:  112:return(curr_norm_accn);
+        -:  113:}
+        -:  114:
+        -:  115:
+        -:  116:// ==================================================================
+    67780:  117:double fxn_get_max_tang_accn (double u)
+        -:  118:// ==================================================================
+        -:  119:{
+        -:  120:  double max_tang_accn;
+    67780:  121:  double alpha = fxn_get_alpha (u);
+    67780:  122:  double beta  = fxn_get_beta  (u);
+    67780:  123:  double curr_accn_norm = fxn_get_curr_norm_accn (u);
+    67780:  124:  double ACCN_MAX_X = 30.0;
+    67780:  125:  double ACCN_MAX_Y = 30.0;
+        -:  126:
+        -:  127:  // EQUATION (16)
+    67780:  128:  double temp1 = (ACCN_MAX_X/fabs(alpha)) + (beta/alpha)*curr_accn_norm;
+    67780:  129:  double temp2 = (ACCN_MAX_Y/fabs(beta))  - (alpha/beta)*curr_accn_norm;
+        -:  130:
+        -:  131:  double arr_max_tang_accn[2];
+    67780:  132:  arr_max_tang_accn[0] = temp1;
+    67780:  133:  arr_max_tang_accn[1] = temp2;
+        -:  134:
+        -:  135:  // FOR MAXIMUM, GET THE MINIMUM OF temp1 AND temp2
+    67780:  136:  max_tang_accn = fxn_get_min_element_arraydoubles (arr_max_tang_accn, 2);
+        -:  137:
+        -:  138:  // DEBUG PRINT
+        -:  139:  // printf ("A temp1 = %12.6lf temp2 = %12.6lf max_tang_accn = %12.6lf \n",
+        -:  140:  //        temp1, temp2, max_tang_accn);
+        -:  141:
+    67780:  142:  return (max_tang_accn);
+        -:  143:}
+        -:  144:
+        -:  145:// ==================================================================
+    67780:  146:double fxn_get_min_tang_accn (double u)
+        -:  147:// ==================================================================
+        -:  148:{
+        -:  149:
+        -:  150:  double min_tang_accn;
+    67780:  151:  double alpha = fxn_get_alpha (u);
+    67780:  152:  double beta  = fxn_get_beta  (u);
+    67780:  153:  double curr_accn_norm = fxn_get_curr_norm_accn (u);
+    67780:  154:  double ACCN_MAX_X = 30.0;
+    67780:  155:  double ACCN_MAX_Y = 30.0;
+        -:  156:
+        -:  157:  // EQUATION (17)
+    67780:  158:  double temp1 = -(ACCN_MAX_X/fabs(alpha)) + (beta/alpha)*curr_accn_norm;
+    67780:  159:  double temp2 = -(ACCN_MAX_Y/fabs(beta))  - (alpha/beta)*curr_accn_norm;
+        -:  160:
+        -:  161:  double arr_min_tang_accn[2];
+    67780:  162:  arr_min_tang_accn[0] = temp1;
+    67780:  163:  arr_min_tang_accn[1] = temp2;
+        -:  164:
+        -:  165:  // FOR MINIMUM, GET THE MAXIMUM OF temp1 AND temp2
+    67780:  166:  min_tang_accn = fxn_get_max_element_arraydoubles(arr_min_tang_accn, 2);
+        -:  167:
+        -:  168:  // DEBUG PRINT
+        -:  169:  // printf ("B temp1 = %12.6lf temp2 = %12.6lf min_tang_accn = %12.6lf \n", temp1,
+        -:  170:  //        temp2, min_tang_accn);
+        -:  171:
+    67780:  172:  return (min_tang_accn);
+        -:  173:
+        -:  174:}
+        -:  175:
+        -:  176:// ==================================================================
+        2:  177:void proc_writeheader_data_calc_tang_accn (FILE* FHdata_calc_tang_accn)
+        -:  178:// ==================================================================
+        -:  179:{
+        -:  180:
+        2:  181:  fprintf (FHdata_calc_tang_accn,
+        -:  182:           "# DTStamp_FHdata_calc_accn_t (tangential acceleration) %s \n",
+        -:  183:           get_datetime_stamp ());
+        -:  184:
+        2:  185:  fprintf (FHdata_calc_tang_accn,
+        -:  186:           "# N[1] rtime[2], u[3], u_next[4], curr_alpha[5], curr_beta[6], "
+        -:  187:           "curr_norm_accn[7], "
+        -:  188:           "min_tang_accn[8], curr_tang_accn[9], max_tang_accn[10] eps[11] "
+        -:  189:           "rho[12] check_tang_accn[13] \n");
+        -:  190:
+        2:  191:}
+        -:  192:
+        -:  193:// ==================================================================
+        2:  194:void proc_writefooter_data_calc_tang_accn (FILE* FHdata_calc_tang_accn)
+        -:  195:// ==================================================================
+        -:  196:{
+        -:  197:
+        2:  198:  fprintf (FHdata_calc_tang_accn,
+        -:  199:           "# N[1] rtime[2], u[3], u_next[4], curr_alpha[5], curr_beta[6], "
+        -:  200:           "curr_norm_accn[7], "
+        -:  201:           "min_tang_accn[8], curr_tang_accn[9], max_tang_accn[10] eps[11] "
+        -:  202:           "rho[12] check_tang_accn[13] \n");
+        -:  203:
+        2:  204:   fprintf (FHdata_calc_tang_accn,
+        -:  205:            "# DTStamp_FHdata_calc_tang_accn (tangential acceleration) %s \n",
+        -:  206:            get_datetime_stamp ());
+        -:  207:
+        2:  208:}
+        -:  209:
+        -:  210:// ==================================================================
+    22594:  211:void proc_write_calc_tang_accn (FILE* FHdata_calc_tang_accn, int N, double curr_tang_accn,
+        -:  212:                        double rtime, double u, double u_next)
+        -:  213:// ==================================================================
+        -:  214:{
+        -:  215:
+    22594:  216:      double curr_alpha = fxn_get_alpha (u);
+    22594:  217:      double curr_beta  = fxn_get_beta (u);
+        -:  218:
+        -:  219:      // double curr_tang_accn = fxn_get_curr_tang_accn (u);
+    22594:  220:      double curr_norm_accn = fxn_get_curr_norm_accn (u);
+        -:  221:
+    22594:  222:      double min_tang_accn = fxn_get_min_tang_accn (u);
+    22594:  223:      double max_tang_accn = fxn_get_max_tang_accn (u);
+        -:  224:
+    22594:  225:      double eps = fxn_cpos_epsilon(u, u_next);
+    22594:  226:      double rho = fxn_cpos_rho(u);
+        -:  227:
+    22594:  228:      double check_tang_accn = fabs(sqrt(pow(curr_tang_accn, 2.0) + pow(curr_norm_accn, 2.0)));
+        -:  229:
+        -:  230:
+    22594:  231:      fprintf (FHdata_calc_tang_accn,
+        -:  232:               "%6d %12.6lf %12.9lf %12.9lf %12.9lf %12.9lf %21.18lf %13.9lf "
+        -:  233:               "%13.9lf %13.9lf %18.15lf %12.6lf %18.15lf \n",
+        -:  234:               N, rtime, u, u_next, curr_alpha, curr_beta, curr_norm_accn,
+        -:  235:               min_tang_accn, curr_tang_accn, max_tang_accn, eps, rho, check_tang_accn);
+        -:  236:
+    22594:  237:}
+        -:  238:
+        -:  239:// ==================================================================
+        -:  240:// ALHAMDULILLAH 3 TIMES
+        -:  241:// ==================================================================
+        -:  242:

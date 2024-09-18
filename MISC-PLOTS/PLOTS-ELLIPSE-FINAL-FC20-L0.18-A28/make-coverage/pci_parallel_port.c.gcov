@@ -1,0 +1,349 @@
+        -:    0:Source:/home/wruslan/workspaces-gnat/gnatstudio-c/gnat_c_cnc-04/src/parallel_pci/pci_parallel_port.c
+        -:    1:/*
+        -:    2: * pci_parallel_port.c
+        -:    3: *
+        -:    4: *  Created on: Apr 15, 2020
+        -:    5: *      Author: wruslan
+        -:    6:
+        -:    7:===========================================================
+        -:    8:*/
+        -:    9:// ========================================================
+        -:   10:// C-PROGRAM HEADER FILES
+        -:   11:#include <stdio.h>
+        -:   12:#include <unistd.h>
+        -:   13:#include <stdlib.h>
+        -:   14:#include <fcntl.h>      // FILE (open, read, write, close)
+        -:   15:#include <termios.h>
+        -:   16:#include <sched.h>
+        -:   17:#include <signal.h>		// Signal for User interrupt Ctrl-C to stop
+        -:   18:#include <math.h>
+        -:   19:#include <errno.h>
+        -:   20:#include <string.h>		// TO HANDLE strlen IN gcode . h
+        -:   21:#include <curses.h>		// TO HANDLE getch () , wgetch ()
+        -:   22:#include <sys/fcntl.h>
+        -:   23:#include <sys/ioctl.h>
+        -:   24:#include <sys/io.h>
+        -:   25:#include <sys/mman.h>
+        -:   26:// #include <cstdlib>		// To free() memory
+        -:   27:
+        -:   28:// WRY Date-Time stamp nanosecond display
+        -:   29:#include "common/c_dtstamp.h"
+        -:   30:
+        -:   31:// ========================================================
+        -:   32:// GLOBAL DEFINITIONS
+        -:   33:// ========================================================
+        -:   34:#define PERIOD		500000		// nanoseconds
+        -:   35:#define TICK_TIME	1000000		// nanoseconds
+        -:   36:
+        -:   37:// #define CPUMAP 	0xF  	// 16-cpus
+        -:   38:#define CPUMAP		0x8		// 8-cpus  	(SGI-Workstation)
+        -:   39:// #define CPUMAP	0x4		// 4-cpus	(Blue-Workstation)
+        -:   40:/*
+        -:   41:===========================================================
+        -:   42:wruslan@SGIwks-Ub1804-rt38-64b:~$ dmesg
+        -:   43:....
+        -:   44:[   27.746411] lp: driver loaded but no devices found
+        -:   45:[   27.894636] ppdev: user-space parallel port driver
+        -:   46:[   28.023139] parport0: PC-style at 0x378 (0x778) [PCSPP,TRISTATE,EPP]
+        -:   47:[   28.036690] parport0: irq 7 detected
+        -:   48:[   28.143972] lp0: using parport0 (polling).
+        -:   49:[   28.156786] parport_pc 0000:08:04.0: PCI->APIC IRQ transform: INT A -> IRQ 19
+        -:   50:[   28.170000] PCI parallel port detected: 9710:9805, I/O at 0x4030(0x4028), IRQ 19
+        -:   51:[   28.170046] parport1: PC-style at 0x4030 (0x4028), irq 19, using FIFO [PCSPP,TRISTATE,COMPAT,EPP,ECP]
+        -:   52:[   28.291986] lp1: using parport1 (interrupt-driven).
+        -:   53:....
+        -:   54:wruslan@SGIwks-Ub1804-rt38-64b:~$ ls -al /dev | grep lp
+        -:   55:crw-rw----   1 root    lp        6,   0 Apr 16 07:07 lp0
+        -:   56:crw-rw----   1 root    lp        6,   1 Apr 16 07:07 lp1
+        -:   57:crw-rw-r--   1 root    lp       99,   0 Apr 16 07:07 parport0
+        -:   58:crw-rw-r--   1 root    lp       99,   1 Apr 16 07:07 parport1
+        -:   59:wruslan@SGIwks-Ub1804-rt38-64b:~$
+        -:   60:
+        -:   61:wruslan@SGIwks-Ub1804-rt38-64b:~$ stat /dev/lp0
+        -:   62:  File: /dev/lp0
+        -:   63:  Size: 0         	Blocks: 0          IO Block: 4096   character special file
+        -:   64:Device: 6h/6d	Inode: 15702       Links: 1     Device type: 6,0
+        -:   65:Access: (0660/crw-rw----)  Uid: (    0/    root)   Gid: (    7/      lp)
+        -:   66:Access: 2020-04-16 07:07:57.995999641 +0800
+        -:   67:Modify: 2020-04-16 07:07:57.995999641 +0800
+        -:   68:Change: 2020-04-16 07:07:57.995999641 +0800
+        -:   69: Birth: -
+        -:   70:wruslan@SGIwks-Ub1804-rt38-64b:~$
+        -:   71:
+        -:   72:wruslan@SGIwks-Ub1804-rt38-64b:~$ stat /dev/parport0
+        -:   73:  File: /dev/parport0
+        -:   74:  Size: 0         	Blocks: 0          IO Block: 4096   character special file
+        -:   75:Device: 6h/6d	Inode: 15703       Links: 1     Device type: 63,0
+        -:   76:Access: (0664/crw-rw-r--)  Uid: (    0/    root)   Gid: (    7/      lp)
+        -:   77:Access: 2020-04-16 07:07:57.999999641 +0800
+        -:   78:Modify: 2020-04-16 07:07:57.999999641 +0800
+        -:   79:Change: 2020-04-16 07:07:57.999999641 +0800
+        -:   80: Birth: -
+        -:   81:wruslan@SGIwks-Ub1804-rt38-64b:~$
+        -:   82:
+        -:   83:*/
+        -:   84:// ========================================================
+        -:   85:// FROM THE ABOVE WE GET THE 3 DEVICE PARAMETERS BELOW
+        -:   86:// FOR THE TWO PCI PARALLEL PORTS
+        -:   87:#define DEVICE_PARPORT_01	"/dev/lp0"
+        -:   88:#define BASE_PARPORT_01	    0x378
+        -:   89:#define IRQ_PARPORT_01		7
+        -:   90:
+        -:   91:#define DEVICE_PARPORT_02	"/dev/lp1"
+        -:   92:#define BASE_PARPORT_02	    0x4030
+        -:   93:#define IRQ_PARPORT_02		19
+        -:   94:
+        -:   95:// DEVICES /dev/lp0 and /dev/lp1 GLOBAL VARIABLES
+        -:   96:// ========================================================
+        -:   97:int  io_prio_lvl;           // I/O priority level
+        -:   98:
+        -:   99:int  io_perm_parport01;		// I/O permissions
+        -:  100:int  fd_parport01;			// File descriptors
+        -:  101:int  io_perm_parport02;		// I/O permissions
+        -:  102:int  fd_parport02;			// File descriptors
+        -:  103:
+        -:  104:// BINARY REPRESENTATION FOR PRINTING (DISPLAY) TO SCREEN
+        -:  105:char bin8_output[33] = {0};	// LAST CHAR IS NULL "\0"
+        -:  106:
+        -:  107:// ========================================================
+    #####:  108:void convert_integer_to_binary8(int input_int, char *output_bin8) {
+        -:  109:// ========================================================
+        -:  110:    unsigned int mask8;
+    #####:  111:    mask8  = 0b10000000;
+        -:  112:
+    #####:  113:    int bitposition = 0;
+    #####:  114:    while (mask8)  {         		// Loop until MASK is empty
+    #####:  115:		bitposition++;
+    #####:  116:		if (input_int & mask8) {    // Bitwise AND => test the masked bit
+    #####:  117:		   *output_bin8 = '1'; 		// if true, binary value 1 is appended to output array
+        -:  118:		} else {
+    #####:  119:		   *output_bin8 = '0'; 		// if false, binary value 0 is appended to output array
+        -:  120:		}
+        -:  121:
+    #####:  122:		output_bin8++;              // next character
+    #####:  123:        mask8 >>= 1;            	// shift the mask variable 1 bit to the right
+        -:  124:    } // End while(..)
+        -:  125:
+    #####:  126:    *output_bin8 = 0;           	// add the trailing null
+    #####:  127:}
+        -:  128:
+        -:  129:// ========================================================
+    #####:  130:void check_io_priority_level(void) {
+        -:  131:// ========================================================
+    #####:  132:	if (io_prio_lvl != 0) {
+    #####:  133:		DTStamp();
+    #####:  134:		printf("ERROR  : Set max priority level io_prio_lvl \t= %d\n", io_prio_lvl);
+    #####:  135:		perror("io_prio_lvl");
+        -:  136:	} else {
+    #####:  137:		DTStamp();
+    #####:  138:		printf("SUCCESS: Set max priority level io_prio_lvl \t= %d\n", io_prio_lvl);
+        -:  139:	}
+    #####:  140:}
+        -:  141:
+        -:  142:// ========================================================
+    #####:  143:void check_io_permission_parport01(void) {
+        -:  144:// ========================================================
+    #####:  145:    if (io_perm_parport01 != 0) {
+    #####:  146:    	DTStamp();
+    #####:  147:		printf("ERROR  : Set port i/o permissions io_perm_parport01 \t= %d\n", io_perm_parport01);
+    #####:  148:		perror("io_perm_parport01");
+        -:  149:    } else {
+    #####:  150:    	DTStamp();
+    #####:  151:    	printf("SUCCESS: Set port i/o permissions io_perm_parport01 \t= %d\n", io_perm_parport01);
+        -:  152:    }
+    #####:  153:}
+        -:  154:// ========================================================
+    #####:  155:void check_io_permission_parport02(void) {
+        -:  156:// ========================================================
+    #####:  157:    if (io_perm_parport02 != 0) {
+    #####:  158:    	DTStamp();
+    #####:  159:		printf("ERROR  : Set port i/o permissions io_perm_parport02 \t= %d\n", io_perm_parport02);
+    #####:  160:		perror("io_perm_parport01");
+        -:  161:    } else {
+    #####:  162:    	DTStamp();
+    #####:  163:    	printf("SUCCESS: Set port i/o permissions io_perm_parport02 \t= %d\n", io_perm_parport02);
+        -:  164:    }
+    #####:  165:}
+        -:  166:// ========================================================
+    #####:  167:void open_fd_parport01(void) {
+        -:  168:// ========================================================
+    #####:  169:DTStamp(); printf("STARTED  open_fd_parport01(void).\n");
+        -:  170:
+        -:  171:/*
+        -:  172:open: Returns file descriptor used (positive integer), -1 upon failure
+        -:  173:flags: O_RDONLY: read only, O_WRONLY: write only, O_RDWR: read and write, O_CREAT: create file if it doesn’t exist, O_EXCL: prevent creation if it already exists
+        -:  174:*/
+        -:  175:
+    #####:  176:    fd_parport01 = open(DEVICE_PARPORT_01, O_RDWR | O_NOCTTY | O_NDELAY | O_CREAT);
+    #####:  177:	if(fd_parport01 == -1) {
+    #####:  178:		DTStamp(); printf("ERROR: Cannot open DEVICE_PARPORT_01 (/dev/lp0).\n");
+    #####:  179:		DTStamp(); printf("ERROR: Must run as root with $ sudo ./XXX \n");
+    #####:  180:		perror("fd_parport01");
+    #####:  181:		exit(1);
+        -:  182:	} else {
+    #####:  183:		DTStamp();
+    #####:  184:		printf("SUCCESS: Open DEVICE_PARPORT_01 (/dev/lp0).\n");
+    #####:  185:		DTStamp();
+    #####:  186:		printf("SUCCESS: Display file descriptor fd_parport01 \t= %d \n", fd_parport01);
+        -:  187:	}
+        -:  188:
+        -:  189:	// Display details of DEVICE_PARPORT_01
+    #####:  190:	DTStamp(); printf("SUCCESS: Display BASEPORT_01 \t= 0x%02X\n", BASE_PARPORT_01);
+    #####:  191:	DTStamp(); printf("SUCCESS: Display PARPORT_IRQ_01 = %d\n", IRQ_PARPORT_01);
+        -:  192:
+    #####:  193:    DTStamp(); printf("SUCCESS: Display CPUMAP_01 \t= 0x%02X\n", CPUMAP);
+    #####:  194:	DTStamp(); printf("SUCCESS: Display PERIOD_01 \t= %d (ns)\n", PERIOD);
+    #####:  195:    DTStamp(); printf("SUCCESS: Display TICK_TIME_01 \t= %d (ns)\n", TICK_TIME);
+        -:  196:
+    #####:  197:DTStamp(); printf("FINISHED open_fd_parport01(void).\n");
+    #####:  198:}
+        -:  199:
+        -:  200:// ========================================================
+    #####:  201:void open_fd_parport02(void) {
+        -:  202:// ========================================================
+    #####:  203:DTStamp(); printf("STARTED  open_fd_parport02(void).\n");
+        -:  204:
+    #####:  205:	fd_parport02 = open(DEVICE_PARPORT_02, O_RDWR | O_NOCTTY | O_NDELAY | O_CREAT);
+    #####:  206:	if(fd_parport02 == -1) {
+    #####:  207:		DTStamp(); printf("ERROR: Cannot open DEVICE_PARPORT_02 (/dev/lp1).\n");
+    #####:  208:		DTStamp(); printf("ERROR: Must run as root with $ sudo ./XXX \n");
+    #####:  209:		perror("fd_parport02");
+    #####:  210:		exit(1);
+        -:  211:	} else {
+    #####:  212:		DTStamp();
+    #####:  213:		printf("SUCCESS: Open DEVICE_PARPORT_02 (/dev/lp1).\n");
+    #####:  214:		DTStamp();
+    #####:  215:		printf("SUCCESS: Display file descriptor fd_parport02 \t= %d \n", fd_parport02);
+        -:  216:	}
+        -:  217:
+        -:  218:	// Display details of DEVICE_PARPORT_02
+    #####:  219:	DTStamp(); printf("SUCCESS: Display BASEPORT_02 \t= 0x%02X\n", BASE_PARPORT_02);
+    #####:  220:	DTStamp(); printf("SUCCESS: Display PARPORT_IRQ_02 = %d\n", IRQ_PARPORT_02);
+        -:  221:
+    #####:  222:	DTStamp(); printf("SUCCESS: Display CPUMAP_02 \t= 0x%02X\n", CPUMAP);
+    #####:  223:	DTStamp(); printf("SUCCESS: Display PERIOD_02 \t= %d (ns)\n", PERIOD);
+    #####:  224:	DTStamp(); printf("SUCCESS: Display TICK_TIME_02 \t= %d (ns)\n", TICK_TIME);
+        -:  225:
+    #####:  226:DTStamp(); printf("FINISHED open_fd_parport02(void).\n");
+    #####:  227:}
+        -:  228:
+        -:  229:// ========================================================
+    #####:  230:void test_writepci_to_parport01(void) {
+        -:  231:// ========================================================
+    #####:  232:DTStamp(); printf("STARTED  test_writepci_to_parport01(void).\n");
+        -:  233:
+        -:  234:	// Test write loop with buffered data
+        -:  235:	// PERFORM WRITE LOOP FOR ELECTRICAL PULSE OUTPUTS
+        -:  236:	int i;
+    #####:  237:	int intToWrite = 0;
+    #####:  238:	char TheChar[] = "SGIwks Alhamdulillah Hirrabil Alamin WRY!";
+    #####:  239:	int str_length = strlen(TheChar);
+        -:  240:
+    #####:  241:	for (i = 0; i < str_length; i++) {
+        -:  242:
+        -:  243:		// GRAB INTEGER TO WRITE (8-BITS) TO DEVICE
+    #####:  244:		intToWrite = TheChar[i];
+    #####:  245:		char data_uchar = (char)intToWrite;
+    #####:  246:		if (fd_parport01 != -1) {
+        -:  247:
+    #####:  248:			convert_integer_to_binary8(intToWrite, bin8_output);
+    #####:  249:			write(fd_parport01, (const void *)(long)data_uchar, 1);
+        -:  250:
+    #####:  251:			DTStamp();
+    #####:  252:			printf("SUCCESS: write(fd_parport01, (const void *)(long)TheChar[i],1) i = %d \tchar= %c bin= %s hex= 0x%x int= %d \n", i, intToWrite, bin8_output, intToWrite, intToWrite);
+        -:  253:		} else {
+    #####:  254:			DTStamp();
+    #####:  255:			printf("FAILED:  write(fd_parport01, (const void *)(long)TheChar[i],1) i = %d \tchar= %c bin= %s hex= 0x%x int= %d \n", i, intToWrite, bin8_output, intToWrite, intToWrite);
+        -:  256:		}
+        -:  257:
+        -:  258:	} // End for..loop
+        -:  259:
+    #####:  260:DTStamp(); printf("FINISHED test_writepci_to_parport01(void).\n");
+    #####:  261:}
+        -:  262:
+        -:  263:// ========================================================
+    #####:  264:void test_writepci_to_parport02(void) {
+        -:  265:// ========================================================
+    #####:  266:DTStamp(); printf("STARTED  test_writepci_to_parport02(void).\n");
+        -:  267:
+        -:  268:// Test write loop with buffered data
+        -:  269:// PERFORM WRITE LOOP FOR ELECTRICAL PULSE OUTPUTS
+        -:  270:int i;
+    #####:  271:int intToWrite = 0;
+    #####:  272:char TheChar[] = "SGIwks Bismillah Hirrahma Nirrahim WRY!";
+    #####:  273:int str_length = strlen(TheChar);
+        -:  274:
+    #####:  275:for (i = 0; i < str_length; i++) {
+        -:  276:
+        -:  277:	// GRAB INTEGER TO WRITE (8-BITS) TO DEVICE
+    #####:  278:	intToWrite = TheChar[i];
+    #####:  279:	char data_uchar = (char)intToWrite;
+    #####:  280:	if (fd_parport02 != -1) {
+        -:  281:
+    #####:  282:		convert_integer_to_binary8(intToWrite, bin8_output);
+    #####:  283:		write(fd_parport02, (const void *)(long)data_uchar, 1);
+        -:  284:
+    #####:  285:		DTStamp();
+    #####:  286:		printf("SUCCESS: write(fd_parport02, (const void *)(long)TheChar[i],1) i = %d \tchar= %c bin= %s hex= 0x%x int= %d \n", i, intToWrite, bin8_output, intToWrite, intToWrite);
+        -:  287:	} else {
+    #####:  288:		DTStamp();
+    #####:  289:		printf("FAILED:  write(fd_parport02, (const void *)(long)TheChar[i],1) i = %d \tchar= %c bin= %s hex= 0x%x int= %d \n", i, intToWrite, bin8_output, intToWrite, intToWrite);
+        -:  290:	}
+        -:  291:} // End for..loop
+        -:  292:
+        -:  293:
+    #####:  294:DTStamp(); printf("FINISHED test_writepci_to_parport02(void).\n");
+    #####:  295:}
+        -:  296:// ========================================================
+    #####:  297:void close_fd_parport01(void) {
+        -:  298:// ========================================================
+    #####:  299:printf("\n");
+    #####:  300:DTStamp(); printf("STARTED  close_fd_parport01(void).\n");
+        -:  301:
+    #####:  302:DTStamp();
+    #####:  303:printf("CHECK: Before closing file descriptor number: fd_parport01 \t= %d \n", fd_parport01);
+        -:  304:
+    #####:  305:int closed_fd_parport01 = close(fd_parport01);
+    #####:  306:if (closed_fd_parport01 == 0) {
+    #####:  307:	DTStamp();
+    #####:  308:	printf("SUCCESS  closing DEVICE_PARPORT_01. Status: closed_fd_parport01 = %d \n", closed_fd_parport01);
+        -:  309:} else {
+    #####:  310:	DTStamp();
+    #####:  311:	printf("ERROR:   closing DEVICE_PARPORT_01. Status: closed_fd_parport01 = %d \n", closed_fd_parport01);
+        -:  312:}
+        -:  313:
+    #####:  314:DTStamp();
+    #####:  315:printf("CHECK: After closing file descriptor number: fd_parport01 \t= %d \n", fd_parport01);
+        -:  316:
+        -:  317:
+    #####:  318:DTStamp(); printf("FINISHED close_fd_parport01(void).\n");
+    #####:  319:}
+        -:  320:// ========================================================
+    #####:  321:void close_fd_parport02(void) {
+        -:  322:// ========================================================
+    #####:  323:printf("\n");
+    #####:  324:DTStamp(); printf("STARTED  close_fd_parport02(void).\n");
+        -:  325:
+    #####:  326:DTStamp();
+    #####:  327:printf("CHECK: Before closing file descriptor number: fd_parport02 \t= %d \n", fd_parport02);
+        -:  328:
+    #####:  329:int closed_fd_parport02 = close(fd_parport02);
+    #####:  330:if (closed_fd_parport02 == 0) {
+    #####:  331:	DTStamp();
+    #####:  332:	printf("SUCCESS  closing DEVICE_PARPORT_02. Status: closed_fd_parport02 = %d \n", closed_fd_parport02);
+        -:  333:} else {
+    #####:  334:	DTStamp();
+    #####:  335:	printf("ERROR:   closing DEVICE_PARPORT_02. Status: closed_fd_parport02 = %d \n", closed_fd_parport02);
+        -:  336:}
+        -:  337:
+    #####:  338:DTStamp();
+    #####:  339:printf("CHECK: After closing file descriptor number: fd_parport02 \t= %d \n", fd_parport02);
+        -:  340:
+    #####:  341:DTStamp(); printf("FINISHED close_fd_parport02(void).\n");
+    #####:  342:}
+        -:  343:// ========================================================
+        -:  344:/*
+        -:  345:
+        -:  346:*/
+        -:  347:
+        -:  348:// ========================================================

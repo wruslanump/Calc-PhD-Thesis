@@ -1,0 +1,83 @@
+# DTStamp_FHdata_02 2024-09-14 15:51:57 112567980 
+# Testing data 02 
+Write run report statistics to screen and file. 
+
+FC20-L0.18-A28-ELLIPSE (1) EPSILON PROCESSING ERRORS 
+FC20-L0.18-A28-ELLIPSE STEP 1 ERRORS 
+FC20-L0.18-A28-ELLIPSE count_step1_ERROR_1 =          0 
+FC20-L0.18-A28-ELLIPSE count_step1_ERROR_2 =          0 
+FC20-L0.18-A28-ELLIPSE STEP 2 ERRORS 
+FC20-L0.18-A28-ELLIPSE count_step2_ERROR_1 =          0 
+FC20-L0.18-A28-ELLIPSE count_step2_ERROR_2 =          0 
+FC20-L0.18-A28-ELLIPSE count_step2_ERROR_3 =          0 
+FC20-L0.18-A28-ELLIPSE count_step2_ERROR_4 =          0 
+
+FC20-L0.18-A28-ELLIPSE (2) EPSILON COUNT RANGE VALUE STATISTICS 
+FC20-L0.18-A28-ELLIPSE cnt_eps_above_10E_6             =          0  (0.000000 %) 
+FC20-L0.18-A28-ELLIPSE cnt_eps_betwn_10E_7_upto_10E_6  =      11296  (100.000000 %) 
+FC20-L0.18-A28-ELLIPSE cnt_eps_betwn_10E_8_upto_10E_7  =          0  (0.000000 %) 
+FC20-L0.18-A28-ELLIPSE cnt_eps_betwn_10E_9_upto_10E_8  =          0  (0.000000 %) 
+FC20-L0.18-A28-ELLIPSE cnt_eps_betwn_10E_10_upto_10E_9 =          0  (0.000000 %) 
+FC20-L0.18-A28-ELLIPSE cnt_eps_below_10E_10            =          0  (0.000000 %) 
+FC20-L0.18-A28-ELLIPSE cnt_eps_total_points processed  =      11296  (100.000000 %) 
+
+FC20-L0.18-A28-ELLIPSE (3) INTERPOLATED POINT STATISTICS 
+FC20-L0.18-A28-ELLIPSE Count before step1, epsilon is already    below upper bound = 9576 (  84.773371  %) 
+FC20-L0.18-A28-ELLIPSE Count during step1, pushdown epsilon to   below upper bound = 1720 (  15.226629  %) 
+FC20-L0.18-A28-ELLIPSE After step1 the interpolated points count below upper bound = 11296 (total interpolated points) 
+FC20-L0.18-A28-ELLIPSE Count during step2, pushup into range (lower , upper) bound = 0 (total pushup points) 
+
+FC20-L0.18-A28-ELLIPSE (4) ADJUST (INCR/DECR) CURR_FRATE TO CALCULATED CURR_FRATE_LIMIT 
+FC20-L0.18-A28-ELLIPSE Count_rising_s_curve_points     = 370 	(    3.275496 %) 
+FC20-L0.18-A28-ELLIPSE Count_frate_islower_fratelimit  = 7484 	(   66.253541 %) 
+FC20-L0.18-A28-ELLIPSE Count_frate_isequal_fratelimit  = 0 	(    0.000000 %) 
+FC20-L0.18-A28-ELLIPSE Count_frate_ishigher_fratelimit = 3072 	(   27.195467 %) 
+FC20-L0.18-A28-ELLIPSE Count_falling_s_curve_points    = 370 	(    3.275496 %) 
+FC20-L0.18-A28-ELLIPSE Total interpolated points       = 11296 	(  100.000000 %) 
+
+FC20-L0.18-A28-ELLIPSE (5) CHORD ERROR (CURR_EPS) VARIABLE VALUE STATISTICS 
+FC20-L0.18-A28-ELLIPSE eps (min_eps, avg_eps, max_eps, sum_eps) = ( 0.000000e+00, 4.558354e-07, 9.999999e-07 5.148661e-03 )
+FC20-L0.18-A28-ELLIPSE At min_eps (line_mineps, u_mineps, x_mineps, y_mineps) = (      0 0.000000e+00 0.000000e+00 0.000000e+00 )
+FC20-L0.18-A28-ELLIPSE At max_eps (line_maxeps, u_maxeps, x_maxeps, y_maxeps) = (  11010 9.612765e-01 -2.650050e+00 4.949787e+01 )
+
+FC20-L0.18-A28-ELLIPSE (6) RADIUS OF CURVATURE (CURR_RHO) VARIABLE VALUE STATISTICS 
+FC20-L0.18-A28-ELLIPSE rho (min, avg, max, sum) = ( 0.000000e+00, 1.302048e+02, 2.364545e+02 1.470664e+06 )
+FC20-L0.18-A28-ELLIPSE At min_rho (line_minrho, u_minrho, x_minrho, y_minrho) = (      0 0.000000e+00 0.000000e+00 0.000000e+00 )
+FC20-L0.18-A28-ELLIPSE At max_rho (line_maxrho, u_maxrho, x_maxrho, y_maxrho) = (   2862 2.500337e-01 1.100000e+01 -1.078387e-02 )
+
+FC20-L0.18-A28-ELLIPSE (7) TANGENTIAL ACCELERATION (CURR_TANG_ACCN) VARIABLE VALUE STATISTICS 
+FC20-L0.18-A28-ELLIPSE tangaccn (min, avg, max, sum) = ( -3.007353e+01, 3.413579e-01, 3.003233e+01 3.855638e+03 )
+FC20-L0.18-A28-ELLIPSE At min_tangaccn (line_mintangaccn, u_mintangaccn, x_mintangaccn, y_mintangaccn) = (  10927 9.501486e-01 -3.389420e+00 4.851857e+01 )
+FC20-L0.18-A28-ELLIPSE At max_tangaccn (line_maxtangaccn, u_maxtangaccn, x_maxtangaccn, y_maxtangaccn) = (   5856 5.339120e-01 -2.326137e+00 -4.984664e+01 )
+
+FC20-L0.18-A28-ELLIPSE (8) FEEDRATE (CURR_FRATE) VARIABLE VALUE STATISTICS 
+FC20-L0.18-A28-ELLIPSE frate (min, avg, max, sum) = ( 0.000000e+00, 1.630130e+01, 2.000000e+01 1.841232e+05 )
+FC20-L0.18-A28-ELLIPSE At min_frate (line_minfrate, u_minfrate, x_minfrate, y_minfrate) = (      0 0.000000e+00 0.000000e+00 0.000000e+00 )
+FC20-L0.18-A28-ELLIPSE At max_frate (line_maxfrate, u_maxfrate, x_maxfrate, y_maxfrate) = (   7577 6.955840e-01 -1.036329e+01 -1.709945e+01 )
+
+FC20-L0.18-A28-ELLIPSE (9) ALGORITHM EXECUTION STATISTICS 
+
+FC20-L0.18-A28-ELLIPSE TOTAL-INTERPOLATED-POINTS          =  11296    
+FC20-L0.18-A28-ELLIPSE SUM-CHORD-ERROR-(mm)               =  5.148661124856e-03 
+FC20-L0.18-A28-ELLIPSE SUM-CHORD-ERROR/TOT-INTERPOL-PNTS  =  4.558354249540e-07 
+
+FC20-L0.18-A28-ELLIPSE SUM-ARC-LENGTH-(mm)                =  2.156499394203e+02 
+FC20-L0.18-A28-ELLIPSE SUM-CHORD-LENGTH-(mm)              =  2.156499358521e+02 
+FC20-L0.18-A28-ELLIPSE DIFF-ARC-LENGTH-CHORD-LENGTH-(mm)  =  3.568242959773e-06 
+FC20-L0.18-A28-ELLIPSE PCNT-DIFF-ARC-CHORD-LENGTH         =  1.654645936542e-06 
+
+FC20-L0.18-A28-ELLIPSE SUM-CHORD-ERROR/SUM-CHORD-LENGTH   =  2.387508767166e-05 
+
+FC20-L0.18-A28-ELLIPSE SUM-ARC-THETA-(rad)                =  6.283169115421e+00 
+FC20-L0.18-A28-ELLIPSE SUM-ARC-AREA-(mm2)                 =  1.275076043292e-04 
+
+FC20-L0.18-A28-ELLIPSE SUM-ARC-AREA/SUM-CHORD-LENGTH      =  2.387508767166e-05 
+
+FC20-L0.18-A28-ELLIPSE AVG-CHORD-ERROR-(mm)               =  4.558354249540e-07 
+FC20-L0.18-A28-ELLIPSE AVG-ARC-LENGTH-(mm)                =  1.909251345023e-02 
+FC20-L0.18-A28-ELLIPSE AVG-CHORD-LENGTH-(mm)              =  1.909251313431e-02 
+FC20-L0.18-A28-ELLIPSE AVG-ARC-THETA-(rad)                =  5.562788061462e-04 
+FC20-L0.18-A28-ELLIPSE AVG-ARC-AREA-(mm2)                 =  1.128885385827e-08 
+
+# Testing data 01 
+# DTStamp_FHdata_02 2024-09-14 15:52:05 710183095 

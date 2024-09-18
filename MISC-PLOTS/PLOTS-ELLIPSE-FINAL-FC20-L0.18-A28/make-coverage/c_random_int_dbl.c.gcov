@@ -1,0 +1,301 @@
+        -:    0:Source:/home/wruslan/workspaces-gnat/gnatstudio-c/gnat_c_cnc-04/src/common/c_random_int_dbl.c
+        -:    1:/*
+        -:    2: * c_random_int_dbl.c
+        -:    3: *
+        -:    4: *  Created on: Oct 12, 2020
+        -:    5: *      Author: wruslan
+        -:    6: */
+        -:    7:
+        -:    8:/*
+        -:    9: * random_int_dbl.cpp
+        -:   10: * Version: 1.0
+        -:   11: * Created on: Mar 20, 2020
+        -:   12: * Author: wruslan
+        -:   13: */
+        -:   14:
+        -:   15:#include <unistd.h>
+        -:   16:#include <time.h>       // For timespec, time()
+        -:   17:#include <stdio.h>      // For printf()
+        -:   18:#include <stdlib.h>     // For srand() and rand(), scanf(),
+        -:   19:
+        -:   20:// FUNCTION GENERATE INTEGER RANDOM NUMBER
+        -:   21:// ========================================================
+    #####:   22:long int random_integer(long int min, long int max) {
+        -:   23:// ========================================================
+        -:   24:	// srand((unsigned)time(NULL));
+        -:   25:
+    #####:   26:    if (max <= min) {
+    #####:   27:        printf("ERROR ON INTEGER: max cannot be equal or less than min.! \n");
+    #####:   28:        exit(1);
+        -:   29:    } else {
+    #####:   30:        int range = (max - min);
+    #####:   31:        int offset_int = (rand() % range); // Random integer between 0 and (range-1)
+        -:   32:        // printf("DEBUG: range = %d offset 0 to max =  %d \n", range, offset0);
+    #####:   33:    return (min + offset_int);
+        -:   34:    }
+        -:   35:}
+        -:   36:
+        -:   37:// ========================================================
+    #####:   38:void display_random_integers(long int count, long int min, long int max) {
+        -:   39:// ========================================================
+        -:   40:
+    #####:   41:	for (long int j = 0; j < count; j++) {
+    #####:   42:		    printf("j = %ld Uniform random_integer between (%ld, %ld) = %ld \n", \
+        -:   43:		   		j, min, max, random_integer(min, max));
+        -:   44:	}
+        -:   45:
+    #####:   46:	printf("\n");
+    #####:   47:	printf("SUCCESS: Above are the %ld generated uniform random integers between (%ld, %ld). \n\n", count, min, max);
+        -:   48:
+    #####:   49:}
+        -:   50:
+        -:   51:// CHECK RANDOMNESS OF INTEGER RANDOM NUMBERS
+        -:   52:// ========================================================
+    #####:   53:void check_randomness_of_integers(int bins, long int count, long int min, long int max) {
+        -:   54:// ========================================================
+    #####:   55:	srand((unsigned)time(NULL));
+        -:   56:
+    #####:   57:	if (max <= min) {
+    #####:   58:	        printf("\n***** ERROR ON INTEGER: Value of max cannot be equal or less than min.! \n");
+    #####:   59:	        exit(1);
+        -:   60:	}
+        -:   61:
+    #####:   62:	if (bins > (max-min)) {
+    #####:   63:			printf("\n***** ERROR ON BINS: Integer bins cannot be greater than number range.! \n");
+    #####:   64:			exit(1);
+        -:   65:	}
+        -:   66:
+        -:   67:	// ====================================================
+        -:   68:	// Determine the lower and upper boundary for each bin
+        -:   69:	// Initialize counts in each bin to zero
+        -:   70:	int loopnum;
+    #####:   71:	long int bin_count[bins+1];
+    #####:   72:	for (loopnum = 0; loopnum <= bins+1; loopnum++) {
+    #####:   73:		 bin_count[loopnum] = 0;
+        -:   74:	}
+        -:   75:
+        -:   76:	// From input range, calculate bin_width (+1 for fractional part of integer division)
+    #####:   77:	long int bin_width = ((max - min)/bins) + 1;
+        -:   78:	// printf("bin_width = %ld \n", bin_width);
+        -:   79:
+        -:   80:	// Using bin_width, set boundaries for each bin
+    #####:   81:	long int bin_boundary[bins+1];
+    #####:   82:	bin_boundary[0] = min;
+        -:   83:	// printf("bin_boundary[0] = %ld \n", bin_boundary[0]);
+    #####:   84:	for (loopnum = 1; loopnum <= bins; loopnum++) {
+    #####:   85:		bin_boundary[loopnum] = bin_boundary[loopnum-1] + bin_width;
+        -:   86:		// printf("bin_boundary[%d] = %ld \n", loopnum, bin_boundary[loopnum]);
+        -:   87:	}
+    #####:   88:	bin_boundary[bins+1] = max;
+        -:   89:	// printf("bin_boundary[%d] = %ld \n", bins+1, bin_boundary[bins+1]);
+        -:   90:
+        -:   91:	// ====================================================
+        -:   92:	// Generate a random integer, identify the_bin and increment bin_count
+        -:   93:	long int rand_int;
+        -:   94:	int the_bin;
+        -:   95:
+        -:   96:	// Generate the total number (count) of random numbers
+    #####:   97:	for (loopnum = 1; loopnum <= count; loopnum++) {
+        -:   98:
+        -:   99:		// Get a random integer
+    #####:  100:		rand_int = random_integer(min, max);
+        -:  101:		// printf("loopnum = %d rand_int = %ld \n", loopnum, rand_int);
+        -:  102:
+        -:  103:		// Find the_bin and increment bin_count[the_bin]
+    #####:  104:		for (the_bin = 0; the_bin <= bins+1; the_bin++) {
+        -:  105:
+        -:  106:			// LOWER BOUNDARY = BIN INCLUSIVE
+    #####:  107:			if (rand_int == bin_boundary[the_bin] ) {
+    #####:  108:				bin_count[the_bin] = bin_count[the_bin] + 1;
+    #####:  109:			} else if ((rand_int > bin_boundary[the_bin]) && (rand_int < bin_boundary[the_bin+1])) {
+    #####:  110:				bin_count[the_bin] = bin_count[the_bin] + 1;
+        -:  111:			} // end (if .. else if ...)
+        -:  112:
+        -:  113:		} // end for(the_bin)
+        -:  114:	} // end for(loopnum)
+        -:  115:
+        -:  116:	// ====================================================
+        -:  117:    // Check to ensure all random numbers are accounted for in some bin
+    #####:  118:	long int check_bin_count = 0;
+    #####:  119:	for (loopnum = 0; loopnum < bins; loopnum++) {
+        -:  120:
+    #####:  121:		printf("Random integers in range[%ld, %ld) = \t", bin_boundary[loopnum], bin_boundary[loopnum+1]);
+    #####:  122:		printf("bin_count[%d] = %ld \t", loopnum, bin_count[loopnum]);
+        -:  123:
+    #####:  124:		check_bin_count = check_bin_count + bin_count[loopnum];
+    #####:  125:		printf("cumulative check_bin_count = %ld \n", check_bin_count);
+        -:  126:	}
+        -:  127:
+    #####:  128:	if (check_bin_count == count) {
+    #####:  129:		printf("\nSUCCESS: Above are the %ld uniform random integers in the range(%ld, %ld) accounted for in the %d bins. \n\n", check_bin_count, min, max, bins);
+        -:  130:	} else {
+    #####:  131:		printf("\nERROR: Some uniform random integers are not accounted for in the bins. \n\n");
+        -:  132:	}
+        -:  133:
+    #####:  134:}
+        -:  135:
+        -:  136:// FUNCTION GENERATE DOUBLE RANDOM NUMBER
+        -:  137:// =========================================================
+    #####:  138:double random_double(double min, double max) {
+        -:  139:// =========================================================
+        -:  140:	// srand((unsigned)time(NULL));
+        -:  141:
+    #####:  142:	if (max <= min) {
+    #####:  143:        printf("ERROR ON DOUBLE: max cannot be equal or less than min.! \n");
+    #####:  144:        exit(1);
+        -:  145:    } else {
+    #####:  146:        double range = (max - min);
+    #####:  147:        double div = (RAND_MAX / range);
+    #####:  148:        double offset_dbl = (rand() / div);
+        -:  149:        // printf("DEBUG: range = %f offset 0 to max =  %f \n", range, offset);
+    #####:  150:    return min + (offset_dbl);
+        -:  151:    }
+        -:  152:}
+        -:  153:
+        -:  154:// ========================================================
+    #####:  155:void display_random_doubles(long int count, double min, double max) {
+        -:  156:// ========================================================
+        -:  157:
+    #####:  158:	for (long int j = 0; j < count; j++) {
+    #####:  159:		    printf("j = %ld Uniform random_doubles between (%f, %f) = %f \n", \
+        -:  160:		   		j, min, max, random_double(min, max));
+        -:  161:	}
+        -:  162:
+    #####:  163:	printf("\nSUCCESS: Above are the %ld generated uniform random doubles between (%f, %f). \n\n", count, min, max);
+        -:  164:
+    #####:  165:}
+        -:  166:
+        -:  167:// ========================================================
+    #####:  168:void check_randomness_of_doubles(int bins, long int count, double min, double max) {
+        -:  169:// ========================================================
+    #####:  170:	srand((unsigned)time(NULL));
+        -:  171:
+    #####:  172:	if (max <= min) {
+    #####:  173:	        printf("\n***** ERROR ON DOUBLE: Value of max cannot be equal or less than min.! \n");
+    #####:  174:	        exit(1);
+        -:  175:	}
+        -:  176:
+    #####:  177:	if (bins > (max-min)) {
+    #####:  178:			printf("\n***** ERROR ON BINS: Integer bins cannot be greater than number range.! \n");
+    #####:  179:			exit(1);
+        -:  180:	}
+        -:  181:
+        -:  182:	// ====================================================
+        -:  183:	// Determine the lower and upper boundary for each bin
+        -:  184:	// Initialize counts in each bin to zero
+        -:  185:	int loopnum;
+    #####:  186:	long int bin_count[bins+1];
+    #####:  187:	for (loopnum = 0; loopnum <= bins+1; loopnum++) {
+    #####:  188:		 bin_count[loopnum] = 0;
+        -:  189:	}
+        -:  190:
+        -:  191:	// From input range, calculate bin_width
+    #####:  192:	double bin_width = (max - min)/bins;
+        -:  193:	// printf("bin_width = %f\n", bin_width);
+        -:  194:
+        -:  195:	// Using bin_width, set boundaries for each bin
+    #####:  196:	double bin_boundary[bins+1];
+    #####:  197:	bin_boundary[0] = min;
+        -:  198:	// printf("bin_boundary[0] = %f \n", bin_boundary[0]);
+    #####:  199:	for (loopnum = 1; loopnum <= bins; loopnum++) {
+    #####:  200:		bin_boundary[loopnum] = bin_boundary[loopnum-1] + bin_width;
+        -:  201:		//printf("bin_boundary[%d] = %f \n", loopnum, bin_boundary[loopnum]);
+        -:  202:	}
+    #####:  203:	bin_boundary[bins+1] = max;
+        -:  204:	// printf("bin_boundary[%d] = %f \n", bins+1, bin_boundary[bins+1]);
+        -:  205:
+        -:  206:	// ====================================================
+        -:  207:	// Generate a random double, identify the_bin and increment bin_count
+        -:  208:	double rand_dbl;
+        -:  209:	int the_bin;
+        -:  210:
+        -:  211:	// Generate the total number (count) of random numbers
+    #####:  212:	for (loopnum = 1; loopnum <= count; loopnum++) {
+        -:  213:
+        -:  214:		// Get a random integer
+    #####:  215:		rand_dbl = random_double(min, max);
+        -:  216:		// printf("loopnum = %d rand_dbl = %f \n", loopnum, rand_dbl);
+        -:  217:
+        -:  218:		// Find the_bin and increment bin_count[the_bin]
+    #####:  219:		for (the_bin = 0; the_bin <= bins+1; the_bin++) {
+        -:  220:
+        -:  221:			// LOWER BOUNDARY = BIN INCLUSIVE
+    #####:  222:			if (rand_dbl == bin_boundary[the_bin] ) {
+    #####:  223:				bin_count[the_bin] = bin_count[the_bin] + 1;
+    #####:  224:			} else if ((rand_dbl > bin_boundary[the_bin]) && (rand_dbl < bin_boundary[the_bin+1])) {
+    #####:  225:				bin_count[the_bin] = bin_count[the_bin] + 1;
+        -:  226:			} // end (if .. else if ...)
+        -:  227:
+        -:  228:		} // end for(the_bin)
+        -:  229:	} // end for(loopnum)
+        -:  230:
+        -:  231:	// ====================================================
+        -:  232:    // Check to ensure all random numbers are accounted for in some bin
+    #####:  233:	long int check_bin_count = 0;
+    #####:  234:	for (loopnum = 0; loopnum < bins; loopnum++) {
+        -:  235:
+    #####:  236:		printf("Random doubles in range[%f, %f) = \t", bin_boundary[loopnum], bin_boundary[loopnum+1]);
+    #####:  237:		printf("bin_count[%d] = %ld \t", loopnum, bin_count[loopnum]);
+        -:  238:
+    #####:  239:		check_bin_count = check_bin_count + bin_count[loopnum];
+    #####:  240:		printf("cumulative check_bin_count = %ld \n", check_bin_count);
+        -:  241:	}
+        -:  242:
+    #####:  243:	if (check_bin_count == count) {
+    #####:  244:		printf("\nSUCCESS: Above are the %ld uniform random doubles in the range(%f, %f) accounted for in the %d bins. \n\n", check_bin_count, min, max, bins);
+        -:  245:	} else {
+    #####:  246:		printf("\nERROR: Some uniform random doubles are not accounted for in the bins. \n\n");
+        -:  247:	}
+        -:  248:
+    #####:  249:}
+        -:  250:
+        -:  251:// ========================================================
+        -:  252:// MISC EXAMPLE USAGE
+        -:  253:// ========================================================
+        -:  254:/*
+        -:  255:int     i, j, k;
+        -:  256:int     int_count, dbl_count;
+        -:  257:int     int_min, int_max;
+        -:  258:double  dbl_min, dmin, dbl_max, dmax;
+        -:  259:
+        -:  260:// INITIALIZE RANDOM NUMBER GENERATOR
+        -:  261:srand(time(NULL));
+        -:  262:
+        -:  263:// scanf("%d", &int_min); // Scan an integer as a signed decimal number.
+        -:  264:// scanf("%f", &dbl_min); // Scan an double  as a signed decimal number.
+        -:  265:
+        -:  266:// DISPLAY INTEGER RANDOM NUMBERS
+        -:  267:// ==================================
+        -:  268:printf("\nEnter an integer for minimum value, int_min = ");
+        -:  269:scanf("%d", &int_min);
+        -:  270:
+        -:  271:printf("Enter an integer for maximum value, int_max = ");
+        -:  272:scanf("%d", &int_max);
+        -:  273:
+        -:  274:printf("Enter number of random integers to generate (max = 1000) = ");
+        -:  275:scanf("%d", &int_count);
+        -:  276:
+        -:  277:for (i = 0; i < int_count; i++) {
+        -:  278:    printf("i = %d Uniform random_integer between(%d, %d) = %d \n", i, int_min, int_max, random_integer(int_min, int_max));
+        -:  279:}
+        -:  280:
+        -:  281:// DISPLAY DOUBLE RANDOM NUMBERS
+        -:  282:// ==================================
+        -:  283:
+        -:  284:printf("\nEnter a double for minimum dbl_min: ");
+        -:  285:scanf("%lf", &dbl_min);
+        -:  286:
+        -:  287:printf("Enter a double for maximum dbl_max: ");
+        -:  288:scanf("%lf", &dbl_max);
+        -:  289:
+        -:  290:printf("Enter number of random doubles to generate (max = 1000) = ");
+        -:  291:scanf("%d", &dbl_count);
+        -:  292:
+        -:  293:for (i = 0; i < dbl_count; i++) {
+        -:  294:    printf("i = %d Uniform random_double between ( %f, %f) = %16.9lf \n", i, dbl_min, dbl_max, random_double(dbl_min, dbl_max));
+        -:  295:}
+        -:  296:
+        -:  297:*/
+        -:  298:// ========================================================
+        -:  299:
+        -:  300:

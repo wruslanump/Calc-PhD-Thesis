@@ -1,0 +1,1815 @@
+        -:    0:Source:/home/wruslan/workspaces-gnat/gnatstudio-c/gnat_c_cnc-04/src/common/c_dtstamp.c
+        -:    1:/*
+        -:    2: * c_dtstamp.c
+        -:    3: *
+        -:    4: *  Created on: Mon 10 Jan 2022 05:42:26 PM +08
+        -:    5: *      Author: wruslan
+        -:    6: */
+        -:    7:
+        -:    8:#include <limits.h>   // perror()
+        -:    9:#include <stdio.h>
+        -:   10:#include <string.h>   // strcat(), strcpy()
+        -:   11:#include <unistd.h>   // getcwd()
+        -:   12:#include <stdlib.h>   // exit()
+        -:   13:
+        -:   14:#include <sys/time.h> // For local date-time with (microseconds)
+        -:   15:#include <time.h>     // For high-res timer clock_gettime with (nanoseconds)
+        -:   16:                      // 
+        -:   17:// THE FOLLOWING ARE DEFINED INSIDE <time.h>
+        -:   18:// https://users.pja.edu.pl/~jms/qnx/help/watcom/clibref/qnx/clock_gettime.html
+        -:   19:int clock_gettime  (clock_t clock_id, struct timespec *tp );
+        -:   20:int clock_getres   (clock_t clock_id, struct timespec *res);
+        -:   21:int clock_nanosleep(clock_t clock_id, int flags, const struct timespec * rqtp, struct timespec * rmtp );
+        -:   22:
+        -:   23:// ========================================================
+        -:   24:// GLOBALS
+        -:   25:time_t WRY_time;
+        -:   26:clock_t  CLOCK_REALTIME;    // THE TYPE DEFINITION
+        -:   27:  
+        -:   28:char WRY_strbuffer1[26];
+        -:   29:char WRY_strbuffer2[60];
+        -:   30:
+        -:   31:long int t_nsec;
+        -:   32:char st_nsec[11];
+        -:   33:char *datetime_stamp;
+        -:   34:
+        -:   35:struct tm *WRY_tminfo;
+        -:   36:struct timeval WRY_usecvalnow;  // inside #include <sys/time> microseconds
+        -:   37:struct timespec WRY_nsecvalnow; // For hires timer #include <time> nanoseconds
+        -:   38:struct timespec WRY_tvalres;
+        -:   39:
+        -:   40:struct timespec t_starttimer, t_endtimer, tnow;
+        -:   41:struct timespec t_startprogram, t_endprogram;
+        -:   42:
+        -:   43:// ========================================================
+    #####:   44:char* get_time_stamp(void) {
+        -:   45:// ========================================================
+    #####:   46:  time(&WRY_time);
+    #####:   47:	WRY_tminfo = localtime(&WRY_time);
+    #####:   48:	strftime(WRY_strbuffer1, 26, "%H:%M:%S ", WRY_tminfo);
+        -:   49:
+    #####:   50:  gettimeofday (&WRY_usecvalnow, NULL);            // MICROSECOND
+        -:   51:           
+    #####:   52:	clock_gettime(CLOCK_REALTIME, &WRY_nsecvalnow);  // NANOSECOND
+    #####:   53:	t_nsec = (long int)WRY_nsecvalnow.tv_nsec; 
+        -:   54:	
+        -:   55:	// CONVERT TIME IN NANOSECONDS TO ASCI STRING
+        -:   56:	// TAKE 9 digits FOR STRING st_nsec
+    #####:   57:	sprintf(st_nsec,"%ld", t_nsec); 
+        -:   58:
+        -:   59:	// CONCATENATE WITH NANOSECOND STRING	
+    #####:   60:	strcat(WRY_strbuffer1, st_nsec);
+        -:   61:	
+    #####:   62:	return (WRY_strbuffer1);
+        -:   63:}
+------------------
+get_time_stamp:
+    #####:   44:char* get_time_stamp(void) {
+        -:   45:// ========================================================
+    #####:   46:  time(&WRY_time);
+    #####:   47:	WRY_tminfo = localtime(&WRY_time);
+    #####:   48:	strftime(WRY_strbuffer1, 26, "%H:%M:%S ", WRY_tminfo);
+        -:   49:
+    #####:   50:  gettimeofday (&WRY_usecvalnow, NULL);            // MICROSECOND
+        -:   51:           
+    #####:   52:	clock_gettime(CLOCK_REALTIME, &WRY_nsecvalnow);  // NANOSECOND
+    #####:   53:	t_nsec = (long int)WRY_nsecvalnow.tv_nsec; 
+        -:   54:	
+        -:   55:	// CONVERT TIME IN NANOSECONDS TO ASCI STRING
+        -:   56:	// TAKE 9 digits FOR STRING st_nsec
+    #####:   57:	sprintf(st_nsec,"%ld", t_nsec); 
+        -:   58:
+        -:   59:	// CONCATENATE WITH NANOSECOND STRING	
+    #####:   60:	strcat(WRY_strbuffer1, st_nsec);
+        -:   61:	
+    #####:   62:	return (WRY_strbuffer1);
+        -:   63:}
+------------------
+get_time_stamp:
+    #####:   44:char* get_time_stamp(void) {
+        -:   45:// ========================================================
+    #####:   46:  time(&WRY_time);
+    #####:   47:	WRY_tminfo = localtime(&WRY_time);
+    #####:   48:	strftime(WRY_strbuffer1, 26, "%H:%M:%S ", WRY_tminfo);
+        -:   49:
+    #####:   50:  gettimeofday (&WRY_usecvalnow, NULL);            // MICROSECOND
+        -:   51:           
+    #####:   52:	clock_gettime(CLOCK_REALTIME, &WRY_nsecvalnow);  // NANOSECOND
+    #####:   53:	t_nsec = (long int)WRY_nsecvalnow.tv_nsec; 
+        -:   54:	
+        -:   55:	// CONVERT TIME IN NANOSECONDS TO ASCI STRING
+        -:   56:	// TAKE 9 digits FOR STRING st_nsec
+    #####:   57:	sprintf(st_nsec,"%ld", t_nsec); 
+        -:   58:
+        -:   59:	// CONCATENATE WITH NANOSECOND STRING	
+    #####:   60:	strcat(WRY_strbuffer1, st_nsec);
+        -:   61:	
+    #####:   62:	return (WRY_strbuffer1);
+        -:   63:}
+------------------
+get_time_stamp:
+    #####:   44:char* get_time_stamp(void) {
+        -:   45:// ========================================================
+    #####:   46:  time(&WRY_time);
+    #####:   47:	WRY_tminfo = localtime(&WRY_time);
+    #####:   48:	strftime(WRY_strbuffer1, 26, "%H:%M:%S ", WRY_tminfo);
+        -:   49:
+    #####:   50:  gettimeofday (&WRY_usecvalnow, NULL);            // MICROSECOND
+        -:   51:           
+    #####:   52:	clock_gettime(CLOCK_REALTIME, &WRY_nsecvalnow);  // NANOSECOND
+    #####:   53:	t_nsec = (long int)WRY_nsecvalnow.tv_nsec; 
+        -:   54:	
+        -:   55:	// CONVERT TIME IN NANOSECONDS TO ASCI STRING
+        -:   56:	// TAKE 9 digits FOR STRING st_nsec
+    #####:   57:	sprintf(st_nsec,"%ld", t_nsec); 
+        -:   58:
+        -:   59:	// CONCATENATE WITH NANOSECOND STRING	
+    #####:   60:	strcat(WRY_strbuffer1, st_nsec);
+        -:   61:	
+    #####:   62:	return (WRY_strbuffer1);
+        -:   63:}
+------------------
+get_time_stamp:
+    #####:   44:char* get_time_stamp(void) {
+        -:   45:// ========================================================
+    #####:   46:  time(&WRY_time);
+    #####:   47:	WRY_tminfo = localtime(&WRY_time);
+    #####:   48:	strftime(WRY_strbuffer1, 26, "%H:%M:%S ", WRY_tminfo);
+        -:   49:
+    #####:   50:  gettimeofday (&WRY_usecvalnow, NULL);            // MICROSECOND
+        -:   51:           
+    #####:   52:	clock_gettime(CLOCK_REALTIME, &WRY_nsecvalnow);  // NANOSECOND
+    #####:   53:	t_nsec = (long int)WRY_nsecvalnow.tv_nsec; 
+        -:   54:	
+        -:   55:	// CONVERT TIME IN NANOSECONDS TO ASCI STRING
+        -:   56:	// TAKE 9 digits FOR STRING st_nsec
+    #####:   57:	sprintf(st_nsec,"%ld", t_nsec); 
+        -:   58:
+        -:   59:	// CONCATENATE WITH NANOSECOND STRING	
+    #####:   60:	strcat(WRY_strbuffer1, st_nsec);
+        -:   61:	
+    #####:   62:	return (WRY_strbuffer1);
+        -:   63:}
+------------------
+get_time_stamp:
+    #####:   44:char* get_time_stamp(void) {
+        -:   45:// ========================================================
+    #####:   46:  time(&WRY_time);
+    #####:   47:	WRY_tminfo = localtime(&WRY_time);
+    #####:   48:	strftime(WRY_strbuffer1, 26, "%H:%M:%S ", WRY_tminfo);
+        -:   49:
+    #####:   50:  gettimeofday (&WRY_usecvalnow, NULL);            // MICROSECOND
+        -:   51:           
+    #####:   52:	clock_gettime(CLOCK_REALTIME, &WRY_nsecvalnow);  // NANOSECOND
+    #####:   53:	t_nsec = (long int)WRY_nsecvalnow.tv_nsec; 
+        -:   54:	
+        -:   55:	// CONVERT TIME IN NANOSECONDS TO ASCI STRING
+        -:   56:	// TAKE 9 digits FOR STRING st_nsec
+    #####:   57:	sprintf(st_nsec,"%ld", t_nsec); 
+        -:   58:
+        -:   59:	// CONCATENATE WITH NANOSECOND STRING	
+    #####:   60:	strcat(WRY_strbuffer1, st_nsec);
+        -:   61:	
+    #####:   62:	return (WRY_strbuffer1);
+        -:   63:}
+------------------
+get_time_stamp:
+    #####:   44:char* get_time_stamp(void) {
+        -:   45:// ========================================================
+    #####:   46:  time(&WRY_time);
+    #####:   47:	WRY_tminfo = localtime(&WRY_time);
+    #####:   48:	strftime(WRY_strbuffer1, 26, "%H:%M:%S ", WRY_tminfo);
+        -:   49:
+    #####:   50:  gettimeofday (&WRY_usecvalnow, NULL);            // MICROSECOND
+        -:   51:           
+    #####:   52:	clock_gettime(CLOCK_REALTIME, &WRY_nsecvalnow);  // NANOSECOND
+    #####:   53:	t_nsec = (long int)WRY_nsecvalnow.tv_nsec; 
+        -:   54:	
+        -:   55:	// CONVERT TIME IN NANOSECONDS TO ASCI STRING
+        -:   56:	// TAKE 9 digits FOR STRING st_nsec
+    #####:   57:	sprintf(st_nsec,"%ld", t_nsec); 
+        -:   58:
+        -:   59:	// CONCATENATE WITH NANOSECOND STRING	
+    #####:   60:	strcat(WRY_strbuffer1, st_nsec);
+        -:   61:	
+    #####:   62:	return (WRY_strbuffer1);
+        -:   63:}
+------------------
+        -:   64:// ========================================================
+      36*:   65:char* get_datetime_stamp(void) {
+        -:   66:// ========================================================
+      36*:   67:  time(&WRY_time);
+      36*:   68:	WRY_tminfo = localtime(&WRY_time);
+      36*:   69:	strftime(WRY_strbuffer1, 26, "%Y-%m-%d %H:%M:%S ", WRY_tminfo);
+        -:   70:
+      36*:   71:  gettimeofday(&WRY_usecvalnow, NULL);
+      36*:   72:	clock_gettime(CLOCK_REALTIME, &WRY_nsecvalnow);
+      36*:   73:	t_nsec = (long int)WRY_nsecvalnow.tv_nsec; 
+        -:   74:	
+        -:   75:	// CONVERT TIME IN NANOSECONDS TO ASCI STRING
+        -:   76:	// TAKE 9 digits FOR STRING st_nsec
+      36*:   77:	sprintf(st_nsec,"%ld", t_nsec); 
+        -:   78:
+        -:   79:	// CONCATENATE WITH NANOSECOND STRING	
+      36*:   80:	strcat(WRY_strbuffer1, st_nsec);
+        -:   81:	
+      36*:   82:	return (WRY_strbuffer1);
+        -:   83:
+        -:   84:}
+------------------
+get_datetime_stamp:
+       36:   65:char* get_datetime_stamp(void) {
+        -:   66:// ========================================================
+       36:   67:  time(&WRY_time);
+       36:   68:	WRY_tminfo = localtime(&WRY_time);
+       36:   69:	strftime(WRY_strbuffer1, 26, "%Y-%m-%d %H:%M:%S ", WRY_tminfo);
+        -:   70:
+       36:   71:  gettimeofday(&WRY_usecvalnow, NULL);
+       36:   72:	clock_gettime(CLOCK_REALTIME, &WRY_nsecvalnow);
+       36:   73:	t_nsec = (long int)WRY_nsecvalnow.tv_nsec; 
+        -:   74:	
+        -:   75:	// CONVERT TIME IN NANOSECONDS TO ASCI STRING
+        -:   76:	// TAKE 9 digits FOR STRING st_nsec
+       36:   77:	sprintf(st_nsec,"%ld", t_nsec); 
+        -:   78:
+        -:   79:	// CONCATENATE WITH NANOSECOND STRING	
+       36:   80:	strcat(WRY_strbuffer1, st_nsec);
+        -:   81:	
+       36:   82:	return (WRY_strbuffer1);
+        -:   83:
+        -:   84:}
+------------------
+get_datetime_stamp:
+    #####:   65:char* get_datetime_stamp(void) {
+        -:   66:// ========================================================
+    #####:   67:  time(&WRY_time);
+    #####:   68:	WRY_tminfo = localtime(&WRY_time);
+    #####:   69:	strftime(WRY_strbuffer1, 26, "%Y-%m-%d %H:%M:%S ", WRY_tminfo);
+        -:   70:
+    #####:   71:  gettimeofday(&WRY_usecvalnow, NULL);
+    #####:   72:	clock_gettime(CLOCK_REALTIME, &WRY_nsecvalnow);
+    #####:   73:	t_nsec = (long int)WRY_nsecvalnow.tv_nsec; 
+        -:   74:	
+        -:   75:	// CONVERT TIME IN NANOSECONDS TO ASCI STRING
+        -:   76:	// TAKE 9 digits FOR STRING st_nsec
+    #####:   77:	sprintf(st_nsec,"%ld", t_nsec); 
+        -:   78:
+        -:   79:	// CONCATENATE WITH NANOSECOND STRING	
+    #####:   80:	strcat(WRY_strbuffer1, st_nsec);
+        -:   81:	
+    #####:   82:	return (WRY_strbuffer1);
+        -:   83:
+        -:   84:}
+------------------
+get_datetime_stamp:
+    #####:   65:char* get_datetime_stamp(void) {
+        -:   66:// ========================================================
+    #####:   67:  time(&WRY_time);
+    #####:   68:	WRY_tminfo = localtime(&WRY_time);
+    #####:   69:	strftime(WRY_strbuffer1, 26, "%Y-%m-%d %H:%M:%S ", WRY_tminfo);
+        -:   70:
+    #####:   71:  gettimeofday(&WRY_usecvalnow, NULL);
+    #####:   72:	clock_gettime(CLOCK_REALTIME, &WRY_nsecvalnow);
+    #####:   73:	t_nsec = (long int)WRY_nsecvalnow.tv_nsec; 
+        -:   74:	
+        -:   75:	// CONVERT TIME IN NANOSECONDS TO ASCI STRING
+        -:   76:	// TAKE 9 digits FOR STRING st_nsec
+    #####:   77:	sprintf(st_nsec,"%ld", t_nsec); 
+        -:   78:
+        -:   79:	// CONCATENATE WITH NANOSECOND STRING	
+    #####:   80:	strcat(WRY_strbuffer1, st_nsec);
+        -:   81:	
+    #####:   82:	return (WRY_strbuffer1);
+        -:   83:
+        -:   84:}
+------------------
+get_datetime_stamp:
+    #####:   65:char* get_datetime_stamp(void) {
+        -:   66:// ========================================================
+    #####:   67:  time(&WRY_time);
+    #####:   68:	WRY_tminfo = localtime(&WRY_time);
+    #####:   69:	strftime(WRY_strbuffer1, 26, "%Y-%m-%d %H:%M:%S ", WRY_tminfo);
+        -:   70:
+    #####:   71:  gettimeofday(&WRY_usecvalnow, NULL);
+    #####:   72:	clock_gettime(CLOCK_REALTIME, &WRY_nsecvalnow);
+    #####:   73:	t_nsec = (long int)WRY_nsecvalnow.tv_nsec; 
+        -:   74:	
+        -:   75:	// CONVERT TIME IN NANOSECONDS TO ASCI STRING
+        -:   76:	// TAKE 9 digits FOR STRING st_nsec
+    #####:   77:	sprintf(st_nsec,"%ld", t_nsec); 
+        -:   78:
+        -:   79:	// CONCATENATE WITH NANOSECOND STRING	
+    #####:   80:	strcat(WRY_strbuffer1, st_nsec);
+        -:   81:	
+    #####:   82:	return (WRY_strbuffer1);
+        -:   83:
+        -:   84:}
+------------------
+get_datetime_stamp:
+    #####:   65:char* get_datetime_stamp(void) {
+        -:   66:// ========================================================
+    #####:   67:  time(&WRY_time);
+    #####:   68:	WRY_tminfo = localtime(&WRY_time);
+    #####:   69:	strftime(WRY_strbuffer1, 26, "%Y-%m-%d %H:%M:%S ", WRY_tminfo);
+        -:   70:
+    #####:   71:  gettimeofday(&WRY_usecvalnow, NULL);
+    #####:   72:	clock_gettime(CLOCK_REALTIME, &WRY_nsecvalnow);
+    #####:   73:	t_nsec = (long int)WRY_nsecvalnow.tv_nsec; 
+        -:   74:	
+        -:   75:	// CONVERT TIME IN NANOSECONDS TO ASCI STRING
+        -:   76:	// TAKE 9 digits FOR STRING st_nsec
+    #####:   77:	sprintf(st_nsec,"%ld", t_nsec); 
+        -:   78:
+        -:   79:	// CONCATENATE WITH NANOSECOND STRING	
+    #####:   80:	strcat(WRY_strbuffer1, st_nsec);
+        -:   81:	
+    #####:   82:	return (WRY_strbuffer1);
+        -:   83:
+        -:   84:}
+------------------
+get_datetime_stamp:
+    #####:   65:char* get_datetime_stamp(void) {
+        -:   66:// ========================================================
+    #####:   67:  time(&WRY_time);
+    #####:   68:	WRY_tminfo = localtime(&WRY_time);
+    #####:   69:	strftime(WRY_strbuffer1, 26, "%Y-%m-%d %H:%M:%S ", WRY_tminfo);
+        -:   70:
+    #####:   71:  gettimeofday(&WRY_usecvalnow, NULL);
+    #####:   72:	clock_gettime(CLOCK_REALTIME, &WRY_nsecvalnow);
+    #####:   73:	t_nsec = (long int)WRY_nsecvalnow.tv_nsec; 
+        -:   74:	
+        -:   75:	// CONVERT TIME IN NANOSECONDS TO ASCI STRING
+        -:   76:	// TAKE 9 digits FOR STRING st_nsec
+    #####:   77:	sprintf(st_nsec,"%ld", t_nsec); 
+        -:   78:
+        -:   79:	// CONCATENATE WITH NANOSECOND STRING	
+    #####:   80:	strcat(WRY_strbuffer1, st_nsec);
+        -:   81:	
+    #####:   82:	return (WRY_strbuffer1);
+        -:   83:
+        -:   84:}
+------------------
+        -:   85:
+        -:   86:// ========================================================
+      20*:   87:void DTStamp(void) {
+        -:   88:// ========================================================
+      20*:   89:	time(&WRY_time);
+        -:   90:
+      20*:   91:	WRY_tminfo = localtime(&WRY_time);
+      20*:   92:	strftime(WRY_strbuffer1, 26, "%Y-%m-%d %H:%M:%S", WRY_tminfo);
+        -:   93:
+      20*:   94:	gettimeofday(&WRY_usecvalnow, NULL);
+        -:   95:
+      20*:   96:	printf("%s", WRY_strbuffer1);   // NO \n IN THIS PRINT
+        -:   97:	//printf(".%06ld \t", (long int)WRY_usecvalnow.tv_usec);
+        -:   98:
+      20*:   99:	clock_gettime(CLOCK_REALTIME, &WRY_nsecvalnow);
+      20*:  100:	printf(".%09ld \t", (long int)WRY_nsecvalnow.tv_nsec);
+      20*:  101:}
+------------------
+DTStamp:
+       20:   87:void DTStamp(void) {
+        -:   88:// ========================================================
+       20:   89:	time(&WRY_time);
+        -:   90:
+       20:   91:	WRY_tminfo = localtime(&WRY_time);
+       20:   92:	strftime(WRY_strbuffer1, 26, "%Y-%m-%d %H:%M:%S", WRY_tminfo);
+        -:   93:
+       20:   94:	gettimeofday(&WRY_usecvalnow, NULL);
+        -:   95:
+       20:   96:	printf("%s", WRY_strbuffer1);   // NO \n IN THIS PRINT
+        -:   97:	//printf(".%06ld \t", (long int)WRY_usecvalnow.tv_usec);
+        -:   98:
+       20:   99:	clock_gettime(CLOCK_REALTIME, &WRY_nsecvalnow);
+       20:  100:	printf(".%09ld \t", (long int)WRY_nsecvalnow.tv_nsec);
+       20:  101:}
+------------------
+DTStamp:
+    #####:   87:void DTStamp(void) {
+        -:   88:// ========================================================
+    #####:   89:	time(&WRY_time);
+        -:   90:
+    #####:   91:	WRY_tminfo = localtime(&WRY_time);
+    #####:   92:	strftime(WRY_strbuffer1, 26, "%Y-%m-%d %H:%M:%S", WRY_tminfo);
+        -:   93:
+    #####:   94:	gettimeofday(&WRY_usecvalnow, NULL);
+        -:   95:
+    #####:   96:	printf("%s", WRY_strbuffer1);   // NO \n IN THIS PRINT
+        -:   97:	//printf(".%06ld \t", (long int)WRY_usecvalnow.tv_usec);
+        -:   98:
+    #####:   99:	clock_gettime(CLOCK_REALTIME, &WRY_nsecvalnow);
+    #####:  100:	printf(".%09ld \t", (long int)WRY_nsecvalnow.tv_nsec);
+    #####:  101:}
+------------------
+DTStamp:
+    #####:   87:void DTStamp(void) {
+        -:   88:// ========================================================
+    #####:   89:	time(&WRY_time);
+        -:   90:
+    #####:   91:	WRY_tminfo = localtime(&WRY_time);
+    #####:   92:	strftime(WRY_strbuffer1, 26, "%Y-%m-%d %H:%M:%S", WRY_tminfo);
+        -:   93:
+    #####:   94:	gettimeofday(&WRY_usecvalnow, NULL);
+        -:   95:
+    #####:   96:	printf("%s", WRY_strbuffer1);   // NO \n IN THIS PRINT
+        -:   97:	//printf(".%06ld \t", (long int)WRY_usecvalnow.tv_usec);
+        -:   98:
+    #####:   99:	clock_gettime(CLOCK_REALTIME, &WRY_nsecvalnow);
+    #####:  100:	printf(".%09ld \t", (long int)WRY_nsecvalnow.tv_nsec);
+    #####:  101:}
+------------------
+DTStamp:
+    #####:   87:void DTStamp(void) {
+        -:   88:// ========================================================
+    #####:   89:	time(&WRY_time);
+        -:   90:
+    #####:   91:	WRY_tminfo = localtime(&WRY_time);
+    #####:   92:	strftime(WRY_strbuffer1, 26, "%Y-%m-%d %H:%M:%S", WRY_tminfo);
+        -:   93:
+    #####:   94:	gettimeofday(&WRY_usecvalnow, NULL);
+        -:   95:
+    #####:   96:	printf("%s", WRY_strbuffer1);   // NO \n IN THIS PRINT
+        -:   97:	//printf(".%06ld \t", (long int)WRY_usecvalnow.tv_usec);
+        -:   98:
+    #####:   99:	clock_gettime(CLOCK_REALTIME, &WRY_nsecvalnow);
+    #####:  100:	printf(".%09ld \t", (long int)WRY_nsecvalnow.tv_nsec);
+    #####:  101:}
+------------------
+DTStamp:
+    #####:   87:void DTStamp(void) {
+        -:   88:// ========================================================
+    #####:   89:	time(&WRY_time);
+        -:   90:
+    #####:   91:	WRY_tminfo = localtime(&WRY_time);
+    #####:   92:	strftime(WRY_strbuffer1, 26, "%Y-%m-%d %H:%M:%S", WRY_tminfo);
+        -:   93:
+    #####:   94:	gettimeofday(&WRY_usecvalnow, NULL);
+        -:   95:
+    #####:   96:	printf("%s", WRY_strbuffer1);   // NO \n IN THIS PRINT
+        -:   97:	//printf(".%06ld \t", (long int)WRY_usecvalnow.tv_usec);
+        -:   98:
+    #####:   99:	clock_gettime(CLOCK_REALTIME, &WRY_nsecvalnow);
+    #####:  100:	printf(".%09ld \t", (long int)WRY_nsecvalnow.tv_nsec);
+    #####:  101:}
+------------------
+DTStamp:
+    #####:   87:void DTStamp(void) {
+        -:   88:// ========================================================
+    #####:   89:	time(&WRY_time);
+        -:   90:
+    #####:   91:	WRY_tminfo = localtime(&WRY_time);
+    #####:   92:	strftime(WRY_strbuffer1, 26, "%Y-%m-%d %H:%M:%S", WRY_tminfo);
+        -:   93:
+    #####:   94:	gettimeofday(&WRY_usecvalnow, NULL);
+        -:   95:
+    #####:   96:	printf("%s", WRY_strbuffer1);   // NO \n IN THIS PRINT
+        -:   97:	//printf(".%06ld \t", (long int)WRY_usecvalnow.tv_usec);
+        -:   98:
+    #####:   99:	clock_gettime(CLOCK_REALTIME, &WRY_nsecvalnow);
+    #####:  100:	printf(".%09ld \t", (long int)WRY_nsecvalnow.tv_nsec);
+    #####:  101:}
+------------------
+        -:  102:
+        -:  103:// ===================================================
+    #####:  104:void current_working_directory(void) {
+        -:  105:// ===================================================
+        -:  106:   char cwd[255];
+    #####:  107:   if (getcwd(cwd, sizeof(cwd)) != NULL) {
+    #####:  108:	   DTStamp(); printf("Current directory: %s\n", cwd);
+        -:  109:   } else {
+    #####:  110:	   perror("getcwd() error");
+        -:  111:   }
+        -:  112:
+    #####:  113:}
+------------------
+current_working_directory:
+    #####:  104:void current_working_directory(void) {
+        -:  105:// ===================================================
+        -:  106:   char cwd[255];
+    #####:  107:   if (getcwd(cwd, sizeof(cwd)) != NULL) {
+    #####:  108:	   DTStamp(); printf("Current directory: %s\n", cwd);
+        -:  109:   } else {
+    #####:  110:	   perror("getcwd() error");
+        -:  111:   }
+        -:  112:
+    #####:  113:}
+------------------
+current_working_directory:
+    #####:  104:void current_working_directory(void) {
+        -:  105:// ===================================================
+        -:  106:   char cwd[255];
+    #####:  107:   if (getcwd(cwd, sizeof(cwd)) != NULL) {
+    #####:  108:	   DTStamp(); printf("Current directory: %s\n", cwd);
+        -:  109:   } else {
+    #####:  110:	   perror("getcwd() error");
+        -:  111:   }
+        -:  112:
+    #####:  113:}
+------------------
+current_working_directory:
+    #####:  104:void current_working_directory(void) {
+        -:  105:// ===================================================
+        -:  106:   char cwd[255];
+    #####:  107:   if (getcwd(cwd, sizeof(cwd)) != NULL) {
+    #####:  108:	   DTStamp(); printf("Current directory: %s\n", cwd);
+        -:  109:   } else {
+    #####:  110:	   perror("getcwd() error");
+        -:  111:   }
+        -:  112:
+    #####:  113:}
+------------------
+current_working_directory:
+    #####:  104:void current_working_directory(void) {
+        -:  105:// ===================================================
+        -:  106:   char cwd[255];
+    #####:  107:   if (getcwd(cwd, sizeof(cwd)) != NULL) {
+    #####:  108:	   DTStamp(); printf("Current directory: %s\n", cwd);
+        -:  109:   } else {
+    #####:  110:	   perror("getcwd() error");
+        -:  111:   }
+        -:  112:
+    #####:  113:}
+------------------
+current_working_directory:
+    #####:  104:void current_working_directory(void) {
+        -:  105:// ===================================================
+        -:  106:   char cwd[255];
+    #####:  107:   if (getcwd(cwd, sizeof(cwd)) != NULL) {
+    #####:  108:	   DTStamp(); printf("Current directory: %s\n", cwd);
+        -:  109:   } else {
+    #####:  110:	   perror("getcwd() error");
+        -:  111:   }
+        -:  112:
+    #####:  113:}
+------------------
+current_working_directory:
+    #####:  104:void current_working_directory(void) {
+        -:  105:// ===================================================
+        -:  106:   char cwd[255];
+    #####:  107:   if (getcwd(cwd, sizeof(cwd)) != NULL) {
+    #####:  108:	   DTStamp(); printf("Current directory: %s\n", cwd);
+        -:  109:   } else {
+    #####:  110:	   perror("getcwd() error");
+        -:  111:   }
+        -:  112:
+    #####:  113:}
+------------------
+        -:  114:// ========================================================
+       2*:  115:void WRY_starting_salutation(void){
+        -:  116:// ========================================================
+       2*:  117:	clock_gettime(CLOCK_REALTIME, &tnow);
+       2*:  118:	t_startprogram = tnow;
+        -:  119:
+       2*:  120:	DTStamp();
+       2*:  121:	printf("Starting in main(), Bismillah 3 times WRY. \n");
+       2*:  122:	DTStamp();
+       2*:  123:	printf("Program started. \n");
+       2*:  124:	printf("\n");
+       2*:  125:}
+------------------
+WRY_starting_salutation:
+        2:  115:void WRY_starting_salutation(void){
+        -:  116:// ========================================================
+        2:  117:	clock_gettime(CLOCK_REALTIME, &tnow);
+        2:  118:	t_startprogram = tnow;
+        -:  119:
+        2:  120:	DTStamp();
+        2:  121:	printf("Starting in main(), Bismillah 3 times WRY. \n");
+        2:  122:	DTStamp();
+        2:  123:	printf("Program started. \n");
+        2:  124:	printf("\n");
+        2:  125:}
+------------------
+WRY_starting_salutation:
+    #####:  115:void WRY_starting_salutation(void){
+        -:  116:// ========================================================
+    #####:  117:	clock_gettime(CLOCK_REALTIME, &tnow);
+    #####:  118:	t_startprogram = tnow;
+        -:  119:
+    #####:  120:	DTStamp();
+    #####:  121:	printf("Starting in main(), Bismillah 3 times WRY. \n");
+    #####:  122:	DTStamp();
+    #####:  123:	printf("Program started. \n");
+    #####:  124:	printf("\n");
+    #####:  125:}
+------------------
+WRY_starting_salutation:
+    #####:  115:void WRY_starting_salutation(void){
+        -:  116:// ========================================================
+    #####:  117:	clock_gettime(CLOCK_REALTIME, &tnow);
+    #####:  118:	t_startprogram = tnow;
+        -:  119:
+    #####:  120:	DTStamp();
+    #####:  121:	printf("Starting in main(), Bismillah 3 times WRY. \n");
+    #####:  122:	DTStamp();
+    #####:  123:	printf("Program started. \n");
+    #####:  124:	printf("\n");
+    #####:  125:}
+------------------
+WRY_starting_salutation:
+    #####:  115:void WRY_starting_salutation(void){
+        -:  116:// ========================================================
+    #####:  117:	clock_gettime(CLOCK_REALTIME, &tnow);
+    #####:  118:	t_startprogram = tnow;
+        -:  119:
+    #####:  120:	DTStamp();
+    #####:  121:	printf("Starting in main(), Bismillah 3 times WRY. \n");
+    #####:  122:	DTStamp();
+    #####:  123:	printf("Program started. \n");
+    #####:  124:	printf("\n");
+    #####:  125:}
+------------------
+WRY_starting_salutation:
+    #####:  115:void WRY_starting_salutation(void){
+        -:  116:// ========================================================
+    #####:  117:	clock_gettime(CLOCK_REALTIME, &tnow);
+    #####:  118:	t_startprogram = tnow;
+        -:  119:
+    #####:  120:	DTStamp();
+    #####:  121:	printf("Starting in main(), Bismillah 3 times WRY. \n");
+    #####:  122:	DTStamp();
+    #####:  123:	printf("Program started. \n");
+    #####:  124:	printf("\n");
+    #####:  125:}
+------------------
+WRY_starting_salutation:
+    #####:  115:void WRY_starting_salutation(void){
+        -:  116:// ========================================================
+    #####:  117:	clock_gettime(CLOCK_REALTIME, &tnow);
+    #####:  118:	t_startprogram = tnow;
+        -:  119:
+    #####:  120:	DTStamp();
+    #####:  121:	printf("Starting in main(), Bismillah 3 times WRY. \n");
+    #####:  122:	DTStamp();
+    #####:  123:	printf("Program started. \n");
+    #####:  124:	printf("\n");
+    #####:  125:}
+------------------
+        -:  126:// ========================================================
+       2*:  127:void WRY_ending_salutation(void){
+        -:  128:// ========================================================
+       2*:  129:	printf("\n");
+       2*:  130:	DTStamp();
+       2*:  131:	printf("Program ended. \n");
+       2*:  132:	DTStamp(); printf("Ending in main(), Alhamdulillah 3 times WRY. \n");
+       2*:  133:}
+------------------
+WRY_ending_salutation:
+        2:  127:void WRY_ending_salutation(void){
+        -:  128:// ========================================================
+        2:  129:	printf("\n");
+        2:  130:	DTStamp();
+        2:  131:	printf("Program ended. \n");
+        2:  132:	DTStamp(); printf("Ending in main(), Alhamdulillah 3 times WRY. \n");
+        2:  133:}
+------------------
+WRY_ending_salutation:
+    #####:  127:void WRY_ending_salutation(void){
+        -:  128:// ========================================================
+    #####:  129:	printf("\n");
+    #####:  130:	DTStamp();
+    #####:  131:	printf("Program ended. \n");
+    #####:  132:	DTStamp(); printf("Ending in main(), Alhamdulillah 3 times WRY. \n");
+    #####:  133:}
+------------------
+WRY_ending_salutation:
+    #####:  127:void WRY_ending_salutation(void){
+        -:  128:// ========================================================
+    #####:  129:	printf("\n");
+    #####:  130:	DTStamp();
+    #####:  131:	printf("Program ended. \n");
+    #####:  132:	DTStamp(); printf("Ending in main(), Alhamdulillah 3 times WRY. \n");
+    #####:  133:}
+------------------
+WRY_ending_salutation:
+    #####:  127:void WRY_ending_salutation(void){
+        -:  128:// ========================================================
+    #####:  129:	printf("\n");
+    #####:  130:	DTStamp();
+    #####:  131:	printf("Program ended. \n");
+    #####:  132:	DTStamp(); printf("Ending in main(), Alhamdulillah 3 times WRY. \n");
+    #####:  133:}
+------------------
+WRY_ending_salutation:
+    #####:  127:void WRY_ending_salutation(void){
+        -:  128:// ========================================================
+    #####:  129:	printf("\n");
+    #####:  130:	DTStamp();
+    #####:  131:	printf("Program ended. \n");
+    #####:  132:	DTStamp(); printf("Ending in main(), Alhamdulillah 3 times WRY. \n");
+    #####:  133:}
+------------------
+WRY_ending_salutation:
+    #####:  127:void WRY_ending_salutation(void){
+        -:  128:// ========================================================
+    #####:  129:	printf("\n");
+    #####:  130:	DTStamp();
+    #####:  131:	printf("Program ended. \n");
+    #####:  132:	DTStamp(); printf("Ending in main(), Alhamdulillah 3 times WRY. \n");
+    #####:  133:}
+------------------
+        -:  134:// ========================================================
+       2*:  135:void total_program_duration(void) {
+        -:  136:// ========================================================
+       2*:  137:	clock_gettime(CLOCK_REALTIME, &tnow);
+       2*:  138:	t_endprogram = tnow;
+        -:  139:
+        -:  140:	struct timespec temp, t_duration;
+       2*:  141:	if ((t_endprogram.tv_nsec - t_startprogram.tv_nsec) < 0) {
+       1*:  142:		temp.tv_sec = t_endprogram.tv_sec - t_startprogram.tv_sec - 1;
+       1*:  143:		temp.tv_nsec = 1000000000 + t_endtimer.tv_nsec - t_startprogram.tv_nsec;
+        -:  144:	} else {
+       1*:  145:		temp.tv_sec = t_endprogram.tv_sec - t_startprogram.tv_sec;
+       1*:  146:		temp.tv_nsec = t_endprogram.tv_nsec - t_startprogram.tv_nsec;
+        -:  147:	}
+        -:  148:
+       2*:  149:	t_duration = temp;
+       2*:  150:	long sec_programduration  = t_duration.tv_sec;
+       2*:  151:	long nsec_programduration = t_duration.tv_nsec;
+       2*:  152:	DTStamp();
+       2*:  153:	printf("Total program run duration   = %ld.%09ld seconds. \n", sec_programduration, nsec_programduration);
+        -:  154:
+       2*:  155:}
+------------------
+total_program_duration:
+        2:  135:void total_program_duration(void) {
+        -:  136:// ========================================================
+        2:  137:	clock_gettime(CLOCK_REALTIME, &tnow);
+        2:  138:	t_endprogram = tnow;
+        -:  139:
+        -:  140:	struct timespec temp, t_duration;
+        2:  141:	if ((t_endprogram.tv_nsec - t_startprogram.tv_nsec) < 0) {
+        1:  142:		temp.tv_sec = t_endprogram.tv_sec - t_startprogram.tv_sec - 1;
+        1:  143:		temp.tv_nsec = 1000000000 + t_endtimer.tv_nsec - t_startprogram.tv_nsec;
+        -:  144:	} else {
+        1:  145:		temp.tv_sec = t_endprogram.tv_sec - t_startprogram.tv_sec;
+        1:  146:		temp.tv_nsec = t_endprogram.tv_nsec - t_startprogram.tv_nsec;
+        -:  147:	}
+        -:  148:
+        2:  149:	t_duration = temp;
+        2:  150:	long sec_programduration  = t_duration.tv_sec;
+        2:  151:	long nsec_programduration = t_duration.tv_nsec;
+        2:  152:	DTStamp();
+        2:  153:	printf("Total program run duration   = %ld.%09ld seconds. \n", sec_programduration, nsec_programduration);
+        -:  154:
+        2:  155:}
+------------------
+total_program_duration:
+    #####:  135:void total_program_duration(void) {
+        -:  136:// ========================================================
+    #####:  137:	clock_gettime(CLOCK_REALTIME, &tnow);
+    #####:  138:	t_endprogram = tnow;
+        -:  139:
+        -:  140:	struct timespec temp, t_duration;
+    #####:  141:	if ((t_endprogram.tv_nsec - t_startprogram.tv_nsec) < 0) {
+    #####:  142:		temp.tv_sec = t_endprogram.tv_sec - t_startprogram.tv_sec - 1;
+    #####:  143:		temp.tv_nsec = 1000000000 + t_endtimer.tv_nsec - t_startprogram.tv_nsec;
+        -:  144:	} else {
+    #####:  145:		temp.tv_sec = t_endprogram.tv_sec - t_startprogram.tv_sec;
+    #####:  146:		temp.tv_nsec = t_endprogram.tv_nsec - t_startprogram.tv_nsec;
+        -:  147:	}
+        -:  148:
+    #####:  149:	t_duration = temp;
+    #####:  150:	long sec_programduration  = t_duration.tv_sec;
+    #####:  151:	long nsec_programduration = t_duration.tv_nsec;
+    #####:  152:	DTStamp();
+    #####:  153:	printf("Total program run duration   = %ld.%09ld seconds. \n", sec_programduration, nsec_programduration);
+        -:  154:
+    #####:  155:}
+------------------
+total_program_duration:
+    #####:  135:void total_program_duration(void) {
+        -:  136:// ========================================================
+    #####:  137:	clock_gettime(CLOCK_REALTIME, &tnow);
+    #####:  138:	t_endprogram = tnow;
+        -:  139:
+        -:  140:	struct timespec temp, t_duration;
+    #####:  141:	if ((t_endprogram.tv_nsec - t_startprogram.tv_nsec) < 0) {
+    #####:  142:		temp.tv_sec = t_endprogram.tv_sec - t_startprogram.tv_sec - 1;
+    #####:  143:		temp.tv_nsec = 1000000000 + t_endtimer.tv_nsec - t_startprogram.tv_nsec;
+        -:  144:	} else {
+    #####:  145:		temp.tv_sec = t_endprogram.tv_sec - t_startprogram.tv_sec;
+    #####:  146:		temp.tv_nsec = t_endprogram.tv_nsec - t_startprogram.tv_nsec;
+        -:  147:	}
+        -:  148:
+    #####:  149:	t_duration = temp;
+    #####:  150:	long sec_programduration  = t_duration.tv_sec;
+    #####:  151:	long nsec_programduration = t_duration.tv_nsec;
+    #####:  152:	DTStamp();
+    #####:  153:	printf("Total program run duration   = %ld.%09ld seconds. \n", sec_programduration, nsec_programduration);
+        -:  154:
+    #####:  155:}
+------------------
+total_program_duration:
+    #####:  135:void total_program_duration(void) {
+        -:  136:// ========================================================
+    #####:  137:	clock_gettime(CLOCK_REALTIME, &tnow);
+    #####:  138:	t_endprogram = tnow;
+        -:  139:
+        -:  140:	struct timespec temp, t_duration;
+    #####:  141:	if ((t_endprogram.tv_nsec - t_startprogram.tv_nsec) < 0) {
+    #####:  142:		temp.tv_sec = t_endprogram.tv_sec - t_startprogram.tv_sec - 1;
+    #####:  143:		temp.tv_nsec = 1000000000 + t_endtimer.tv_nsec - t_startprogram.tv_nsec;
+        -:  144:	} else {
+    #####:  145:		temp.tv_sec = t_endprogram.tv_sec - t_startprogram.tv_sec;
+    #####:  146:		temp.tv_nsec = t_endprogram.tv_nsec - t_startprogram.tv_nsec;
+        -:  147:	}
+        -:  148:
+    #####:  149:	t_duration = temp;
+    #####:  150:	long sec_programduration  = t_duration.tv_sec;
+    #####:  151:	long nsec_programduration = t_duration.tv_nsec;
+    #####:  152:	DTStamp();
+    #####:  153:	printf("Total program run duration   = %ld.%09ld seconds. \n", sec_programduration, nsec_programduration);
+        -:  154:
+    #####:  155:}
+------------------
+total_program_duration:
+    #####:  135:void total_program_duration(void) {
+        -:  136:// ========================================================
+    #####:  137:	clock_gettime(CLOCK_REALTIME, &tnow);
+    #####:  138:	t_endprogram = tnow;
+        -:  139:
+        -:  140:	struct timespec temp, t_duration;
+    #####:  141:	if ((t_endprogram.tv_nsec - t_startprogram.tv_nsec) < 0) {
+    #####:  142:		temp.tv_sec = t_endprogram.tv_sec - t_startprogram.tv_sec - 1;
+    #####:  143:		temp.tv_nsec = 1000000000 + t_endtimer.tv_nsec - t_startprogram.tv_nsec;
+        -:  144:	} else {
+    #####:  145:		temp.tv_sec = t_endprogram.tv_sec - t_startprogram.tv_sec;
+    #####:  146:		temp.tv_nsec = t_endprogram.tv_nsec - t_startprogram.tv_nsec;
+        -:  147:	}
+        -:  148:
+    #####:  149:	t_duration = temp;
+    #####:  150:	long sec_programduration  = t_duration.tv_sec;
+    #####:  151:	long nsec_programduration = t_duration.tv_nsec;
+    #####:  152:	DTStamp();
+    #####:  153:	printf("Total program run duration   = %ld.%09ld seconds. \n", sec_programduration, nsec_programduration);
+        -:  154:
+    #####:  155:}
+------------------
+total_program_duration:
+    #####:  135:void total_program_duration(void) {
+        -:  136:// ========================================================
+    #####:  137:	clock_gettime(CLOCK_REALTIME, &tnow);
+    #####:  138:	t_endprogram = tnow;
+        -:  139:
+        -:  140:	struct timespec temp, t_duration;
+    #####:  141:	if ((t_endprogram.tv_nsec - t_startprogram.tv_nsec) < 0) {
+    #####:  142:		temp.tv_sec = t_endprogram.tv_sec - t_startprogram.tv_sec - 1;
+    #####:  143:		temp.tv_nsec = 1000000000 + t_endtimer.tv_nsec - t_startprogram.tv_nsec;
+        -:  144:	} else {
+    #####:  145:		temp.tv_sec = t_endprogram.tv_sec - t_startprogram.tv_sec;
+    #####:  146:		temp.tv_nsec = t_endprogram.tv_nsec - t_startprogram.tv_nsec;
+        -:  147:	}
+        -:  148:
+    #####:  149:	t_duration = temp;
+    #####:  150:	long sec_programduration  = t_duration.tv_sec;
+    #####:  151:	long nsec_programduration = t_duration.tv_nsec;
+    #####:  152:	DTStamp();
+    #####:  153:	printf("Total program run duration   = %ld.%09ld seconds. \n", sec_programduration, nsec_programduration);
+        -:  154:
+    #####:  155:}
+------------------
+        -:  156:// ========================================================
+    #####:  157:void display_date_only(void) {
+        -:  158:// ========================================================
+    #####:  159:	time(&WRY_time);
+    #####:  160:	WRY_tminfo = localtime(&WRY_time);
+    #####:  161:	strftime(WRY_strbuffer2, 60, "%a %b %d, %Y %H:%M:%S", WRY_tminfo);
+        -:  162:
+    #####:  163:	DTStamp();
+    #####:  164:	printf("Current date and time: ");
+    #####:  165:	printf("%s \n", WRY_strbuffer2);
+    #####:  166:}
+------------------
+display_date_only:
+    #####:  157:void display_date_only(void) {
+        -:  158:// ========================================================
+    #####:  159:	time(&WRY_time);
+    #####:  160:	WRY_tminfo = localtime(&WRY_time);
+    #####:  161:	strftime(WRY_strbuffer2, 60, "%a %b %d, %Y %H:%M:%S", WRY_tminfo);
+        -:  162:
+    #####:  163:	DTStamp();
+    #####:  164:	printf("Current date and time: ");
+    #####:  165:	printf("%s \n", WRY_strbuffer2);
+    #####:  166:}
+------------------
+display_date_only:
+    #####:  157:void display_date_only(void) {
+        -:  158:// ========================================================
+    #####:  159:	time(&WRY_time);
+    #####:  160:	WRY_tminfo = localtime(&WRY_time);
+    #####:  161:	strftime(WRY_strbuffer2, 60, "%a %b %d, %Y %H:%M:%S", WRY_tminfo);
+        -:  162:
+    #####:  163:	DTStamp();
+    #####:  164:	printf("Current date and time: ");
+    #####:  165:	printf("%s \n", WRY_strbuffer2);
+    #####:  166:}
+------------------
+display_date_only:
+    #####:  157:void display_date_only(void) {
+        -:  158:// ========================================================
+    #####:  159:	time(&WRY_time);
+    #####:  160:	WRY_tminfo = localtime(&WRY_time);
+    #####:  161:	strftime(WRY_strbuffer2, 60, "%a %b %d, %Y %H:%M:%S", WRY_tminfo);
+        -:  162:
+    #####:  163:	DTStamp();
+    #####:  164:	printf("Current date and time: ");
+    #####:  165:	printf("%s \n", WRY_strbuffer2);
+    #####:  166:}
+------------------
+display_date_only:
+    #####:  157:void display_date_only(void) {
+        -:  158:// ========================================================
+    #####:  159:	time(&WRY_time);
+    #####:  160:	WRY_tminfo = localtime(&WRY_time);
+    #####:  161:	strftime(WRY_strbuffer2, 60, "%a %b %d, %Y %H:%M:%S", WRY_tminfo);
+        -:  162:
+    #####:  163:	DTStamp();
+    #####:  164:	printf("Current date and time: ");
+    #####:  165:	printf("%s \n", WRY_strbuffer2);
+    #####:  166:}
+------------------
+display_date_only:
+    #####:  157:void display_date_only(void) {
+        -:  158:// ========================================================
+    #####:  159:	time(&WRY_time);
+    #####:  160:	WRY_tminfo = localtime(&WRY_time);
+    #####:  161:	strftime(WRY_strbuffer2, 60, "%a %b %d, %Y %H:%M:%S", WRY_tminfo);
+        -:  162:
+    #####:  163:	DTStamp();
+    #####:  164:	printf("Current date and time: ");
+    #####:  165:	printf("%s \n", WRY_strbuffer2);
+    #####:  166:}
+------------------
+display_date_only:
+    #####:  157:void display_date_only(void) {
+        -:  158:// ========================================================
+    #####:  159:	time(&WRY_time);
+    #####:  160:	WRY_tminfo = localtime(&WRY_time);
+    #####:  161:	strftime(WRY_strbuffer2, 60, "%a %b %d, %Y %H:%M:%S", WRY_tminfo);
+        -:  162:
+    #####:  163:	DTStamp();
+    #####:  164:	printf("Current date and time: ");
+    #####:  165:	printf("%s \n", WRY_strbuffer2);
+    #####:  166:}
+------------------
+        -:  167:
+        -:  168:// ========================================================
+    #####:  169:void display_resolution_date_time(void) {
+        -:  170:// ========================================================
+        -:  171:
+    #####:  172:	clock_getres(CLOCK_REALTIME, &WRY_tvalres);
+    #####:  173:	DTStamp();
+    #####:  174:	printf("Clock time resolution \t= %ld nanoseconds\n", WRY_tvalres.tv_nsec);
+        -:  175:
+        -:  176:	/*
+        -:  177:	clock_gettime(CLOCK_REALTIME, &WRY_nsecvalnow);
+        -:  178:	DTStamp();
+        -:  179:	printf("Wall clock time now \t= %ld seconds\n", WRY_nsecvalnow.tv_sec);
+        -:  180:	DTStamp();
+        -:  181:	printf("Wall clock time now \t= %ld nanoseconds\n", WRY_nsecvalnow.tv_nsec);
+        -:  182:	*/
+    #####:  183:}
+------------------
+display_resolution_date_time:
+    #####:  169:void display_resolution_date_time(void) {
+        -:  170:// ========================================================
+        -:  171:
+    #####:  172:	clock_getres(CLOCK_REALTIME, &WRY_tvalres);
+    #####:  173:	DTStamp();
+    #####:  174:	printf("Clock time resolution \t= %ld nanoseconds\n", WRY_tvalres.tv_nsec);
+        -:  175:
+        -:  176:	/*
+        -:  177:	clock_gettime(CLOCK_REALTIME, &WRY_nsecvalnow);
+        -:  178:	DTStamp();
+        -:  179:	printf("Wall clock time now \t= %ld seconds\n", WRY_nsecvalnow.tv_sec);
+        -:  180:	DTStamp();
+        -:  181:	printf("Wall clock time now \t= %ld nanoseconds\n", WRY_nsecvalnow.tv_nsec);
+        -:  182:	*/
+    #####:  183:}
+------------------
+display_resolution_date_time:
+    #####:  169:void display_resolution_date_time(void) {
+        -:  170:// ========================================================
+        -:  171:
+    #####:  172:	clock_getres(CLOCK_REALTIME, &WRY_tvalres);
+    #####:  173:	DTStamp();
+    #####:  174:	printf("Clock time resolution \t= %ld nanoseconds\n", WRY_tvalres.tv_nsec);
+        -:  175:
+        -:  176:	/*
+        -:  177:	clock_gettime(CLOCK_REALTIME, &WRY_nsecvalnow);
+        -:  178:	DTStamp();
+        -:  179:	printf("Wall clock time now \t= %ld seconds\n", WRY_nsecvalnow.tv_sec);
+        -:  180:	DTStamp();
+        -:  181:	printf("Wall clock time now \t= %ld nanoseconds\n", WRY_nsecvalnow.tv_nsec);
+        -:  182:	*/
+    #####:  183:}
+------------------
+display_resolution_date_time:
+    #####:  169:void display_resolution_date_time(void) {
+        -:  170:// ========================================================
+        -:  171:
+    #####:  172:	clock_getres(CLOCK_REALTIME, &WRY_tvalres);
+    #####:  173:	DTStamp();
+    #####:  174:	printf("Clock time resolution \t= %ld nanoseconds\n", WRY_tvalres.tv_nsec);
+        -:  175:
+        -:  176:	/*
+        -:  177:	clock_gettime(CLOCK_REALTIME, &WRY_nsecvalnow);
+        -:  178:	DTStamp();
+        -:  179:	printf("Wall clock time now \t= %ld seconds\n", WRY_nsecvalnow.tv_sec);
+        -:  180:	DTStamp();
+        -:  181:	printf("Wall clock time now \t= %ld nanoseconds\n", WRY_nsecvalnow.tv_nsec);
+        -:  182:	*/
+    #####:  183:}
+------------------
+display_resolution_date_time:
+    #####:  169:void display_resolution_date_time(void) {
+        -:  170:// ========================================================
+        -:  171:
+    #####:  172:	clock_getres(CLOCK_REALTIME, &WRY_tvalres);
+    #####:  173:	DTStamp();
+    #####:  174:	printf("Clock time resolution \t= %ld nanoseconds\n", WRY_tvalres.tv_nsec);
+        -:  175:
+        -:  176:	/*
+        -:  177:	clock_gettime(CLOCK_REALTIME, &WRY_nsecvalnow);
+        -:  178:	DTStamp();
+        -:  179:	printf("Wall clock time now \t= %ld seconds\n", WRY_nsecvalnow.tv_sec);
+        -:  180:	DTStamp();
+        -:  181:	printf("Wall clock time now \t= %ld nanoseconds\n", WRY_nsecvalnow.tv_nsec);
+        -:  182:	*/
+    #####:  183:}
+------------------
+display_resolution_date_time:
+    #####:  169:void display_resolution_date_time(void) {
+        -:  170:// ========================================================
+        -:  171:
+    #####:  172:	clock_getres(CLOCK_REALTIME, &WRY_tvalres);
+    #####:  173:	DTStamp();
+    #####:  174:	printf("Clock time resolution \t= %ld nanoseconds\n", WRY_tvalres.tv_nsec);
+        -:  175:
+        -:  176:	/*
+        -:  177:	clock_gettime(CLOCK_REALTIME, &WRY_nsecvalnow);
+        -:  178:	DTStamp();
+        -:  179:	printf("Wall clock time now \t= %ld seconds\n", WRY_nsecvalnow.tv_sec);
+        -:  180:	DTStamp();
+        -:  181:	printf("Wall clock time now \t= %ld nanoseconds\n", WRY_nsecvalnow.tv_nsec);
+        -:  182:	*/
+    #####:  183:}
+------------------
+display_resolution_date_time:
+    #####:  169:void display_resolution_date_time(void) {
+        -:  170:// ========================================================
+        -:  171:
+    #####:  172:	clock_getres(CLOCK_REALTIME, &WRY_tvalres);
+    #####:  173:	DTStamp();
+    #####:  174:	printf("Clock time resolution \t= %ld nanoseconds\n", WRY_tvalres.tv_nsec);
+        -:  175:
+        -:  176:	/*
+        -:  177:	clock_gettime(CLOCK_REALTIME, &WRY_nsecvalnow);
+        -:  178:	DTStamp();
+        -:  179:	printf("Wall clock time now \t= %ld seconds\n", WRY_nsecvalnow.tv_sec);
+        -:  180:	DTStamp();
+        -:  181:	printf("Wall clock time now \t= %ld nanoseconds\n", WRY_nsecvalnow.tv_nsec);
+        -:  182:	*/
+    #####:  183:}
+------------------
+        -:  184:
+        -:  185:// ========================================================
+        -:  186:// ALL SLEEP FUNCTIONS USING clock_nanosleep() for
+        -:  187:// (seconds, milliseconds. microseconds and nanoseconds)
+        -:  188:// ========================================================
+    #####:  189:void sleep_sec(long inp_sec) {
+        -:  190:
+        -:  191:	// DTStamp(); printf("Sleep for %ld seconds \n", inp_sec);
+        -:  192:    struct timespec res;
+    #####:  193:    res.tv_sec = inp_sec;
+    #####:  194:    res.tv_nsec = (inp_sec*1000000000) % 1000000000;
+    #####:  195:    clock_nanosleep(CLOCK_REALTIME, 0, &res, NULL);
+    #####:  196:}
+------------------
+sleep_sec:
+    #####:  189:void sleep_sec(long inp_sec) {
+        -:  190:
+        -:  191:	// DTStamp(); printf("Sleep for %ld seconds \n", inp_sec);
+        -:  192:    struct timespec res;
+    #####:  193:    res.tv_sec = inp_sec;
+    #####:  194:    res.tv_nsec = (inp_sec*1000000000) % 1000000000;
+    #####:  195:    clock_nanosleep(CLOCK_REALTIME, 0, &res, NULL);
+    #####:  196:}
+------------------
+sleep_sec:
+    #####:  189:void sleep_sec(long inp_sec) {
+        -:  190:
+        -:  191:	// DTStamp(); printf("Sleep for %ld seconds \n", inp_sec);
+        -:  192:    struct timespec res;
+    #####:  193:    res.tv_sec = inp_sec;
+    #####:  194:    res.tv_nsec = (inp_sec*1000000000) % 1000000000;
+    #####:  195:    clock_nanosleep(CLOCK_REALTIME, 0, &res, NULL);
+    #####:  196:}
+------------------
+sleep_sec:
+    #####:  189:void sleep_sec(long inp_sec) {
+        -:  190:
+        -:  191:	// DTStamp(); printf("Sleep for %ld seconds \n", inp_sec);
+        -:  192:    struct timespec res;
+    #####:  193:    res.tv_sec = inp_sec;
+    #####:  194:    res.tv_nsec = (inp_sec*1000000000) % 1000000000;
+    #####:  195:    clock_nanosleep(CLOCK_REALTIME, 0, &res, NULL);
+    #####:  196:}
+------------------
+sleep_sec:
+    #####:  189:void sleep_sec(long inp_sec) {
+        -:  190:
+        -:  191:	// DTStamp(); printf("Sleep for %ld seconds \n", inp_sec);
+        -:  192:    struct timespec res;
+    #####:  193:    res.tv_sec = inp_sec;
+    #####:  194:    res.tv_nsec = (inp_sec*1000000000) % 1000000000;
+    #####:  195:    clock_nanosleep(CLOCK_REALTIME, 0, &res, NULL);
+    #####:  196:}
+------------------
+sleep_sec:
+    #####:  189:void sleep_sec(long inp_sec) {
+        -:  190:
+        -:  191:	// DTStamp(); printf("Sleep for %ld seconds \n", inp_sec);
+        -:  192:    struct timespec res;
+    #####:  193:    res.tv_sec = inp_sec;
+    #####:  194:    res.tv_nsec = (inp_sec*1000000000) % 1000000000;
+    #####:  195:    clock_nanosleep(CLOCK_REALTIME, 0, &res, NULL);
+    #####:  196:}
+------------------
+sleep_sec:
+    #####:  189:void sleep_sec(long inp_sec) {
+        -:  190:
+        -:  191:	// DTStamp(); printf("Sleep for %ld seconds \n", inp_sec);
+        -:  192:    struct timespec res;
+    #####:  193:    res.tv_sec = inp_sec;
+    #####:  194:    res.tv_nsec = (inp_sec*1000000000) % 1000000000;
+    #####:  195:    clock_nanosleep(CLOCK_REALTIME, 0, &res, NULL);
+    #####:  196:}
+------------------
+        -:  197:
+    #####:  198:void sleep_msec(long inp_millisec) {
+        -:  199:	// DTStamp(); printf("Sleep for %ld milliseconds \n", inp_millisec);
+        -:  200:    struct timespec res;
+    #####:  201:    res.tv_sec = inp_millisec/1000;
+    #####:  202:    res.tv_nsec = (inp_millisec*1000000) % 1000000000;
+    #####:  203:    clock_nanosleep(CLOCK_REALTIME, 0, &res, NULL);
+    #####:  204:}
+------------------
+sleep_msec:
+    #####:  198:void sleep_msec(long inp_millisec) {
+        -:  199:	// DTStamp(); printf("Sleep for %ld milliseconds \n", inp_millisec);
+        -:  200:    struct timespec res;
+    #####:  201:    res.tv_sec = inp_millisec/1000;
+    #####:  202:    res.tv_nsec = (inp_millisec*1000000) % 1000000000;
+    #####:  203:    clock_nanosleep(CLOCK_REALTIME, 0, &res, NULL);
+    #####:  204:}
+------------------
+sleep_msec:
+    #####:  198:void sleep_msec(long inp_millisec) {
+        -:  199:	// DTStamp(); printf("Sleep for %ld milliseconds \n", inp_millisec);
+        -:  200:    struct timespec res;
+    #####:  201:    res.tv_sec = inp_millisec/1000;
+    #####:  202:    res.tv_nsec = (inp_millisec*1000000) % 1000000000;
+    #####:  203:    clock_nanosleep(CLOCK_REALTIME, 0, &res, NULL);
+    #####:  204:}
+------------------
+sleep_msec:
+    #####:  198:void sleep_msec(long inp_millisec) {
+        -:  199:	// DTStamp(); printf("Sleep for %ld milliseconds \n", inp_millisec);
+        -:  200:    struct timespec res;
+    #####:  201:    res.tv_sec = inp_millisec/1000;
+    #####:  202:    res.tv_nsec = (inp_millisec*1000000) % 1000000000;
+    #####:  203:    clock_nanosleep(CLOCK_REALTIME, 0, &res, NULL);
+    #####:  204:}
+------------------
+sleep_msec:
+    #####:  198:void sleep_msec(long inp_millisec) {
+        -:  199:	// DTStamp(); printf("Sleep for %ld milliseconds \n", inp_millisec);
+        -:  200:    struct timespec res;
+    #####:  201:    res.tv_sec = inp_millisec/1000;
+    #####:  202:    res.tv_nsec = (inp_millisec*1000000) % 1000000000;
+    #####:  203:    clock_nanosleep(CLOCK_REALTIME, 0, &res, NULL);
+    #####:  204:}
+------------------
+sleep_msec:
+    #####:  198:void sleep_msec(long inp_millisec) {
+        -:  199:	// DTStamp(); printf("Sleep for %ld milliseconds \n", inp_millisec);
+        -:  200:    struct timespec res;
+    #####:  201:    res.tv_sec = inp_millisec/1000;
+    #####:  202:    res.tv_nsec = (inp_millisec*1000000) % 1000000000;
+    #####:  203:    clock_nanosleep(CLOCK_REALTIME, 0, &res, NULL);
+    #####:  204:}
+------------------
+sleep_msec:
+    #####:  198:void sleep_msec(long inp_millisec) {
+        -:  199:	// DTStamp(); printf("Sleep for %ld milliseconds \n", inp_millisec);
+        -:  200:    struct timespec res;
+    #####:  201:    res.tv_sec = inp_millisec/1000;
+    #####:  202:    res.tv_nsec = (inp_millisec*1000000) % 1000000000;
+    #####:  203:    clock_nanosleep(CLOCK_REALTIME, 0, &res, NULL);
+    #####:  204:}
+------------------
+        -:  205:
+    #####:  206:void sleep_usec(long inp_microsec) {
+        -:  207:	// DTStamp(); printf("Sleep for %ld microseconds \n", inp_microsec);
+        -:  208:    struct timespec res;
+    #####:  209:    res.tv_sec = inp_microsec/1000000;
+    #####:  210:    res.tv_nsec = (inp_microsec*1000) % 1000000000;
+    #####:  211:    clock_nanosleep(CLOCK_REALTIME, 0, &res, NULL);
+    #####:  212:}
+------------------
+sleep_usec:
+    #####:  206:void sleep_usec(long inp_microsec) {
+        -:  207:	// DTStamp(); printf("Sleep for %ld microseconds \n", inp_microsec);
+        -:  208:    struct timespec res;
+    #####:  209:    res.tv_sec = inp_microsec/1000000;
+    #####:  210:    res.tv_nsec = (inp_microsec*1000) % 1000000000;
+    #####:  211:    clock_nanosleep(CLOCK_REALTIME, 0, &res, NULL);
+    #####:  212:}
+------------------
+sleep_usec:
+    #####:  206:void sleep_usec(long inp_microsec) {
+        -:  207:	// DTStamp(); printf("Sleep for %ld microseconds \n", inp_microsec);
+        -:  208:    struct timespec res;
+    #####:  209:    res.tv_sec = inp_microsec/1000000;
+    #####:  210:    res.tv_nsec = (inp_microsec*1000) % 1000000000;
+    #####:  211:    clock_nanosleep(CLOCK_REALTIME, 0, &res, NULL);
+    #####:  212:}
+------------------
+sleep_usec:
+    #####:  206:void sleep_usec(long inp_microsec) {
+        -:  207:	// DTStamp(); printf("Sleep for %ld microseconds \n", inp_microsec);
+        -:  208:    struct timespec res;
+    #####:  209:    res.tv_sec = inp_microsec/1000000;
+    #####:  210:    res.tv_nsec = (inp_microsec*1000) % 1000000000;
+    #####:  211:    clock_nanosleep(CLOCK_REALTIME, 0, &res, NULL);
+    #####:  212:}
+------------------
+sleep_usec:
+    #####:  206:void sleep_usec(long inp_microsec) {
+        -:  207:	// DTStamp(); printf("Sleep for %ld microseconds \n", inp_microsec);
+        -:  208:    struct timespec res;
+    #####:  209:    res.tv_sec = inp_microsec/1000000;
+    #####:  210:    res.tv_nsec = (inp_microsec*1000) % 1000000000;
+    #####:  211:    clock_nanosleep(CLOCK_REALTIME, 0, &res, NULL);
+    #####:  212:}
+------------------
+sleep_usec:
+    #####:  206:void sleep_usec(long inp_microsec) {
+        -:  207:	// DTStamp(); printf("Sleep for %ld microseconds \n", inp_microsec);
+        -:  208:    struct timespec res;
+    #####:  209:    res.tv_sec = inp_microsec/1000000;
+    #####:  210:    res.tv_nsec = (inp_microsec*1000) % 1000000000;
+    #####:  211:    clock_nanosleep(CLOCK_REALTIME, 0, &res, NULL);
+    #####:  212:}
+------------------
+sleep_usec:
+    #####:  206:void sleep_usec(long inp_microsec) {
+        -:  207:	// DTStamp(); printf("Sleep for %ld microseconds \n", inp_microsec);
+        -:  208:    struct timespec res;
+    #####:  209:    res.tv_sec = inp_microsec/1000000;
+    #####:  210:    res.tv_nsec = (inp_microsec*1000) % 1000000000;
+    #####:  211:    clock_nanosleep(CLOCK_REALTIME, 0, &res, NULL);
+    #####:  212:}
+------------------
+        -:  213:
+    #####:  214:void sleep_nsec(long inp_nanosec) {
+        -:  215:	// DTStamp(); printf("Sleep for %ld nanoseconds \n", inp_nanosec);
+        -:  216:    struct timespec res;
+    #####:  217:    res.tv_sec = inp_nanosec/1000000000;
+    #####:  218:    res.tv_nsec = (inp_nanosec*1) % 1000000000;
+    #####:  219:    clock_nanosleep(CLOCK_REALTIME, 0, &res, NULL);
+    #####:  220:}
+------------------
+sleep_nsec:
+    #####:  214:void sleep_nsec(long inp_nanosec) {
+        -:  215:	// DTStamp(); printf("Sleep for %ld nanoseconds \n", inp_nanosec);
+        -:  216:    struct timespec res;
+    #####:  217:    res.tv_sec = inp_nanosec/1000000000;
+    #####:  218:    res.tv_nsec = (inp_nanosec*1) % 1000000000;
+    #####:  219:    clock_nanosleep(CLOCK_REALTIME, 0, &res, NULL);
+    #####:  220:}
+------------------
+sleep_nsec:
+    #####:  214:void sleep_nsec(long inp_nanosec) {
+        -:  215:	// DTStamp(); printf("Sleep for %ld nanoseconds \n", inp_nanosec);
+        -:  216:    struct timespec res;
+    #####:  217:    res.tv_sec = inp_nanosec/1000000000;
+    #####:  218:    res.tv_nsec = (inp_nanosec*1) % 1000000000;
+    #####:  219:    clock_nanosleep(CLOCK_REALTIME, 0, &res, NULL);
+    #####:  220:}
+------------------
+sleep_nsec:
+    #####:  214:void sleep_nsec(long inp_nanosec) {
+        -:  215:	// DTStamp(); printf("Sleep for %ld nanoseconds \n", inp_nanosec);
+        -:  216:    struct timespec res;
+    #####:  217:    res.tv_sec = inp_nanosec/1000000000;
+    #####:  218:    res.tv_nsec = (inp_nanosec*1) % 1000000000;
+    #####:  219:    clock_nanosleep(CLOCK_REALTIME, 0, &res, NULL);
+    #####:  220:}
+------------------
+sleep_nsec:
+    #####:  214:void sleep_nsec(long inp_nanosec) {
+        -:  215:	// DTStamp(); printf("Sleep for %ld nanoseconds \n", inp_nanosec);
+        -:  216:    struct timespec res;
+    #####:  217:    res.tv_sec = inp_nanosec/1000000000;
+    #####:  218:    res.tv_nsec = (inp_nanosec*1) % 1000000000;
+    #####:  219:    clock_nanosleep(CLOCK_REALTIME, 0, &res, NULL);
+    #####:  220:}
+------------------
+sleep_nsec:
+    #####:  214:void sleep_nsec(long inp_nanosec) {
+        -:  215:	// DTStamp(); printf("Sleep for %ld nanoseconds \n", inp_nanosec);
+        -:  216:    struct timespec res;
+    #####:  217:    res.tv_sec = inp_nanosec/1000000000;
+    #####:  218:    res.tv_nsec = (inp_nanosec*1) % 1000000000;
+    #####:  219:    clock_nanosleep(CLOCK_REALTIME, 0, &res, NULL);
+    #####:  220:}
+------------------
+sleep_nsec:
+    #####:  214:void sleep_nsec(long inp_nanosec) {
+        -:  215:	// DTStamp(); printf("Sleep for %ld nanoseconds \n", inp_nanosec);
+        -:  216:    struct timespec res;
+    #####:  217:    res.tv_sec = inp_nanosec/1000000000;
+    #####:  218:    res.tv_nsec = (inp_nanosec*1) % 1000000000;
+    #####:  219:    clock_nanosleep(CLOCK_REALTIME, 0, &res, NULL);
+    #####:  220:}
+------------------
+        -:  221:
+        -:  222:// ========================================================
+       2*:  223:void start_timer(int timer_number){
+        -:  224:// ========================================================
+       2*:  225:	clock_gettime(CLOCK_REALTIME, &tnow);
+       2*:  226:	t_starttimer = tnow;
+        -:  227:
+       2*:  228:	DTStamp();
+       2*:  229:	printf("Timer %d start. \n", timer_number);
+       2*:  230:}
+------------------
+start_timer:
+        2:  223:void start_timer(int timer_number){
+        -:  224:// ========================================================
+        2:  225:	clock_gettime(CLOCK_REALTIME, &tnow);
+        2:  226:	t_starttimer = tnow;
+        -:  227:
+        2:  228:	DTStamp();
+        2:  229:	printf("Timer %d start. \n", timer_number);
+        2:  230:}
+------------------
+start_timer:
+    #####:  223:void start_timer(int timer_number){
+        -:  224:// ========================================================
+    #####:  225:	clock_gettime(CLOCK_REALTIME, &tnow);
+    #####:  226:	t_starttimer = tnow;
+        -:  227:
+    #####:  228:	DTStamp();
+    #####:  229:	printf("Timer %d start. \n", timer_number);
+    #####:  230:}
+------------------
+start_timer:
+    #####:  223:void start_timer(int timer_number){
+        -:  224:// ========================================================
+    #####:  225:	clock_gettime(CLOCK_REALTIME, &tnow);
+    #####:  226:	t_starttimer = tnow;
+        -:  227:
+    #####:  228:	DTStamp();
+    #####:  229:	printf("Timer %d start. \n", timer_number);
+    #####:  230:}
+------------------
+start_timer:
+    #####:  223:void start_timer(int timer_number){
+        -:  224:// ========================================================
+    #####:  225:	clock_gettime(CLOCK_REALTIME, &tnow);
+    #####:  226:	t_starttimer = tnow;
+        -:  227:
+    #####:  228:	DTStamp();
+    #####:  229:	printf("Timer %d start. \n", timer_number);
+    #####:  230:}
+------------------
+start_timer:
+    #####:  223:void start_timer(int timer_number){
+        -:  224:// ========================================================
+    #####:  225:	clock_gettime(CLOCK_REALTIME, &tnow);
+    #####:  226:	t_starttimer = tnow;
+        -:  227:
+    #####:  228:	DTStamp();
+    #####:  229:	printf("Timer %d start. \n", timer_number);
+    #####:  230:}
+------------------
+start_timer:
+    #####:  223:void start_timer(int timer_number){
+        -:  224:// ========================================================
+    #####:  225:	clock_gettime(CLOCK_REALTIME, &tnow);
+    #####:  226:	t_starttimer = tnow;
+        -:  227:
+    #####:  228:	DTStamp();
+    #####:  229:	printf("Timer %d start. \n", timer_number);
+    #####:  230:}
+------------------
+        -:  231:
+        -:  232:// ========================================================
+       2*:  233:void duration_timer(void) {
+        -:  234:// ========================================================
+        -:  235:
+        -:  236:	struct timespec temp, t_duration;
+       2*:  237:	if ((t_endtimer.tv_nsec - t_starttimer.tv_nsec) < 0) {
+       1*:  238:		temp.tv_sec = t_endtimer.tv_sec - t_starttimer.tv_sec - 1;
+       1*:  239:		temp.tv_nsec = 1000000000 + t_endtimer.tv_nsec - t_starttimer.tv_nsec;
+        -:  240:	} else {
+       1*:  241:		temp.tv_sec = t_endtimer.tv_sec - t_starttimer.tv_sec;
+       1*:  242:		temp.tv_nsec = t_endtimer.tv_nsec - t_starttimer.tv_nsec;
+        -:  243:	}
+        -:  244:
+       2*:  245:	t_duration = temp;
+       2*:  246:	long sec_timerduration  = t_duration.tv_sec;
+       2*:  247:	long nsec_timerduration = t_duration.tv_nsec;
+        -:  248:
+       2*:  249:	printf("Duration (timer start-to-stop) = %ld.%09ld seconds. \n", sec_timerduration, nsec_timerduration);
+        -:  250:
+       2*:  251:}
+------------------
+duration_timer:
+        2:  233:void duration_timer(void) {
+        -:  234:// ========================================================
+        -:  235:
+        -:  236:	struct timespec temp, t_duration;
+        2:  237:	if ((t_endtimer.tv_nsec - t_starttimer.tv_nsec) < 0) {
+        1:  238:		temp.tv_sec = t_endtimer.tv_sec - t_starttimer.tv_sec - 1;
+        1:  239:		temp.tv_nsec = 1000000000 + t_endtimer.tv_nsec - t_starttimer.tv_nsec;
+        -:  240:	} else {
+        1:  241:		temp.tv_sec = t_endtimer.tv_sec - t_starttimer.tv_sec;
+        1:  242:		temp.tv_nsec = t_endtimer.tv_nsec - t_starttimer.tv_nsec;
+        -:  243:	}
+        -:  244:
+        2:  245:	t_duration = temp;
+        2:  246:	long sec_timerduration  = t_duration.tv_sec;
+        2:  247:	long nsec_timerduration = t_duration.tv_nsec;
+        -:  248:
+        2:  249:	printf("Duration (timer start-to-stop) = %ld.%09ld seconds. \n", sec_timerduration, nsec_timerduration);
+        -:  250:
+        2:  251:}
+------------------
+duration_timer:
+    #####:  233:void duration_timer(void) {
+        -:  234:// ========================================================
+        -:  235:
+        -:  236:	struct timespec temp, t_duration;
+    #####:  237:	if ((t_endtimer.tv_nsec - t_starttimer.tv_nsec) < 0) {
+    #####:  238:		temp.tv_sec = t_endtimer.tv_sec - t_starttimer.tv_sec - 1;
+    #####:  239:		temp.tv_nsec = 1000000000 + t_endtimer.tv_nsec - t_starttimer.tv_nsec;
+        -:  240:	} else {
+    #####:  241:		temp.tv_sec = t_endtimer.tv_sec - t_starttimer.tv_sec;
+    #####:  242:		temp.tv_nsec = t_endtimer.tv_nsec - t_starttimer.tv_nsec;
+        -:  243:	}
+        -:  244:
+    #####:  245:	t_duration = temp;
+    #####:  246:	long sec_timerduration  = t_duration.tv_sec;
+    #####:  247:	long nsec_timerduration = t_duration.tv_nsec;
+        -:  248:
+    #####:  249:	printf("Duration (timer start-to-stop) = %ld.%09ld seconds. \n", sec_timerduration, nsec_timerduration);
+        -:  250:
+    #####:  251:}
+------------------
+duration_timer:
+    #####:  233:void duration_timer(void) {
+        -:  234:// ========================================================
+        -:  235:
+        -:  236:	struct timespec temp, t_duration;
+    #####:  237:	if ((t_endtimer.tv_nsec - t_starttimer.tv_nsec) < 0) {
+    #####:  238:		temp.tv_sec = t_endtimer.tv_sec - t_starttimer.tv_sec - 1;
+    #####:  239:		temp.tv_nsec = 1000000000 + t_endtimer.tv_nsec - t_starttimer.tv_nsec;
+        -:  240:	} else {
+    #####:  241:		temp.tv_sec = t_endtimer.tv_sec - t_starttimer.tv_sec;
+    #####:  242:		temp.tv_nsec = t_endtimer.tv_nsec - t_starttimer.tv_nsec;
+        -:  243:	}
+        -:  244:
+    #####:  245:	t_duration = temp;
+    #####:  246:	long sec_timerduration  = t_duration.tv_sec;
+    #####:  247:	long nsec_timerduration = t_duration.tv_nsec;
+        -:  248:
+    #####:  249:	printf("Duration (timer start-to-stop) = %ld.%09ld seconds. \n", sec_timerduration, nsec_timerduration);
+        -:  250:
+    #####:  251:}
+------------------
+duration_timer:
+    #####:  233:void duration_timer(void) {
+        -:  234:// ========================================================
+        -:  235:
+        -:  236:	struct timespec temp, t_duration;
+    #####:  237:	if ((t_endtimer.tv_nsec - t_starttimer.tv_nsec) < 0) {
+    #####:  238:		temp.tv_sec = t_endtimer.tv_sec - t_starttimer.tv_sec - 1;
+    #####:  239:		temp.tv_nsec = 1000000000 + t_endtimer.tv_nsec - t_starttimer.tv_nsec;
+        -:  240:	} else {
+    #####:  241:		temp.tv_sec = t_endtimer.tv_sec - t_starttimer.tv_sec;
+    #####:  242:		temp.tv_nsec = t_endtimer.tv_nsec - t_starttimer.tv_nsec;
+        -:  243:	}
+        -:  244:
+    #####:  245:	t_duration = temp;
+    #####:  246:	long sec_timerduration  = t_duration.tv_sec;
+    #####:  247:	long nsec_timerduration = t_duration.tv_nsec;
+        -:  248:
+    #####:  249:	printf("Duration (timer start-to-stop) = %ld.%09ld seconds. \n", sec_timerduration, nsec_timerduration);
+        -:  250:
+    #####:  251:}
+------------------
+duration_timer:
+    #####:  233:void duration_timer(void) {
+        -:  234:// ========================================================
+        -:  235:
+        -:  236:	struct timespec temp, t_duration;
+    #####:  237:	if ((t_endtimer.tv_nsec - t_starttimer.tv_nsec) < 0) {
+    #####:  238:		temp.tv_sec = t_endtimer.tv_sec - t_starttimer.tv_sec - 1;
+    #####:  239:		temp.tv_nsec = 1000000000 + t_endtimer.tv_nsec - t_starttimer.tv_nsec;
+        -:  240:	} else {
+    #####:  241:		temp.tv_sec = t_endtimer.tv_sec - t_starttimer.tv_sec;
+    #####:  242:		temp.tv_nsec = t_endtimer.tv_nsec - t_starttimer.tv_nsec;
+        -:  243:	}
+        -:  244:
+    #####:  245:	t_duration = temp;
+    #####:  246:	long sec_timerduration  = t_duration.tv_sec;
+    #####:  247:	long nsec_timerduration = t_duration.tv_nsec;
+        -:  248:
+    #####:  249:	printf("Duration (timer start-to-stop) = %ld.%09ld seconds. \n", sec_timerduration, nsec_timerduration);
+        -:  250:
+    #####:  251:}
+------------------
+duration_timer:
+    #####:  233:void duration_timer(void) {
+        -:  234:// ========================================================
+        -:  235:
+        -:  236:	struct timespec temp, t_duration;
+    #####:  237:	if ((t_endtimer.tv_nsec - t_starttimer.tv_nsec) < 0) {
+    #####:  238:		temp.tv_sec = t_endtimer.tv_sec - t_starttimer.tv_sec - 1;
+    #####:  239:		temp.tv_nsec = 1000000000 + t_endtimer.tv_nsec - t_starttimer.tv_nsec;
+        -:  240:	} else {
+    #####:  241:		temp.tv_sec = t_endtimer.tv_sec - t_starttimer.tv_sec;
+    #####:  242:		temp.tv_nsec = t_endtimer.tv_nsec - t_starttimer.tv_nsec;
+        -:  243:	}
+        -:  244:
+    #####:  245:	t_duration = temp;
+    #####:  246:	long sec_timerduration  = t_duration.tv_sec;
+    #####:  247:	long nsec_timerduration = t_duration.tv_nsec;
+        -:  248:
+    #####:  249:	printf("Duration (timer start-to-stop) = %ld.%09ld seconds. \n", sec_timerduration, nsec_timerduration);
+        -:  250:
+    #####:  251:}
+------------------
+        -:  252:
+        -:  253:// ========================================================
+       2*:  254:void stop_timer(int timer_number){
+        -:  255:// ========================================================
+       2*:  256:	clock_gettime(CLOCK_REALTIME, &tnow);
+       2*:  257:	t_endtimer = tnow;
+        -:  258:
+       2*:  259:	DTStamp();
+       2*:  260:	printf("Timer %d stop. ", timer_number);
+       2*:  261:	duration_timer();
+       2*:  262:	printf("\n");
+       2*:  263:}
+------------------
+stop_timer:
+        2:  254:void stop_timer(int timer_number){
+        -:  255:// ========================================================
+        2:  256:	clock_gettime(CLOCK_REALTIME, &tnow);
+        2:  257:	t_endtimer = tnow;
+        -:  258:
+        2:  259:	DTStamp();
+        2:  260:	printf("Timer %d stop. ", timer_number);
+        2:  261:	duration_timer();
+        2:  262:	printf("\n");
+        2:  263:}
+------------------
+stop_timer:
+    #####:  254:void stop_timer(int timer_number){
+        -:  255:// ========================================================
+    #####:  256:	clock_gettime(CLOCK_REALTIME, &tnow);
+    #####:  257:	t_endtimer = tnow;
+        -:  258:
+    #####:  259:	DTStamp();
+    #####:  260:	printf("Timer %d stop. ", timer_number);
+    #####:  261:	duration_timer();
+    #####:  262:	printf("\n");
+    #####:  263:}
+------------------
+stop_timer:
+    #####:  254:void stop_timer(int timer_number){
+        -:  255:// ========================================================
+    #####:  256:	clock_gettime(CLOCK_REALTIME, &tnow);
+    #####:  257:	t_endtimer = tnow;
+        -:  258:
+    #####:  259:	DTStamp();
+    #####:  260:	printf("Timer %d stop. ", timer_number);
+    #####:  261:	duration_timer();
+    #####:  262:	printf("\n");
+    #####:  263:}
+------------------
+stop_timer:
+    #####:  254:void stop_timer(int timer_number){
+        -:  255:// ========================================================
+    #####:  256:	clock_gettime(CLOCK_REALTIME, &tnow);
+    #####:  257:	t_endtimer = tnow;
+        -:  258:
+    #####:  259:	DTStamp();
+    #####:  260:	printf("Timer %d stop. ", timer_number);
+    #####:  261:	duration_timer();
+    #####:  262:	printf("\n");
+    #####:  263:}
+------------------
+stop_timer:
+    #####:  254:void stop_timer(int timer_number){
+        -:  255:// ========================================================
+    #####:  256:	clock_gettime(CLOCK_REALTIME, &tnow);
+    #####:  257:	t_endtimer = tnow;
+        -:  258:
+    #####:  259:	DTStamp();
+    #####:  260:	printf("Timer %d stop. ", timer_number);
+    #####:  261:	duration_timer();
+    #####:  262:	printf("\n");
+    #####:  263:}
+------------------
+stop_timer:
+    #####:  254:void stop_timer(int timer_number){
+        -:  255:// ========================================================
+    #####:  256:	clock_gettime(CLOCK_REALTIME, &tnow);
+    #####:  257:	t_endtimer = tnow;
+        -:  258:
+    #####:  259:	DTStamp();
+    #####:  260:	printf("Timer %d stop. ", timer_number);
+    #####:  261:	duration_timer();
+    #####:  262:	printf("\n");
+    #####:  263:}
+------------------
+        -:  264:
+        -:  265:// ========================================================
+    #####:  266:void duration_thread(struct timespec t_startthread, struct timespec t_endthread) {
+        -:  267:// ========================================================
+        -:  268:
+        -:  269:	struct timespec temp, t_duration;
+        -:  270:
+    #####:  271:	if ((t_endthread.tv_nsec - t_startthread.tv_nsec) < 0) {
+    #####:  272:		temp.tv_sec = t_endthread.tv_sec - t_startthread.tv_sec - 1;
+    #####:  273:		temp.tv_nsec = 1000000000 + t_endthread.tv_nsec - t_startthread.tv_nsec;
+        -:  274:	} else {
+    #####:  275:		temp.tv_sec = t_endthread.tv_sec - t_startthread.tv_sec;
+    #####:  276:		temp.tv_nsec = t_endthread.tv_nsec - t_startthread.tv_nsec;
+        -:  277:	}
+        -:  278:
+    #####:  279:	t_duration = temp;
+    #####:  280:	long sec_threadduration  = t_duration.tv_sec;
+    #####:  281:	long nsec_threadduration = t_duration.tv_nsec;
+        -:  282:
+    #####:  283:	printf("Run duration = %ld.%09ld seconds. \n", sec_threadduration, nsec_threadduration);
+        -:  284:
+    #####:  285:}
+------------------
+duration_thread:
+    #####:  266:void duration_thread(struct timespec t_startthread, struct timespec t_endthread) {
+        -:  267:// ========================================================
+        -:  268:
+        -:  269:	struct timespec temp, t_duration;
+        -:  270:
+    #####:  271:	if ((t_endthread.tv_nsec - t_startthread.tv_nsec) < 0) {
+    #####:  272:		temp.tv_sec = t_endthread.tv_sec - t_startthread.tv_sec - 1;
+    #####:  273:		temp.tv_nsec = 1000000000 + t_endthread.tv_nsec - t_startthread.tv_nsec;
+        -:  274:	} else {
+    #####:  275:		temp.tv_sec = t_endthread.tv_sec - t_startthread.tv_sec;
+    #####:  276:		temp.tv_nsec = t_endthread.tv_nsec - t_startthread.tv_nsec;
+        -:  277:	}
+        -:  278:
+    #####:  279:	t_duration = temp;
+    #####:  280:	long sec_threadduration  = t_duration.tv_sec;
+    #####:  281:	long nsec_threadduration = t_duration.tv_nsec;
+        -:  282:
+    #####:  283:	printf("Run duration = %ld.%09ld seconds. \n", sec_threadduration, nsec_threadduration);
+        -:  284:
+    #####:  285:}
+------------------
+duration_thread:
+    #####:  266:void duration_thread(struct timespec t_startthread, struct timespec t_endthread) {
+        -:  267:// ========================================================
+        -:  268:
+        -:  269:	struct timespec temp, t_duration;
+        -:  270:
+    #####:  271:	if ((t_endthread.tv_nsec - t_startthread.tv_nsec) < 0) {
+    #####:  272:		temp.tv_sec = t_endthread.tv_sec - t_startthread.tv_sec - 1;
+    #####:  273:		temp.tv_nsec = 1000000000 + t_endthread.tv_nsec - t_startthread.tv_nsec;
+        -:  274:	} else {
+    #####:  275:		temp.tv_sec = t_endthread.tv_sec - t_startthread.tv_sec;
+    #####:  276:		temp.tv_nsec = t_endthread.tv_nsec - t_startthread.tv_nsec;
+        -:  277:	}
+        -:  278:
+    #####:  279:	t_duration = temp;
+    #####:  280:	long sec_threadduration  = t_duration.tv_sec;
+    #####:  281:	long nsec_threadduration = t_duration.tv_nsec;
+        -:  282:
+    #####:  283:	printf("Run duration = %ld.%09ld seconds. \n", sec_threadduration, nsec_threadduration);
+        -:  284:
+    #####:  285:}
+------------------
+duration_thread:
+    #####:  266:void duration_thread(struct timespec t_startthread, struct timespec t_endthread) {
+        -:  267:// ========================================================
+        -:  268:
+        -:  269:	struct timespec temp, t_duration;
+        -:  270:
+    #####:  271:	if ((t_endthread.tv_nsec - t_startthread.tv_nsec) < 0) {
+    #####:  272:		temp.tv_sec = t_endthread.tv_sec - t_startthread.tv_sec - 1;
+    #####:  273:		temp.tv_nsec = 1000000000 + t_endthread.tv_nsec - t_startthread.tv_nsec;
+        -:  274:	} else {
+    #####:  275:		temp.tv_sec = t_endthread.tv_sec - t_startthread.tv_sec;
+    #####:  276:		temp.tv_nsec = t_endthread.tv_nsec - t_startthread.tv_nsec;
+        -:  277:	}
+        -:  278:
+    #####:  279:	t_duration = temp;
+    #####:  280:	long sec_threadduration  = t_duration.tv_sec;
+    #####:  281:	long nsec_threadduration = t_duration.tv_nsec;
+        -:  282:
+    #####:  283:	printf("Run duration = %ld.%09ld seconds. \n", sec_threadduration, nsec_threadduration);
+        -:  284:
+    #####:  285:}
+------------------
+duration_thread:
+    #####:  266:void duration_thread(struct timespec t_startthread, struct timespec t_endthread) {
+        -:  267:// ========================================================
+        -:  268:
+        -:  269:	struct timespec temp, t_duration;
+        -:  270:
+    #####:  271:	if ((t_endthread.tv_nsec - t_startthread.tv_nsec) < 0) {
+    #####:  272:		temp.tv_sec = t_endthread.tv_sec - t_startthread.tv_sec - 1;
+    #####:  273:		temp.tv_nsec = 1000000000 + t_endthread.tv_nsec - t_startthread.tv_nsec;
+        -:  274:	} else {
+    #####:  275:		temp.tv_sec = t_endthread.tv_sec - t_startthread.tv_sec;
+    #####:  276:		temp.tv_nsec = t_endthread.tv_nsec - t_startthread.tv_nsec;
+        -:  277:	}
+        -:  278:
+    #####:  279:	t_duration = temp;
+    #####:  280:	long sec_threadduration  = t_duration.tv_sec;
+    #####:  281:	long nsec_threadduration = t_duration.tv_nsec;
+        -:  282:
+    #####:  283:	printf("Run duration = %ld.%09ld seconds. \n", sec_threadduration, nsec_threadduration);
+        -:  284:
+    #####:  285:}
+------------------
+duration_thread:
+    #####:  266:void duration_thread(struct timespec t_startthread, struct timespec t_endthread) {
+        -:  267:// ========================================================
+        -:  268:
+        -:  269:	struct timespec temp, t_duration;
+        -:  270:
+    #####:  271:	if ((t_endthread.tv_nsec - t_startthread.tv_nsec) < 0) {
+    #####:  272:		temp.tv_sec = t_endthread.tv_sec - t_startthread.tv_sec - 1;
+    #####:  273:		temp.tv_nsec = 1000000000 + t_endthread.tv_nsec - t_startthread.tv_nsec;
+        -:  274:	} else {
+    #####:  275:		temp.tv_sec = t_endthread.tv_sec - t_startthread.tv_sec;
+    #####:  276:		temp.tv_nsec = t_endthread.tv_nsec - t_startthread.tv_nsec;
+        -:  277:	}
+        -:  278:
+    #####:  279:	t_duration = temp;
+    #####:  280:	long sec_threadduration  = t_duration.tv_sec;
+    #####:  281:	long nsec_threadduration = t_duration.tv_nsec;
+        -:  282:
+    #####:  283:	printf("Run duration = %ld.%09ld seconds. \n", sec_threadduration, nsec_threadduration);
+        -:  284:
+    #####:  285:}
+------------------
+duration_thread:
+    #####:  266:void duration_thread(struct timespec t_startthread, struct timespec t_endthread) {
+        -:  267:// ========================================================
+        -:  268:
+        -:  269:	struct timespec temp, t_duration;
+        -:  270:
+    #####:  271:	if ((t_endthread.tv_nsec - t_startthread.tv_nsec) < 0) {
+    #####:  272:		temp.tv_sec = t_endthread.tv_sec - t_startthread.tv_sec - 1;
+    #####:  273:		temp.tv_nsec = 1000000000 + t_endthread.tv_nsec - t_startthread.tv_nsec;
+        -:  274:	} else {
+    #####:  275:		temp.tv_sec = t_endthread.tv_sec - t_startthread.tv_sec;
+    #####:  276:		temp.tv_nsec = t_endthread.tv_nsec - t_startthread.tv_nsec;
+        -:  277:	}
+        -:  278:
+    #####:  279:	t_duration = temp;
+    #####:  280:	long sec_threadduration  = t_duration.tv_sec;
+    #####:  281:	long nsec_threadduration = t_duration.tv_nsec;
+        -:  282:
+    #####:  283:	printf("Run duration = %ld.%09ld seconds. \n", sec_threadduration, nsec_threadduration);
+        -:  284:
+    #####:  285:}
+------------------
+        -:  286:
+        -:  287:// ========================================================
+    #####:  288:struct timespec duration(struct timespec timer_begin, struct timespec timer_end) {
+        -:  289:// ========================================================
+        -:  290:    struct timespec temp;
+        -:  291:
+    #####:  292:    if ((timer_end.tv_nsec - timer_begin.tv_nsec) < 0) {
+    #####:  293:        temp.tv_sec = timer_end.tv_sec - timer_begin.tv_sec - 1;
+    #####:  294:        temp.tv_nsec = 1000000000 + timer_end.tv_nsec - timer_begin.tv_nsec;
+        -:  295:    } else {
+    #####:  296:        temp.tv_sec = timer_end.tv_sec - timer_begin.tv_sec;
+    #####:  297:        temp.tv_nsec = timer_end.tv_nsec - timer_begin.tv_nsec;
+        -:  298:    }
+    #####:  299:return temp;
+        -:  300:}
+        -:  301:
+        -:  302:// ========================================================
+        -:  303:

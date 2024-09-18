@@ -1,0 +1,1072 @@
+        -:    0:Source:/home/wruslan/workspaces-gnat/gnatstudio-c/gnat_c_cnc-04/src/common/c_parallel_port.c
+        -:    1:/* USER SPACE PARALLEL PORT USING PPDEV
+        -:    2: * File: c_parallel_port.c
+        -:    3: *
+        -:    4: *  Created on: Dec 4, 2020
+        -:    5: *      Author: wruslan
+        -:    6:=========================================================== 
+        -:    7:wruslan@HPEliteBook8470p-Ub2004-rt38:~/temp4$ date
+        -:    8:Fri 04 Dec 2020 10:36:46 AM +08
+        -:    9:
+        -:   10:wruslan@HPEliteBook8470p-Ub2004-rt38:~/temp4$ uname -a
+        -:   11:Linux HPEliteBook8470p-Ub2004-rt38 5.4.66-rt38 
+        -:   12:#1 SMP PREEMPT_RT Sat Sep 26 16:51:59 +08 2020 x86_64 x86_64 x86_64 GNU/Linux
+        -:   13:
+        -:   14:wruslan@HPEliteBook8470p-Ub2004-rt38:~/temp4$ lsb_release -a
+        -:   15:LSB Version:	core-11.1.0ubuntu2-noarch:security-11.1.0ubuntu2-noarch
+        -:   16:Distributor ID:	Ubuntu
+        -:   17:Description:	Ubuntu 20.04.1 LTS
+        -:   18:Release:	20.04
+        -:   19:Codename:	focal
+        -:   20:wruslan@HPEliteBook8470p-Ub2004-rt38:~/temp4$ 
+        -:   21:
+        -:   22:===========================================================
+        -:   23:An Undefined Reference error occurs when we have a reference to 
+        -:   24:object name (class, function, variable, etc.) in our program and 
+        -:   25:the linker cannot find its definition when it tries to search for 
+        -:   26:it in all the linked object files and libraries.
+        -:   27:
+        -:   28:*/
+        -:   29:// ========================================================
+        -:   30:// ADDED BY WRY
+        -:   31:#include <time.h> 		  // For high-res timer clock_gettime with (nanoseconds)
+        -:   32:#include <sys/time.h>	  // For local date-time with (microseconds)
+        -:   33:#include <unistd.h>     // getcwd(), close(0
+        -:   34:#include <limits.h>     // perror()
+        -:   35:
+        -:   36:// C-HEADERS
+        -:   37:#include <fcntl.h>
+        -:   38:#include <sys/fcntl.h> 	// for open(), close(), O_RDWR, and so on
+        -:   39:#include <sys/types.h>
+        -:   40:#include <sys/stat.h>		// for stat(), lstat(), and stat()
+        -:   41:#include <sys/ioctl.h>		// for ioctl()       
+        -:   42:#include <stdio.h>			// for printf()
+        -:   43:#include <stdlib.h>			// for exit()
+        -:   44:#include <stdbool.h>		  // for bool type
+        -:   45:
+        -:   46:#include <linux/parport.h>
+        -:   47:#include <linux/ppdev.h>
+        -:   48:
+        -:   49:// ADDED BY WRY Calls the C-MODULE HEADER
+        -:   50:// #include "c_parallel_port.h"  
+        -:   51:
+        -:   52:// ========================================================
+        -:   53:// GLOBAL DEFINITIONS FOR (18) ada_ioctl_ppgettime_usec_parport(fd)
+        -:   54:// ========================================================
+        -:   55:time_t   the_time;
+        -:   56:char     the_strbuffer1[26];
+        -:   57:char     the_strbuffer2[60];
+        -:   58:struct tm*      the_tminfo;
+        -:   59:struct timeval  current_time;
+        -:   60:struct timeval  thetime_sec_now;
+        -:   61:struct timeval  thetime_usec_now;
+        -:   62:struct timespec thetime_nsec_now;
+        -:   63:
+        -:   64:// ========================================================
+        -:   65:// https://www.rapidtables.com/convert/number/hex-to-binary.html
+        -:   66:
+        -:   67:#define SPPDATAPORT    0x378
+        -:   68:#define SPPSTATUSPORT  (SPPDATAPORT + 1)
+        -:   69:#define SPPCONTROLPORT (SPPDATAPORT + 2)
+        -:   70:
+        -:   71:#define OUTPUTENABLE 0x02     // BIN= 00000010  INT= 2 
+        -:   72:#define OUTPUTLATCH  0x04     // BIN= 00000100  INT= 4
+        -:   73:// value (OUTPUTENABLE|OUTPUTLATCH) HEX= 0x06 BIN= 00000110 INT= 6
+        -:   74:
+        -:   75:// PARPORT FLAGS
+        -:   76:#define PP_FASTWRITE	 (1<<2)   // BIN= 00000100  HEX= 0x04  INT= 4
+        -:   77:#define PP_FASTREAD	     (1<<3)   // BIN= 00001000  HEX= 0x08  INT= 8
+        -:   78:#define PP_W91284PIC	 (1<<4)   // BIN= 00010000  HEX= 0x10  INT= 16
+        -:   79:#define PP_FLAGMASK	(PP_FASTWRITE | PP_FASTREAD | PP_W91284PIC)  // HEX= 0x1C  BIN= 00011100 INT= 28
+        -:   80:
+        -:   81:#define PPDATADIR_IN  1   // (Non-zero) SET DATA PORT FOR INPUT
+        -:   82:#define PPDATADIR_OUT 0   // (Zero) SET DATA PORT FOR OUTPUT
+        -:   83:
+        -:   84:
+        -:   85:struct ppdev_frob_struct frob;
+        -:   86:// struct ppdev_frob_struct {
+        -:   87://     unsigned char mask;
+        -:   88://     unsigned char val;
+        -:   89:// };
+        -:   90:
+        -:   91:// ========================================================
+        -:   92:// GLOBAL VARIABLES
+        -:   93:// ========================================================
+        -:   94:int fd_ada; 
+        -:   95:unsigned char status_ada, data_ada;
+        -:   96:const char *port_ada = "/dev/parport0";
+        -:   97:int fd_attrib_ada;
+        -:   98:int mode_ada;
+        -:   99:
+        -:  100:// ========================================================
+    #####:  101:void convert_int2bin8(int input_int, char *output_bin8) {
+        -:  102:// ========================================================
+        -:  103:    unsigned int mask8;
+    #####:  104:    mask8  = 0b10000000; 
+        -:  105:    // printf("INTEGER INPUT = %d \n", input_int);
+        -:  106:	
+    #####:  107:    int bitposition = 0;    
+    #####:  108:    while (mask8)          		   // Loop until MASK is empty
+        -:  109:    {
+    #####:  110:        bitposition++;
+    #####:  111:        if (input_int & mask8)    // Bitwise AND => test the masked bit
+        -:  112:        {
+    #####:  113:            *output_bin8 = '1';   // if true, binary value 1 is appended to output array
+        -:  114:
+        -:  115:        } else {
+    #####:  116:            *output_bin8 = '0';   // if false, binary value 0 is appended to output array
+        -:  117:        } // END if..else
+        -:  118:
+    #####:  119:	      output_bin8++;            // next character
+    #####:  120:        mask8 >>= 1;              // shift the mask variable 1 bit to the right
+        -:  121:    } // END while
+        -:  122:  
+    #####:  123:    *output_bin8 = 0;             // add the trailing null 
+    #####:  124:}
+        -:  125:// ===================================================
+    #####:  126:void current_working_directory(void) {
+        -:  127:// ===================================================
+        -:  128:   char cwd[255];
+    #####:  129:   if (getcwd(cwd, sizeof(cwd)) != NULL) {
+    #####:  130:	   printf("Current directory: %s\n", cwd);
+        -:  131:   } else {
+    #####:  132:	   perror("getcwd() error");
+        -:  133:   }
+        -:  134:
+    #####:  135:}
+        -:  136:// ========================================================
+    #####:  137:void display_date_only(void) {
+        -:  138:// ========================================================
+    #####:  139:  time(&the_time);
+    #####:  140:  the_tminfo = localtime(&the_time);
+    #####:  141:  strftime(the_strbuffer1, 26, "%Y-%m-%d %H:%M:%S", the_tminfo);
+    #####:  142:  strftime(the_strbuffer2, 60, "%a %b %d, %Y %H:%M:%S", the_tminfo);
+        -:  143:  
+        -:  144:  //printf("%s \n", the_strbuffer1);
+    #####:  145:  printf("%s \n", the_strbuffer2);
+        -:  146:  
+    #####:  147:}
+        -:  148:// NO. 01
+        -:  149:// ========================================================
+    #####:  150:int ada_open_parport(const char *port_ada, int fd_attrib_ada) {
+        -:  151:// ========================================================
+    #####:  152:  fd_ada = open(port_ada, fd_attrib_ada);
+    #####:  153:  if (fd_ada == -1) {
+    #####:  154:    perror("open");
+    #####:  155:    printf("Call FAILED. Open parallel port %s , fd_attrib = %d , fd = %d \n", port_ada, fd_attrib_ada, fd_ada);
+    #####:  156:    exit(1);
+        -:  157:  } else {
+        -:  158:  
+        -:  159:     /*
+        -:  160:   O_RDONLY  : IFaceC.int    := 0; -- HEx= 0x00  BIN= 00000000
+        -:  161:   O_WRONLY  : IFaceC.int    := 1; -- HEx= 0x01  BIN= 00000001
+        -:  162:   O_RDWR    : IFaceC.int    := 2; -- HEx= 0x02  BIN= 00000010
+        -:  163:   O_ACCMODE : IFaceC.int    := 3; -- HEx= 0x03  BIN= 00000011
+        -:  164:     */
+    #####:  165:    printf("Success. OPEN parallel port = %s, fd_ada = %d, fd_attrib_ada = ", port_ada, fd_ada);
+    #####:  166:    switch (fd_attrib_ada) {
+    #####:  167:          case 0 :
+    #####:  168:               printf("0 = O_RDONLY \n");
+    #####:  169:               break;
+    #####:  170:          case 1 :
+    #####:  171:               printf("1 = O_WRONLY \n");
+    #####:  172:               break;
+    #####:  173:          case 2 :
+    #####:  174:               printf("2 = O_RDWR \n");
+    #####:  175:               break;
+    #####:  176:          case 3 :
+    #####:  177:               printf("3 = O_ACCMODE \n");
+    #####:  178:               break;
+    #####:  179:          default:
+    #####:  180:               printf("ERROR: Unknown file descriptor attribute. \n");
+        -:  181:       } // END switch..case
+        -:  182:      
+        -:  183:  }
+    #####:  184:int result01 = fd_ada;
+    #####:  185:return (result01);
+        -:  186:}
+        -:  187:// NO. 02
+        -:  188:// ========================================================
+    #####:  189:int ada_ioctl_ppclaim_parport(int fd_ada) {
+        -:  190:// ========================================================
+        -:  191:/* Claim the port to start using it */
+        -:  192:// DONE (2) #define PPCLAIM		_IO(PP_IOCTL, 0x8b)
+        -:  193:
+    #####:  194:  int result02 = ioctl(fd_ada, PPCLAIM);
+    #####:  195:  if (result02 != 0) {
+    #####:  196:      printf("Call FAILED. Request PPCLAIM access to the_port %s , fd_ada = %d , result02 = %d \n", port_ada, fd_ada, result02);
+    #####:  197:      close(fd_ada);
+    #####:  198:      exit(1);
+        -:  199:  } else {
+    #####:  200:      printf("Success. PPCLAIM access to parport: the_port %s , fd_ada = %d \n", port_ada, fd_ada);
+        -:  201:  }  
+    #####:  202:return(result02);
+        -:  203:}
+        -:  204:// NO. 03 
+        -:  205:// ========================================================
+    #####:  206:int ada_ioctl_ppgetmodes_parport(int fd_ada) {
+        -:  207:// ========================================================
+        -:  208:/* Get available modes (what the hardware can do) */
+        -:  209:// (20) #define PPGETMODES	_IOR(PP_IOCTL, 0x97, unsigned int)
+        -:  210:
+        -:  211:int the_ppmodes;
+        -:  212:char the_ppmodes_bin8[9];  
+        -:  213:
+    #####:  214:int result03 = ioctl(fd_ada, PPGETMODES, &the_ppmodes);
+    #####:  215:  if (result03 != 0)
+        -:  216:  {
+    #####:  217:    perror ("PPGETMODES");
+    #####:  218:    close (fd_ada);
+    #####:  219:    printf("Call FAILED.  Get available modes (hardware capabilities). fd_ada = %d , result03 = %d \n", fd_ada, result03);
+    #####:  220:    exit(1); 
+        -:  221:  } else {
+    #####:  222:    printf("Get PPGETMODES parport capability modes: fd_ada = %d port %s \n", fd_ada, port_ada);
+    #####:  223:    convert_int2bin8(the_ppmodes, the_ppmodes_bin8);
+    #####:  224:    printf("\tPARALLEL PORT HARDWARE MODES: INT= %d BIN= %s\n", the_ppmodes, the_ppmodes_bin8);
+        -:  225:    
+        -:  226:    // #define PARPORT_MODE_PCSPP	(1<<0)      00000001     /* IBM PC registers available. */
+        -:  227:    // #define PARPORT_MODE_TRISTATE	(1<<1) 00000010     /* Can tristate. */
+        -:  228:    // #define PARPORT_MODE_EPP	(1<<2)        00000100      /* Hardware EPP. */
+        -:  229:    // #define PARPORT_MODE_ECP	(1<<3)        00001000      /* Hardware ECP. */
+        -:  230:    // #define PARPORT_MODE_COMPAT	(1<<4)    00010000      /* Hardware 'printer protocol'. */
+        -:  231:    // #define PARPORT_MODE_DMA	(1<<5)        00100000      /* Hardware can DMA. */
+        -:  232:    // #define PARPORT_MODE_SAFEININT (1<<6)  01000000      /* SPP registers accessible in IRQ. */
+        -:  233:      
+    #####:  234:      if (the_ppmodes_bin8[7] == '1') { printf("\tPARPORT_MODE_PCSPP     00000001 \n"); } 
+    #####:  235:      if (the_ppmodes_bin8[6] == '1') { printf("\tPARPORT_MODE_TRISTATE  00000010 \n"); } 
+    #####:  236:      if (the_ppmodes_bin8[5] == '1') { printf("\tPARPORT_MODE_EPP       00000100 \n"); } 
+    #####:  237:      if (the_ppmodes_bin8[4] == '1') { printf("\tPARPORT_MODE_ECP       00001000 \n"); } 
+    #####:  238:      if (the_ppmodes_bin8[3] == '1') { printf("\tPARPORT_MODE_COMPAT    00010000 \n"); } 
+    #####:  239:      if (the_ppmodes_bin8[2] == '1') { printf("\tPARPORT_MODE_DMA	       00100000 \n"); } 
+    #####:  240:      if (the_ppmodes_bin8[1] == '1') { printf("\tPARPORT_MODE_SAFEININT 01000000 \n"); } 
+        -:  241:  }
+        -:  242:
+    #####:  243:return (result03);
+        -:  244:}
+        -:  245:// NO. 4
+        -:  246:// ========================================================
+    #####:  247:int ada_ioctl_ppsetmode_parport(int fd_ada, int modetoset) {
+        -:  248:// ========================================================
+        -:  249:/* Set mode for read/write (e.g. IEEE1284_MODE_EPP) */
+        -:  250:// (11) #define PPSETMODE	_IOW(PP_IOCTL, 0x80, int)
+        -:  251:// PPSETMODE	: IFaceC.int := 128; -- HEX 0x80
+        -:  252:  
+        -:  253:// FROM /usr/include/uapi/linux/parport.h
+        -:  254:// Magic numbers 
+        -:  255:// #define PARPORT_IRQ_NONE  -1
+        -:  256:// #define PARPORT_DMA_NONE  -1
+        -:  257:// #define PARPORT_IRQ_AUTO  -2
+        -:  258:// #define PARPORT_DMA_AUTO  -2
+        -:  259:// #define PARPORT_DMA_NOFIFO -3
+        -:  260:// #define PARPORT_DISABLE   -2
+        -:  261:// #define PARPORT_IRQ_PROBEONLY -3
+        -:  262:// #define PARPORT_IOHI_AUTO -1
+        -:  263:
+        -:  264:// #define PARPORT_CONTROL_STROBE    0x1
+        -:  265:// #define PARPORT_CONTROL_AUTOFD    0x2
+        -:  266:// #define PARPORT_CONTROL_INIT      0x4
+        -:  267:// #define PARPORT_CONTROL_SELECT    0x8
+        -:  268:
+        -:  269:// #define PARPORT_STATUS_ERROR      0x8
+        -:  270:// #define PARPORT_STATUS_SELECT     0x10
+        -:  271:// #define PARPORT_STATUS_PAPEROUT   0x20
+        -:  272:// #define PARPORT_STATUS_ACK        0x40
+        -:  273:// #define PARPORT_STATUS_BUSY       0x80 
+        -:  274:  
+        -:  275:// Mode (1 << 8) means:  shifting bits 8 steps to the left from 
+        -:  276:// 00000000 00000001 to become 00000001 00000000
+        -:  277:
+        -:  278:// The "modes" entry in parport is a bit field representing the capabilities of the hardware.
+        -:  279:// #define PARPORT_MODE_PCSPP	(1<<0)      /* IBM PC registers available. */
+        -:  280:// #define PARPORT_MODE_TRISTATE	(1<<1)  /* Can tristate. */
+        -:  281:// #define PARPORT_MODE_EPP	(1<<2)       /* Hardware EPP. */
+        -:  282:// #define PARPORT_MODE_ECP	(1<<3)       /* Hardware ECP. */
+        -:  283:// #define PARPORT_MODE_COMPAT	(1<<4)     /* Hardware 'printer protocol'. */
+        -:  284:// #define PARPORT_MODE_DMA	(1<<5)       /* Hardware can DMA. */
+        -:  285:// #define PARPORT_MODE_SAFEININT	(1<<6)   /* SPP registers accessible in IRQ. */
+        -:  286:
+        -:  287: /*
+        -:  288:[    8.563950] lp: driver loaded but no devices found
+        -:  289:[    8.621481] systemd[1]: Started Journal Service.
+        -:  290:[    8.642951] ppdev: user-space parallel port driver
+        -:  291:[    8.662919] parport_pc 00:05: reported by Plug and Play ACPI
+        -:  292:[    8.663322] systemd-journald[415]: Received client request to flush runtime journal.
+        -:  293:[    8.663086] parport0: PC-style at 0x378 (0x778), irq 5, using FIFO [PCSPP,TRISTATE,COMPAT,EPP,ECP]
+        -:  294:[    8.759758] lp0: using parport0 (interrupt-driven).
+        -:  295:*/
+        -:  296:
+        -:  297:  int result04;
+        -:  298:  char modetoset_bin8[9];
+        -:  299:  // modetoset = PARPORT_MODE_ECP;  // (1<<3) = 00000000 00001000
+        -:  300:  
+    #####:  301:  result04 = ioctl(fd_ada, PPSETMODE, &modetoset); 
+    #####:  302:  if (result04 != 0)
+        -:  303:  {
+    #####:  304:      perror("fd_ada");
+    #####:  305:      printf("Call FAILED.  Set PPSETMODE for fd_ada = %d, modetoset = %d result04 = %d \n", fd_ada, modetoset, result04);
+    #####:  306:      exit(1);
+        -:  307:  } else {
+    #####:  308:     printf("Set PPSETMODE for parport mode: fd_ada = %d, modetoset = %d => ", fd_ada, modetoset);
+    #####:  309:     convert_int2bin8(modetoset, modetoset_bin8);
+        -:  310:    
+    #####:  311:      if (modetoset_bin8[7] == '1') { printf("PARPORT_MODE_PCSPP \n"); } 
+    #####:  312:      if (modetoset_bin8[6] == '1') { printf("PARPORT_MODE_TRISTATE \n"); } 
+    #####:  313:      if (modetoset_bin8[5] == '1') { printf("PARPORT_MODE_EPP \n"); } 
+    #####:  314:      if (modetoset_bin8[4] == '1') { printf("PARPORT_MODE_ECP \n"); } 
+    #####:  315:      if (modetoset_bin8[3] == '1') { printf("PARPORT_MODE_COMPAT \n"); } 
+    #####:  316:      if (modetoset_bin8[2] == '1') { printf("PARPORT_MODE_DMA	 \n"); } 
+    #####:  317:      if (modetoset_bin8[1] == '1') { printf("PARPORT_MODE_SAFEININT \n"); } 
+        -:  318:   
+        -:  319:  }
+        -:  320:  
+    #####:  321:return(result04); 
+        -:  322:}  
+        -:  323:// NO. 05
+        -:  324:// ========================================================
+    #####:  325:int ada_ioctl_ppgetmode_current(int fd_ada) {
+        -:  326:// ========================================================
+        -:  327:int  the_mode;  
+        -:  328:char the_mode_bin8[9];    
+        -:  329:
+    #####:  330:int result05 = ioctl(fd_ada, PPGETMODE, &the_mode);
+    #####:  331:  if (result05 != 0)
+        -:  332:  {
+    #####:  333:    perror ("PPGETMODE");
+    #####:  334:    close (fd_ada);
+    #####:  335:    printf("Call FAILED. Get the current mode PPGETMODE. fd_ada = %d , result05 = %d \n", fd_ada, result05);
+    #####:  336:    exit(1); 
+        -:  337:  } else {
+    #####:  338:    printf("Get PPGETMODE current parport mode: fd_ada = %d, ", fd_ada);
+    #####:  339:    convert_int2bin8(the_mode, the_mode_bin8);
+    #####:  340:    printf("the_mode: INT= %d BIN= %s = ", the_mode, the_mode_bin8);
+        -:  341:    
+    #####:  342:      if (the_mode_bin8[7] == '1') { printf("PARPORT_MODE_PCSPP \n"); } 
+    #####:  343:      if (the_mode_bin8[6] == '1') { printf("PARPORT_MODE_TRISTATE \n"); } 
+    #####:  344:      if (the_mode_bin8[5] == '1') { printf("PARPORT_MODE_EPP \n"); } 
+    #####:  345:      if (the_mode_bin8[4] == '1') { printf("PARPORT_MODE_ECP \n"); } 
+    #####:  346:      if (the_mode_bin8[3] == '1') { printf("PARPORT_MODE_COMPAT \n"); } 
+    #####:  347:      if (the_mode_bin8[2] == '1') { printf("PARPORT_MODE_DMA	 \n"); } 
+    #####:  348:      if (the_mode_bin8[1] == '1') { printf("PARPORT_MODE_SAFEININT \n"); } 
+        -:  349:  }  
+        -:  350:
+    #####:  351:return (result05);  
+        -:  352:}  
+        -:  353:// NO. 06
+        -:  354:// ========================================================
+    #####:  355:int ada_ioctl_ppsetflags_parport(int fd_ada, int flagstoset) {
+        -:  356:// ========================================================
+        -:  357:  
+        -:  358:// #define PP_FASTWRITE	(1<<2)  BIN= 00000100  INT= 4
+        -:  359:// #define PP_FASTREAD		(1<<3)  BIN= 00001000  INT= 8
+        -:  360:// #define PP_W91284PIC	(1<<4)  BIN= 00010000  INT= 16 
+        -:  361:// #define PP_FLAGMASK	(PP_FASTWRITE | PP_FASTREAD | PP_W91284PIC)  
+        -:  362:  char flagstoset_bin8[9];
+        -:  363:  
+    #####:  364:  int the_mask = PP_FLAGMASK;
+        -:  365:  char the_mask_bin8[9];
+    #####:  366:  convert_int2bin8(the_mask, the_mask_bin8);
+        -:  367:  // printf("(23) the_mask INT= %d BIN= %s\n", the_mask, the_mask_bin8);
+        -:  368:
+    #####:  369:  int result06 = ioctl(fd_ada, PPSETFLAGS, &flagstoset);
+    #####:  370:  if (result06 != 0)
+        -:  371:  {
+    #####:  372:    perror ("PPSETFLAGS");
+    #####:  373:    close (fd_ada);
+    #####:  374:    printf("Call FAILED. Set parport flag PPSETFLAGS. fd_ada = %d , flagstoset = %d, result06 = %d \n", fd_ada, flagstoset, result06);
+    #####:  375:    exit(1); 
+        -:  376:  } else {
+    #####:  377:    printf("Set PPSETFLAGS for parport flags: fd_ada = %d, flagstoset = %d => ", fd_ada, flagstoset);
+        -:  378:    
+    #####:  379:    convert_int2bin8(flagstoset, flagstoset_bin8);
+        -:  380:        
+    #####:  381:    if (flagstoset == 4) { printf(" PP_FASTWRITE "); }
+    #####:  382:    if (flagstoset == 8) { printf(" PP_FASTREAD "); }
+    #####:  383:    if (flagstoset == 12) { printf(" PP_FASTWRITE | PP_FASTREAD "); }
+    #####:  384:    if (flagstoset == 16) { printf(" PP_W91284PIC ");} 
+    #####:  385:    if (flagstoset == 20) { printf(" PP_FASTWRITE | PP_W91284PIC "); }
+    #####:  386:    if (flagstoset == 24) { printf(" PP_FASTREAD | PP_W91284PIC  "); }
+    #####:  387:    if (flagstoset == 28) { printf(" PP_FLAGMASK "); }
+        -:  388:  }
+    #####:  389:  printf("\n");
+    #####:  390:return (result06);  
+        -:  391:}
+        -:  392:// NO. 07
+        -:  393:// ========================================================
+    #####:  394:int ada_ioctl_ppgetflags_current(int fd_ada) {
+        -:  395:// ========================================================
+        -:  396:  int the_flags;
+        -:  397:  char the_flags_bin8[9];
+        -:  398:  
+    #####:  399:  int result07 = ioctl(fd_ada, PPGETFLAGS, &the_flags);
+    #####:  400:  if (result07 != 0)
+        -:  401:  {
+    #####:  402:    perror ("PPGETFLAGS");
+    #####:  403:    close (fd_ada);
+    #####:  404:    printf("Call FAILED. Get parport flag PPGETFLAGS. fd_ada = %d , the_flags = %d , result07 = %d \n", fd_ada, the_flags, result07);
+    #####:  405:    exit(1); 
+        -:  406:  } else {
+    #####:  407:    printf("Get PPGETFLAGS current parport flags: fd_ada = %d, the_flags: ", fd_ada);
+        -:  408:  
+    #####:  409:    convert_int2bin8(the_flags, the_flags_bin8);
+    #####:  410:    printf("INT= %d BIN= %s = ", the_flags, the_flags_bin8);
+        -:  411:    
+    #####:  412:    switch (the_flags) {
+    #####:  413:          case 4 :
+    #####:  414:               printf(" PP_FASTWRITE  \n");
+    #####:  415:               break;
+    #####:  416:          case 8 :
+    #####:  417:               printf(" PP_FASTREAD	\n");
+    #####:  418:               break;
+    #####:  419:          case 12 :
+    #####:  420:               printf(" PP_FASTWRITE | PP_FASTREAD 	\n");
+    #####:  421:               break;
+    #####:  422:          case 20:
+    #####:  423:               printf(" PP_FASTWRITE | PP_W91284PIC 	\n");
+    #####:  424:               break;
+    #####:  425:          case 16 :
+    #####:  426:               printf(" PP_W91284PIC  \n");
+    #####:  427:               break;
+    #####:  428:          case 24 :
+    #####:  429:               printf(" PP_FASTREAD | PP_W91284PIC  \n");
+    #####:  430:               break;
+    #####:  431:          case 28 :
+    #####:  432:               printf(" PP_FLAGMASK \n");
+    #####:  433:               break;
+    #####:  434:          default:
+    #####:  435:               printf(" ERROR: Unknown flags for PARPORT \n");
+        -:  436:     } // END switch..case  
+        -:  437:        
+        -:  438:  } // END if..else
+        -:  439:  
+    #####:  440:return (result07);  
+        -:  441:}
+        -:  442:// No. 08
+        -:  443:// ========================================================
+    #####:  444:int ada_ioctl_ppsetphase_parport(int fd_ada, int phasetoset) {
+        -:  445:// ========================================================
+        -:  446:/* Set the IEEE 1284 phase that we're in (e.g. IEEE1284_PH_FWD_IDLE) */
+        -:  447:// (17) #define PPSETPHASE	_IOW(PP_IOCTL, 0x94, int)
+        -:  448:
+        -:  449:// PPSETPHASE : IFaceC.int := 148; -- HEX 0x94
+        -:  450:
+        -:  451:  
+    #####:  452:  int result08 = ioctl(fd_ada, PPSETPHASE, &phasetoset);
+    #####:  453:  if (result08 != 0)
+        -:  454:  {
+    #####:  455:    perror ("PPSETPHASE");
+    #####:  456:    close (fd_ada);
+    #####:  457:    printf("Call FAILED. Set IEEE 1284 phase PPSETPHASE. fd_ada = %d , ieee1284_phase = %d, result08 = %d \n", fd_ada, phasetoset, result08);
+    #####:  458:    exit(1); 
+        -:  459:  } else {
+    #####:  460:    printf("Set PPSETPHASE for parport phase: fd_ada = %d, phasetoset = %d => ", fd_ada, phasetoset);
+        -:  461:    
+    #####:  462:    switch (phasetoset) {
+    #####:  463:          case 0 :
+    #####:  464:               printf("IEEE1284_PH_FWD_DATA \n");
+    #####:  465:               break;
+    #####:  466:          case 1 :
+    #####:  467:               printf("IEEE1284_PH_FWD_IDLE \n");
+    #####:  468:               break;
+    #####:  469:          case 2 :
+    #####:  470:               printf("IEEE1284_PH_TERMINATE \n");
+    #####:  471:               break;
+    #####:  472:          case 3 :
+    #####:  473:               printf("IEEE1284_PH_NEGOTIATION \n");
+    #####:  474:               break;
+    #####:  475:          case 4 :
+    #####:  476:               printf("IEEE1284_PH_HBUSY_DNA \n");
+    #####:  477:               break;
+    #####:  478:          case 5 :
+    #####:  479:               printf("IEEE1284_PH_REV_IDLE \n");
+    #####:  480:               break;
+    #####:  481:          case 6 :
+    #####:  482:               printf("IEEE1284_PH_HBUSY_DAVAIL \n");
+    #####:  483:               break;
+    #####:  484:          case 7 :
+    #####:  485:               printf("IEEE1284_PH_REV_DATA \n");
+    #####:  486:               break;
+    #####:  487:          case 8 :
+    #####:  488:               printf("IEEE1284_PH_ECP_SETUP \n");
+    #####:  489:               break;
+    #####:  490:          case 9 :
+    #####:  491:               printf("IEEE1284_PH_ECP_FWD_TO_REV \n");
+    #####:  492:               break;
+    #####:  493:          case 10 :
+    #####:  494:               printf("IEEE1284_PH_ECP_REV_TO_FWD \n");
+    #####:  495:               break;
+    #####:  496:          case 11 :
+    #####:  497:               printf("IEEE1284_PH_ECP_DIR_UNKNOWN \n");
+    #####:  498:               break;       
+    #####:  499:          default:
+    #####:  500:               printf("ERROR: Unknown IEEE1284_PHASE \n");
+        -:  501:     } // END switch..case
+        -:  502:    
+        -:  503:  } // END if..else
+        -:  504:
+    #####:  505:return (result08);
+        -:  506:}
+        -:  507:// No. 09
+        -:  508:// ========================================================
+    #####:  509:int ada_ioctl_ppgetphase_current(int fd_ada) {
+        -:  510:// ========================================================
+        -:  511:/* Get the current mode and phase */
+        -:  512:// (22) #define PPGETPHASE	_IOR(PP_IOCTL, 0x99, int)
+        -:  513:  int the_ppphase;
+        -:  514:  char the_ppphase_bin8[9]; 
+        -:  515:  
+    #####:  516:  int result09 = ioctl(fd_ada, PPGETPHASE, &the_ppphase);
+    #####:  517:  if (result09 != 0)
+        -:  518:  {
+    #####:  519:    perror ("PPGETPHASE");
+    #####:  520:    close (fd_ada);
+    #####:  521:    printf("Call FAILED. Get the current phase PPGETPHASE. fd_ada = %d , result09 = %d \n", fd_ada, result09);
+    #####:  522:    exit(1); 
+        -:  523:  } else {
+    #####:  524:    printf("Get PPGETPHASE current parport phase: fd_ada = %d, ", fd_ada);
+    #####:  525:    convert_int2bin8(the_ppphase, the_ppphase_bin8);
+    #####:  526:    printf("the_phase: INT= %d BIN= %s = ", the_ppphase, the_ppphase_bin8);
+        -:  527:   
+    #####:  528:    switch (the_ppphase) {
+    #####:  529:          case 0 :
+    #####:  530:               printf("IEEE1284_PH_FWD_DATA  \n");
+    #####:  531:               break;
+    #####:  532:          case 1 :
+    #####:  533:               printf("IEEE1284_PH_FWD_DATA  \n");
+    #####:  534:               break;
+    #####:  535:          case 2 :
+    #####:  536:               printf("IEEE1284_PH_TERMINATE  \n");
+    #####:  537:               break;
+    #####:  538:          case 3 :
+    #####:  539:               printf("IEEE1284_PH_NEGOTIATION \n");
+    #####:  540:               break;
+    #####:  541:          case 4 :
+    #####:  542:               printf("IEEE1284_PH_HBUSY_DNA \n");
+    #####:  543:               break;
+    #####:  544:          case 5 :
+    #####:  545:               printf("IEEE1284_PH_REV_IDLE  \n");
+    #####:  546:               break;
+    #####:  547:          case 6 :
+    #####:  548:               printf("IEEE1284_PH_HBUSY_DAVAIL  \n");
+    #####:  549:               break;
+    #####:  550:          case 7 :
+    #####:  551:               printf("IEEE1284_PH_REV_DATA \n");
+    #####:  552:               break;
+    #####:  553:          case 8 :
+    #####:  554:               printf("IEEE1284_PH_ECP_SETUP \n");
+    #####:  555:               break;
+    #####:  556:          case 9:
+    #####:  557:               printf("IEEE1284_PH_ECP_FWD_TO_REV \n");
+    #####:  558:               break;
+    #####:  559:          case 10 :
+    #####:  560:               printf("IEEE1284_PH_ECP_REV_TO_FWD \n");
+    #####:  561:               break;
+    #####:  562:          case 11:
+    #####:  563:               printf("IEEE1284_PH_ECP_DIR_UNKNOWN \n");
+    #####:  564:               break;
+    #####:  565:          default:
+    #####:  566:               printf("ERROR: Unknown phase for PARPORT \n");
+        -:  567:       } // END switch..case
+        -:  568:       
+        -:  569:  }  // END if..else
+        -:  570:  
+    #####:  571:return(result09);
+        -:  572:}
+        -:  573:// NO. 10
+        -:  574:// ========================================================
+    #####:  575:int ada_ioctl_ppdatadir_dataport(int fd_ada, int datadirection) {
+        -:  576:// ========================================================
+        -:  577:/* Data line direction: non-zero for input mode. */
+        -:  578:// (14) #define PPDATADIR	_IOW(PP_IOCTL, 0x90, int)// 
+        -:  579:// PPDATADIR : IFaceC.int := 144;	-- HEX 0x90 Data line direction
+        -:  580:
+    #####:  581:int result10 = ioctl(fd_ada, PPDATADIR, &datadirection);
+    #####:  582:  if (result10 != 0)
+        -:  583:  {
+    #####:  584:    perror ("PPDATADIR");
+    #####:  585:    close (fd_ada);
+    #####:  586:    printf("Call FAILED. Set datadirection PPDATADIR: non-zero/zero for input/outpot mode. fd_ada = %d , datadirection = %d , result10 = %d \n", fd_ada, datadirection, result10);
+    #####:  587:    exit(1); 
+        -:  588:  } else {
+    #####:  589:    printf("Set PPDATADIR parport data direction: fd_ada = %d, datadirection = %d = ", fd_ada, datadirection);
+        -:  590:   
+        -:  591:  
+    #####:  592:    if (datadirection == 0) {
+    #####:  593:      datadirection = PPDATADIR_OUT;
+    #####:  594:      printf("PPDATADIR_OUT \n");
+        -:  595:    } else {
+    #####:  596:      datadirection = PPDATADIR_IN;
+    #####:  597:      printf("PPDATADIR_IN \n");
+        -:  598:    }
+        -:  599:  }
+        -:  600:
+    #####:  601:return(result10);
+        -:  602:}
+        -:  603:// NO. 11
+        -:  604:// ========================================================
+    #####:  605:int ada_ioctl_ppwdata_writedataregister(int fd_ada, int datatowrite) {
+        -:  606:// ========================================================
+        -:  607:/* Read/write data */
+        -:  608:// DONE (7) #define PPRDATA		_IOR(PP_IOCTL, 0x85, unsigned char)
+        -:  609:// DONE (5) #define PPWDATA		_IOW(PP_IOCTL, 0x86, unsigned char)
+        -:  610:
+        -:  611:// PPRDATA		: IFaceC.int  := 133; -- HEX 0x85 Read data port  BIN= 10000101
+        -:  612:// PPWDATA		: IFaceC.int  := 134; -- HEX 0x86 Write data port BIN= 10000110  
+        -:  613:  
+        -:  614:  int result11;
+        -:  615:  char datatowrite_bin8[9];
+        -:  616:  
+        -:  617:  // TEST data input from terminal
+        -:  618:  // printf("(5) Enter an integer between 0 and 255 : ");
+        -:  619:  // scanf("%d", &datatowrite);
+        -:  620:  
+    #####:  621:  if (((int)datatowrite < 0) || ((int)datatowrite > 255)) {
+    #####:  622:    printf("Call FAILED. Data to write out of range [0..255], datatowrite = %d \n", (int)datatowrite);
+    #####:  623:    close (fd_ada);
+    #####:  624:    exit(1);  
+        -:  625:  } else {  
+        -:  626:    
+    #####:  627:    result11 = ioctl(fd_ada, PPWDATA, &datatowrite);
+    #####:  628:    if (result11 != 0)  {
+    #####:  629:        perror ("PPWDATA");
+    #####:  630:        close (fd_ada);
+    #####:  631:        printf("Call FAILED. Parallel port write data PPWDATA. result11 = %d \n", result11);
+    #####:  632:        exit(1);  
+        -:  633:    } else {
+    #####:  634:        convert_int2bin8(datatowrite, datatowrite_bin8);
+    #####:  635:        printf("Write\t PPWDATA \t: UCHAR= %c \tINT= %d \tHEX= 0x%x \tBIN= %s\n", 
+        -:  636:            datatowrite, datatowrite, datatowrite, datatowrite_bin8);
+        -:  637:    }
+        -:  638:    
+        -:  639:  }
+        -:  640:  
+    #####:  641:return(result11);
+        -:  642:}  
+        -:  643:// ========================================================
+        -:  644:// NO. 11.1  STREAM DATA TO WRITE
+    #####:  645:int ada_ioctl_streamdata_writedataregister(int fd_ada, char *stream_datatowrite) {
+        -:  646:// ========================================================
+        -:  647:  int result; 
+        -:  648:  char chartowrite;
+        -:  649:  char chartowrite_bin8[9];
+        -:  650:  
+    #####:  651:  printf("Write stream data char-by-char to parport: '%s' \n", stream_datatowrite);
+        -:  652:  do {
+    #####:  653:       chartowrite = *stream_datatowrite;
+    #####:  654:       convert_int2bin8(chartowrite, chartowrite_bin8);
+    #####:  655:       printf("\tWrite\t PPWDATA \t: UCHAR= %c \tINT= %d \tHEX= 0x%x \tBIN= %s\n", 
+        -:  656:           chartowrite, chartowrite, chartowrite, chartowrite_bin8);
+        -:  657:    
+    #####:  658:       stream_datatowrite++;
+    #####:  659:  } while (*stream_datatowrite != '\0');  // loop until null character 
+        -:  660:  
+    #####:  661:  result = 0;
+    #####:  662:return(result);
+        -:  663:}
+        -:  664:// NO. 12
+        -:  665:// ========================================================
+    #####:  666:int ada_ioctl_pprdata_readdataregister(int fd_ada) {
+        -:  667:// ========================================================
+        -:  668:/* Read/write data */
+        -:  669:
+        -:  670:// PPRDATA		: IFaceC.int  := 133; -- HEX 0x85 Read data port
+        -:  671:// PPWDATA		: IFaceC.int  := 134; -- HEX 0x86 Write data port 
+        -:  672:
+        -:  673:  unsigned char pprdata_val;
+        -:  674:  char pprdata_bin8[9];
+        -:  675: 
+    #####:  676:  int result12 = ioctl(fd_ada, PPRDATA, &pprdata_val); 
+    #####:  677:  if (result12 != 0)
+        -:  678:    {
+    #####:  679:      perror("fd_ada");
+    #####:  680:      printf("Call FAILED. Read PPRDATA for fd_ada = %d, port_ada: %s, result12 = %d \n", fd_ada, port_ada, result12);
+    #####:  681:      exit(1);
+        -:  682:    } else {
+    #####:  683:      convert_int2bin8(pprdata_val, pprdata_bin8);
+    #####:  684:      printf("Read\t PPRDATA \t: UCHAR= %c \tINT= %d \tHEX= 0x%x \tBIN= %s\n", 
+        -:  685:          pprdata_val, pprdata_val, pprdata_val, pprdata_bin8);
+        -:  686:    }
+        -:  687:  
+    #####:  688:return(result12); 
+        -:  689:}
+        -:  690:// NO. 13
+        -:  691:// ========================================================
+    #####:  692:int ada_ioctl_pprstatus_readstatusregister(int fd_ada) {
+        -:  693:// ========================================================
+        -:  694:/* Read status */
+        -:  695:// DONE (8) #define PPRSTATUS	_IOR(PP_IOCTL, 0x81, unsigned char)
+        -:  696:
+        -:  697:// PPRSTATUS	: IFaceC.int := 129; -- HEX 0x81 Read status
+        -:  698:  
+        -:  699:  unsigned char pprstatus_val;
+        -:  700:  char pprstatus_bin8[9];
+        -:  701:  
+    #####:  702:  int result13 = ioctl(fd_ada, PPRSTATUS, &pprstatus_val); 
+    #####:  703:  if (result13 != 0)
+        -:  704:    {
+    #####:  705:      perror("fd_ada");
+    #####:  706:      printf("Call FAILED. Read PPRSTATUS for fd_ada = %d, port_ada: %s, result13 = %d \n", fd_ada, port_ada, result13);
+    #####:  707:      exit(1);
+        -:  708:    } else {
+    #####:  709:       convert_int2bin8(pprstatus_val, pprstatus_bin8);
+    #####:  710:       printf("Read\t PPRSTATUS \t: UCHAR= %c \tINT= %d \tHEX= 0x%x \tBIN= %s ", 
+        -:  711:           pprstatus_val, pprstatus_val, pprstatus_val, pprstatus_bin8);
+        -:  712:    
+    #####:  713:       switch (pprstatus_val) {
+    #####:  714:          case 8 :
+    #####:  715:               printf("PARPORT_STATUS_ERROR \n");
+    #####:  716:               break;
+    #####:  717:          case 16 :
+    #####:  718:               printf("PARPORT_STATUS_SELECT \n");
+    #####:  719:               break;
+    #####:  720:          case 32 :
+    #####:  721:               printf("PARPORT_STATUS_PAPEROUT \n");
+    #####:  722:               break;
+    #####:  723:          case 64 :
+    #####:  724:               printf("PARPORT_STATUS_ACK \n");
+    #####:  725:               break;
+    #####:  726:          case 128 :
+    #####:  727:               printf("PARPORT_STATUS_BUSY \n");
+    #####:  728:               break;
+    #####:  729:          default:
+    #####:  730:               printf("ERROR: Unknown PARPORT_STATUS \n");
+        -:  731:       } // END switch..case
+        -:  732:       
+        -:  733:    } // END if..else
+        -:  734:  
+    #####:  735:return(result13); 
+        -:  736:}
+        -:  737:// NO. 14
+        -:  738:// ========================================================
+    #####:  739:int ada_ioctl_ppwcontrol_writecontrolregister(int fd_ada, int controltowrite) {
+        -:  740:// ========================================================
+        -:  741:/* Read/write control */
+        -:  742:// DONE (9)  #define PPRCONTROL	_IOR(PP_IOCTL, 0x83, unsigned char)
+        -:  743:// DONE (10) #define PPWCONTROL	_IOW(PP_IOCTL, 0x84, unsigned char)
+        -:  744:  
+        -:  745:// PPRCONTROL	: IFaceC.int := 131; -- HEX 0x83 Read control
+        -:  746:// PPWCONTROL : IFaceC.int := 132; -- HEX 0x84 Write control  
+        -:  747:  
+        -:  748:  int result14;
+        -:  749:  char controltowrite_bin8[9];
+        -:  750:   
+    #####:  751:  if ((controltowrite < 0) || ((int)controltowrite > 255))
+        -:  752:  {
+    #####:  753:    printf("(14) FAILED. Control to write is out of range [0..255], controltowrite = %d \n", (int)controltowrite);
+    #####:  754:    close (fd_ada);
+    #####:  755:    exit(1);  
+        -:  756:  } else {  
+    #####:  757:    result14 = ioctl(fd_ada, PPWCONTROL, &controltowrite); 
+        -:  758:  }
+        -:  759:    
+    #####:  760:  if (result14 != 0)
+        -:  761:    {
+    #####:  762:      perror("fd_ada");
+    #####:  763:      printf("Call FAILED. Write PPWCONTROL for fd_ada = %d, port_ada: %s, result14 = %d \n", fd_ada, port_ada, result14);
+    #####:  764:      exit(1);
+        -:  765:    } else {
+    #####:  766:      convert_int2bin8(controltowrite, controltowrite_bin8);
+    #####:  767:      printf("Write\t PPWCONTROL \t: UCHAR= %c \tINT= %d \t\tHEX= 0x%x \tBIN= %s\n", 
+        -:  768:           controltowrite, controltowrite, controltowrite, controltowrite_bin8);
+        -:  769:    }
+        -:  770:
+    #####:  771:return (result14);
+        -:  772:}
+        -:  773:// NO. 15
+        -:  774:// ========================================================
+    #####:  775:int ada_ioctl_pprcontrol_readcontrolregister(int fd_ada) {
+        -:  776:// ========================================================
+        -:  777:/* Read/write control */
+        -:  778:
+        -:  779:// PPRCONTROL	: IFaceC.int := 131; -- HEX 0x83 Read control
+        -:  780:// PPWCONTROL : IFaceC.int := 132; -- HEX 0x84 Write control    
+        -:  781:  
+        -:  782:  unsigned char pprcontrol_val;
+        -:  783:  char pprcontrol_bin8[9];
+    #####:  784:  int result15 = ioctl(fd_ada, PPRCONTROL, &pprcontrol_val); 
+    #####:  785:  if (result15 != 0)
+        -:  786:    {
+    #####:  787:      perror("fd_ada");
+    #####:  788:      printf("Call FAILED. Read PPRCONTROL for fd_ada = %d, port_ada: %s, result15 = %d \n", fd_ada, port_ada, result15);
+    #####:  789:      exit(1);
+        -:  790:    } else {
+    #####:  791:      convert_int2bin8(pprcontrol_val, pprcontrol_bin8);
+    #####:  792:      printf("Read\t PPRCONTROL \t: UCHAR= %c \tINT= %d \t\tHEX= 0x%x \tBIN= %s ", 
+        -:  793:           pprcontrol_val, pprcontrol_val, pprcontrol_val, pprcontrol_bin8);
+        -:  794:    
+    #####:  795:      switch (pprcontrol_val) {
+    #####:  796:          case 1 :
+    #####:  797:               printf("PARPORT_CONTROL_STROBE \n");
+    #####:  798:               break;
+    #####:  799:          case 2 :
+    #####:  800:               printf("PARPORT_CONTROL_AUTOFD \n");
+    #####:  801:               break;
+    #####:  802:          case 4 :
+    #####:  803:               printf("PARPORT_CONTROL_INIT \n");
+    #####:  804:               break;
+    #####:  805:          case 8 :
+    #####:  806:               printf("PARPORT_CONTROL_SELECT \n");
+    #####:  807:               break;
+    #####:  808:          default:
+    #####:  809:               printf("ERROR: Unknown PARPORT_CONTROL \n");
+        -:  810:       } // END switch..case
+        -:  811:    
+        -:  812:   } // END if..else
+        -:  813:  
+    #####:  814:return(result15); 
+        -:  815:}
+        -:  816:// NO. 16
+        -:  817:// ========================================================
+    #####:  818:int ada_ioctl_ppfcontrol_frob1(void) {
+        -:  819:// ========================================================
+        -:  820:// DONE (4) (6) #define PPFCONTROL _IOW(PP_IOCTL, 0x8e, struct ppdev_frob_struct)
+        -:  821:  
+        -:  822:// PPFCONTROL : IFaceC.int := 142; -- HEX 0x8e Frob control
+        -:  823:  
+    #####:  824:  frob.mask = OUTPUTENABLE;   // HEX=0x02 BIN= 00000010  INT= 2 
+    #####:  825:  frob.val  = OUTPUTENABLE;   // HEX=0x02 BIN= 00000010  INT= 2 
+        -:  826:  
+    #####:  827:  int result16 = ioctl(fd_ada, PPFCONTROL, &frob);
+    #####:  828:  if (result16 != 0) {
+    #####:  829:    perror ("PPFCONTROL");
+    #####:  830:    close (fd_ada);
+    #####:  831:    printf("Call FAILED. Assert latch's OUTPUTENABLE PPFCONTROL frob signal, result16 = %d \n", result16);
+    #####:  832:    exit(1); 
+        -:  833:  } else {
+    #####:  834:    printf("Assert PPFCONTROL frob1 with frob.mask and frob.val = (OUTPUTENABLE). \n");
+        -:  835:  }  
+    #####:  836:return(result16);  
+        -:  837:}
+        -:  838:  
+        -:  839:// NO. 17
+        -:  840:// ========================================================
+    #####:  841:int ada_ioctl_ppfcontrol_frob2(void) {
+        -:  842:// ========================================================
+        -:  843:// DONE (4) (6) #define PPFCONTROL _IOW(PP_IOCTL, 0x8e, struct ppdev_frob_struct)  
+        -:  844:
+        -:  845:// PPFCONTROL : IFaceC.int := 142; -- HEX 0x8e Frob control  BIN= 10001110
+        -:  846:  
+    #####:  847:  frob.mask = OUTPUTENABLE | OUTPUTLATCH;  // HEX= 0x06 BIN= 00000110 INT= 6
+    #####:  848:  frob.val  = OUTPUTENABLE | OUTPUTLATCH;
+    #####:  849:  int result17 = ioctl(fd_ada, PPFCONTROL, &frob);
+    #####:  850:  if (result17 != 0)
+        -:  851:  {
+    #####:  852:    perror ("PPFCONTROL");
+    #####:  853:    close (fd_ada);
+    #####:  854:    printf("(17) FAILED. Toggle the OUTPUTENABLE/OUTPUTLATCH PPFCONTROL signal to latch data, result17 = %d \n", result17);
+    #####:  855:    exit(1); 
+        -:  856:  }  else {
+    #####:  857:    printf("Assert PPFCONTROL frob2 with frob.mask and frob.val = (OUTPUTENABLE | OUTPUTLATCH). \n");
+        -:  858:  }  
+        -:  859:  
+    #####:  860:return (result17);
+        -:  861:} 
+        -:  862:// NO. 18
+        -:  863:// ========================================================
+    #####:  864:int ada_ioctl_ppwctlonirq_controlport(int fd_ada, int the_interrupt) {
+        -:  865:// ========================================================
+        -:  866:/* Set control lines when an interrupt occurs. */
+        -:  867:// (15) #define PPWCTLONIRQ	_IOW(PP_IOCTL, 0x92, unsigned char)
+        -:  868:// PPWCTLONIRQ : IFaceC.int := 146; -- HEX 0x92 Set control lines when an interrupt occurs
+        -:  869:
+    #####:  870:  int result18 = ioctl(fd_ada, PPWCTLONIRQ, &the_interrupt);
+    #####:  871:  if (result18 != 0)
+        -:  872:  {
+    #####:  873:    perror ("PPWCTLONIRQ");
+    #####:  874:    close (fd_ada);
+    #####:  875:    printf("Call FAILED. Set/Write control lines interrupt occurs PPWCTLONIRQ. fd_ada = %d, IRQ = %d , result18 = %d \n", fd_ada, the_interrupt, result18);
+    #####:  876:    exit(1); 
+        -:  877:  } else {
+    #####:  878:    printf("Set/Write control on interrupt occurance PPWCTLONIRQ. fd_ada = %d, IRQ = %d \n", fd_ada, the_interrupt);
+        -:  879:  }
+        -:  880:
+    #####:  881:return (result18);
+        -:  882:}
+        -:  883:// NO. 19
+        -:  884:// ========================================================
+    #####:  885:int ada_ioctl_ppclrirq_controlport(int fd_ada, int the_interrupt) {
+        -:  886:// ========================================================
+        -:  887:/* Clear (and return) interrupt count. */
+        -:  888:// (16) #define PPCLRIRQ	_IOR(PP_IOCTL, 0x93, int)  
+        -:  889:// PPCLRIRQ	 : IFaceC.int  := 147; -- HEX 0x93 Clear (and return) interrupt count
+        -:  890:  
+        -:  891:  // printf("(16) IRQ before clear = %d \n", the_interrupt);
+    #####:  892:  int result19 = ioctl(fd_ada, PPCLRIRQ, &the_interrupt);
+    #####:  893:  if (result19 != 0)
+        -:  894:  {
+    #####:  895:    perror ("PPCLRIRQ");
+    #####:  896:    close (fd_ada);
+    #####:  897:    printf("Call FAILED. Clear IRQ, return) IRQ count PPCLRIRQ. fd_ada = %d, IRQ = %d, IRQ_Count = result19 = %d \n", fd_ada, the_interrupt, result19);
+    #####:  898:    exit(1); 
+        -:  899:  } else {
+    #####:  900:    printf("Clear IRQ. Set IRQ = 0, on return IRQ count PPCLRIRQ. fd_ada = %d, IRQ = %d \n", fd_ada, the_interrupt);
+        -:  901:    
+        -:  902:  }
+        -:  903:
+    #####:  904:return (result19);
+        -:  905:}
+        -:  906:// NO. 20 
+        -:  907:// ========================================================
+    #####:  908:int ada_ioctl_ppnegot_mode(int fd_ada, int modetoset) {
+        -:  909:// ========================================================
+        -:  910:/* Negotiate a particular IEEE 1284 mode. */
+        -:  911:// DONE (3) #define PPNEGOT		_IOW(PP_IOCTL, 0x91, int)
+        -:  912:
+        -:  913:// PPNEGOT   : IFaceC.int := 145;	-- HEX 0x91 Negotiate a particular IEEE 1284 mode  
+        -:  914:  char modetoset_bin8[9];
+    #####:  915:  int result20 = ioctl(fd_ada, PPNEGOT, &modetoset);
+    #####:  916:  if (result20 != 0)
+        -:  917:  {
+    #####:  918:    perror ("PPNEGOT");
+    #####:  919:    close (fd_ada);
+    #####:  920:    printf("Call FAILED. Negotiate/configure the_port for mode_ada = %d result20 = %d \n", modetoset, result20);
+    #####:  921:    exit(1); 
+        -:  922:  } else {
+    #####:  923:    printf("Negotiate/configure the_port for mode_ada = %d = ", modetoset);
+        -:  924:    
+    #####:  925:      convert_int2bin8(modetoset, modetoset_bin8);
+    #####:  926:      if (modetoset_bin8[7] == '1') { printf("PARPORT_MODE_PCSPP \n"); } 
+    #####:  927:      if (modetoset_bin8[6] == '1') { printf("PARPORT_MODE_TRISTATE \n"); } 
+    #####:  928:      if (modetoset_bin8[5] == '1') { printf("PARPORT_MODE_EPP \n"); } 
+    #####:  929:      if (modetoset_bin8[4] == '1') { printf("PARPORT_MODE_ECP \n"); } 
+    #####:  930:      if (modetoset_bin8[3] == '1') { printf("PARPORT_MODE_COMPAT \n"); } 
+    #####:  931:      if (modetoset_bin8[2] == '1') { printf("PARPORT_MODE_DMA	 \n"); } 
+    #####:  932:      if (modetoset_bin8[1] == '1') { printf("PARPORT_MODE_SAFEININT \n"); } 
+        -:  933:  }  
+    #####:  934:return (result20);
+        -:  935:}
+        -:  936:// NO. 21
+        -:  937:// ========================================================
+    #####:  938:int ada_ioctl_ppyield_parport(int fd_ada) {
+        -:  939:// ========================================================
+        -:  940:/* Yield the port (release it if another driver is waiting, then reclaim) */
+        -:  941:  // (12) #define PPYIELD		_IO(PP_IOCTL, 0x8d)
+        -:  942:  // PPYIELD   : IFaceC.int := 141;	-- HEX 0x8d
+        -:  943:  
+    #####:  944:  int result21 = ioctl(fd_ada, PPYIELD);
+    #####:  945:  if (result21 != 0)
+        -:  946:  {
+    #####:  947:    perror ("PPYIELD");
+    #####:  948:    close (fd_ada);
+    #####:  949:    printf("Call FAILED. Yield the_port %s, PPYIELD, result21 = %d \n", port_ada, result21);
+    #####:  950:    exit(1); 
+        -:  951:  } else {
+    #####:  952:    printf("Yield the_port %s, PPYIELD. \n", port_ada);
+        -:  953:  }  
+    #####:  954:  return (result21);
+        -:  955:}
+        -:  956:// NO.22
+        -:  957:// ========================================================
+    #####:  958:int ada_ioctl_ppgettime_usec_parport(int fd) {
+        -:  959:// ========================================================
+        -:  960:/* Set and get port timeout (struct timeval's) */
+        -:  961:// (18) #define PPGETTIME	_IOR(PP_IOCTL, 0x95, struct timeval)
+        -:  962:
+        -:  963:// Set and get port timeout (struct timeval) 
+        -:  964:// PPGETTIME : IFaceC.int := 149; -- HEX 0x95
+        -:  965: 
+        -:  966:// https://linuxhint.com/gettimeofday_c_language/
+    #####:  967:  time(&the_time);
+    #####:  968:  the_tminfo = localtime(&the_time);
+    #####:  969:	strftime(the_strbuffer1, 26, "%Y-%m-%d %H:%M:%S", the_tminfo);
+        -:  970:   
+    #####:  971:  gettimeofday(&current_time, NULL);
+    #####:  972:  printf("Get parport port time PPGETTIME. fd_ada = %d \n", fd_ada);
+    #####:  973:  printf("\tDATE-TIME-STAMP: %s", the_strbuffer1);
+    #####:  974:  printf(".%06ld \n", (long int)current_time.tv_usec);
+        -:  975:  // printf("TIME-FROM-EPOCH: seconds.microseconds = %ld.%ld \n", current_time.tv_sec, current_time.tv_usec);
+        -:  976:  
+        -:  977:  // TO FIX
+        -:  978:  // clock_gettime(CLOCK_REALTIME, thetime_nsec_now);
+        -:  979:	// printf(".%09ld \t", (long int)thetime_nsec_now.tv_nsec);
+        -:  980:                             
+    #####:  981:  int result22 = ioctl(fd_ada, PPGETTIME);
+    #####:  982:  if (result22 != 0)
+        -:  983:  {
+    #####:  984:    perror ("PPGETTIME");
+    #####:  985:    close (fd_ada);
+    #####:  986:    printf("Call FAILED. Get port time PPGETTIME. fd_ada = %d , result22 = %d \n", fd_ada, result22);
+    #####:  987:    exit(1); 
+        -:  988:  } else {
+        -:  989:    // printf("Call Success.Get port time PPGETTIME. fd_ada = %d \n", fd_ada);
+    #####:  990:    printf("\tTIME-FROM-EPOCH: seconds.microseconds = %ld.%ld \n", current_time.tv_sec, current_time.tv_usec);
+        -:  991:  }
+        -:  992:
+    #####:  993:return (result22);
+        -:  994:}
+        -:  995:// NO. 23
+        -:  996:// ========================================================
+    #####:  997:int ada_ioctl_pprelease_parport(void){
+        -:  998:// ========================================================
+        -:  999:// PPRELEASE : IFaceC.int := 140;	-- HEX 0x8c  
+    #####: 1000:  int result23 = ioctl (fd_ada, PPRELEASE);
+    #####: 1001:  if (result23 != 0)
+        -: 1002:  {
+    #####: 1003:    perror ("PPRELEASE");
+    #####: 1004:    close (fd_ada);
+    #####: 1005:    printf("Call FAILED. Release the_port %s, PPRELEASE, result23 = %d \n", port_ada, result23);
+    #####: 1006:    exit(1); 
+        -: 1007:  } else {
+    #####: 1008:    printf("Success. PPRELEASE the parport device: fd_ada = %d, port_ada = %s \n", fd_ada, port_ada);
+        -: 1009:  }  
+    #####: 1010:return(result23);
+        -: 1011:}
+        -: 1012:// NO. 24
+        -: 1013:// ========================================================
+    #####: 1014:int ada_close_parport(int fd_ada) {
+        -: 1015:// ========================================================
+    #####: 1016:  int result24 = close(fd_ada);
+    #####: 1017:  if (result24 != 0)
+        -: 1018:  {
+    #####: 1019:    perror ("close");
+    #####: 1020:    printf("Call FAILED. Close the device file, fd_ada = %d, port_ada: %s, result24 = %d \n", fd_ada, port_ada, result24);
+    #####: 1021:    exit(1); 
+        -: 1022:  } else {
+    #####: 1023:    printf("Success. CLOSE the parport device: fd_ada = %d, port_ada = %s \n", fd_ada, port_ada);
+        -: 1024:  }  
+    #####: 1025:return(result24);
+        -: 1026:}
+        -: 1027:
+        -: 1028:// NO. X1
+        -: 1029:// ========================================================
+    #####: 1030:int ada_ioctl_ppexcl_parport(int fd_ada) {
+        -: 1031:// ========================================================
+        -: 1032:/* Register device exclusively (must be before PPCLAIM). */
+        -: 1033:// #define PPEXCL		_IO(PP_IOCTL, 0x8f)
+        -: 1034:// PPEXCL    : IFaceC.int := 143;	-- HEX 0x8f
+        -: 1035:  
+    #####: 1036:  int resultX1 = ioctl(fd_ada, PPEXCL);
+    #####: 1037:  if (resultX1 != 0)
+        -: 1038:  {
+    #####: 1039:    perror ("PPEXCL");
+    #####: 1040:    close (fd_ada);
+    #####: 1041:    printf("(X1) FAILED. Register PPEXCL exclusively the_port %s, resultX1 = %d \n", port_ada, resultX1);
+    #####: 1042:    exit(1); 
+        -: 1043:  } 
+        -: 1044:
+    #####: 1045:return(resultX1);
+        -: 1046:}
+        -: 1047:// NO. X2
+        -: 1048:// ========================================================
+    #####: 1049:int ada_ioctl_ppsettime_timeoutparport(int fd_ada, int timeout) {
+        -: 1050:// ========================================================
+        -: 1051:/* Set and get port timeout (struct timeval's) */
+        -: 1052:// #define PPSETTIME	_IOW(PP_IOCTL, 0x96, struct timeval) <=== IMPORTANT
+        -: 1053:
+        -: 1054:// Set and get port timeout (struct timeval's) 
+        -: 1055:// PPSETTIME : IFaceC.int := 150; -- HEX 0x96
+        -: 1056:
+    #####: 1057:int resultX2 = ioctl(fd_ada, PPSETTIME, &timeout);
+    #####: 1058:if (resultX2 != 0)
+        -: 1059:  {
+    #####: 1060:    perror ("PPSETTIME");
+    #####: 1061:    close (fd_ada);
+    #####: 1062:    printf("(X2) FAILED. Parport timeout setting PPSETTIME on the_port %s, resultX2 = %d \n", port_ada, resultX2);
+    #####: 1063:    exit(1); 
+        -: 1064:  } 
+        -: 1065:
+    #####: 1066:return(resultX2);
+        -: 1067:}
+        -: 1068:
+        -: 1069:// ========================================================
+        -: 1070:// ALHAMDULILLAH 3 TIMES WRY.
+        -: 1071:// ========================================================

@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<Locations >
+  <Project>
+    <vfs_file>/home/wruslan/workspaces-gnat/gnatstudio-c/gnat_c_cnc-03/c_cnc_gnat.gpr</vfs_file>
+    <file_marker current="true" column=" 18" line=" 28" >
+      <vfs_project>/home/wruslan/workspaces-gnat/gnatstudio-c/gnat_c_cnc-03/c_cnc_gnat.gpr</vfs_project>
+      <vfs_file>/home/wruslan/workspaces-gnat/gnatstudio-c/gnat_c_cnc-03/src/main_c_cnc_gnat.c</vfs_file>
+    </file_marker>
+  </Project>
+  <Project >
+    <vfs_file >/home/wruslan/workspaces-gnat/gnatstudio-c/gnat_c_cnc-02/c_cnc_gnat.gpr</vfs_file>
+    <file_marker current="true" column=" 1" line=" 1">
+      <vfs_project >/home/wruslan/workspaces-gnat/gnatstudio-c/gnat_c_cnc-02/c_cnc_gnat.gpr</vfs_project>
+      <vfs_file >/home/wruslan/workspaces-gnat/gnatstudio-c/gnat_c_cnc-02/src/main_c_cnc_gnat.c</vfs_file>
+    </file_marker>
+  </Project>
+</Locations>

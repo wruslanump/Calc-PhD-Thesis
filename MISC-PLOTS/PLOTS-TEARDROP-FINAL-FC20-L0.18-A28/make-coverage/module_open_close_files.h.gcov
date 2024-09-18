@@ -1,0 +1,290 @@
+        -:    0:Source:/home/wruslan/workspaces-gnat/gnatstudio-c/gnat_c_cnc-04/src/files/module_open_close_files.h
+        -:    1:
+        -:    2:// FILE: module_open_close_files.h
+        -:    3:
+        -:    4:#include "common/c_dtstamp.h" // HIRES DATE-TIME STAMP
+        -:    5:#include <stdio.h>            // For FILE definition
+        -:    6:
+        -:    7:/*
+        -:    8:FILE type is defined in <stdio.h> and you need to include it in each file
+        -:    9:that uses it.
+        -:   10:*/
+        -:   11:
+        -:   12:// DECLARE FILE HANDLES
+        -:   13:FILE *FHdata_01; // FOR TESTING
+        -:   14:FILE *FHdata_02; // FOR TESTING
+        -:   15:
+        -:   16:FILE *FHdata_raw_curve;
+        -:   17:FILE *FHdata_calc_u_next;
+        -:   18:FILE *FHdata_calc_tang_accn;
+        -:   19:FILE *FHdata_calc_t_look;
+        -:   20:FILE *FHdata_calc_frate_limit;
+        -:   21:FILE *FHdata_calc_intgr_error;
+        -:   22:FILE *FHdata_ngc_code;
+        -:   23:
+        -:   24:
+        -:   25:
+        -:   26:// DECLARE FUNCTION PROTOTYPES
+        -:   27:FILE *fxn_open_data_01 (void);
+        -:   28:FILE *fxn_open_data_02 (void);
+        -:   29:FILE *fxn_open_data_raw_curve (void);
+        -:   30:FILE *fxn_open_data_calc_u_next (void);
+        -:   31:FILE *fxn_open_data_calc_tang_accn (void);
+        -:   32:FILE *fxn_open_data_calc_t_look (void);
+        -:   33:FILE *fxn_open_data_calc_frate_limit (void);
+        -:   34:FILE *fxn_open_data_calc_intgr_error (void);
+        -:   35:FILE *fxn_open_data_ngc_code (void);
+        -:   36:
+        -:   37:
+        -:   38:void proc_open_all_files (void);
+        -:   39:
+        -:   40:// DECLARE FUNCTION PROTOTYPES
+        -:   41:void proc_writeheader_data_01 (void);
+        -:   42:void proc_writeheader_data_02 (void);
+        -:   43:void proc_writeheader_data_raw_curve (FILE* FHdata_raw_curve);
+        -:   44:void proc_writeheader_data_calc_u_next (FILE* FHdata_calc_unext);
+        -:   45:void proc_writeheader_data_calc_tang_accn (FILE* FHdata_calc_tang_accn);
+        -:   46:void proc_writeheader_data_calc_t_look (FILE* FHdata_calc_t_look);
+        -:   47:void proc_writeheader_data_calc_frate_limit (FILE* FHdata_calc_frate_limit);
+        -:   48:void proc_writeheader_data_calc_intgr_error (FILE* FHdata_calc_intgr_error);
+        -:   49:void proc_writeheader_data_ngc_code (FILE* FHdata_ngc_code, char* CurveTypeDesc, double ngc_depth, double ngc_scale);
+        -:   50:
+        -:   51:void proc_writeheader_all_files (void);
+        -:   52:
+        -:   53:void proc_writefooter_data_01 (void);
+        -:   54:void proc_writefooter_data_02 (void);
+        -:   55:void proc_writefooter_data_raw_curve (FILE* FHdata_raw_curve);
+        -:   56:void proc_writefooter_data_calc_u_next (FILE* FHdata_calc_u_next);
+        -:   57:void proc_writefooter_data_calc_tang_accn (FILE* FHdata_calc_tang_accn);
+        -:   58:void proc_writefooter_data_calc_t_look (FILE* FHdata_calc_t_look);
+        -:   59:void proc_writefooter_data_calc_frate_limit (FILE* FHdata_calc_frate_limit);
+        -:   60:void proc_writefooter_data_calc_intgr_error (FILE* FHdata_calc_intgr_error);
+        -:   61:void proc_writefooter_data_ngc_code (FILE *FHdata_ngc_code);
+        -:   62:
+        -:   63:void proc_writefooter_all_files (void);
+        -:   64:
+        -:   65:// DECLARE FUNCTION PROTOTYPES
+        -:   66:int fxn_close_data_01 (void);
+        -:   67:int fxn_close_data_02 (void);
+        -:   68:int fxn_close_data_raw_curve (void);
+        -:   69:int fxn_close_data_calc_u_next (void);
+        -:   70:int fxn_close_data_calc_tang_accn (void);
+        -:   71:int fxn_close_data_calc_t_look (void);
+        -:   72:int fxn_close_data_calc_frate_limit (void);
+        -:   73:int fxn_close_data_calc_intgr_error (void);
+        -:   74:int fxn_close_data_ngc_code (void);
+        -:   75:
+        -:   76:void proc_close_all_files (void);
+        -:   77:
+        -:   78:// ==================================================================
+        2:   79:FILE* fxn_open_data_01 (void) {
+        -:   80:// ==================================================================
+        2:   81:  return (fopen ("./data/data_01.txt", "w+"));
+        -:   82:}
+        -:   83:
+        -:   84:// ==================================================================
+        2:   85:FILE* fxn_open_data_02 (void) {
+        -:   86:// ==================================================================
+        2:   87:  return (fopen ("./data/data_02.txt", "w+"));
+        -:   88:}
+        -:   89:
+        -:   90:
+        -:   91:// ==================================================================
+        2:   92:FILE* fxn_open_data_raw_curve (void) {
+        -:   93:// ==================================================================
+        2:   94:  return (fopen ("./data/data_raw_curve.txt", "w+"));
+        -:   95:}
+        -:   96:
+        -:   97:
+        -:   98:// ==================================================================
+        2:   99:FILE* fxn_open_data_calc_u_next (void) {
+        -:  100:// ==================================================================
+        2:  101:  return (fopen ("./data/data_calc_u_next.txt", "w+"));
+        -:  102:}
+        -:  103:
+        -:  104:// ==================================================================
+        2:  105:FILE* fxn_open_data_calc_tang_accn (void) {
+        -:  106:// ==================================================================
+        2:  107:  return (fopen ("./data/data_calc_tang_accn.txt", "w+"));
+        -:  108:}
+        -:  109:
+        -:  110:// ==================================================================
+        2:  111:FILE* fxn_open_data_calc_t_look (void) {
+        -:  112:// ==================================================================
+        2:  113:  return (fopen ("./data/data_calc_t_look.txt", "w+"));
+        -:  114:}
+        -:  115:
+        -:  116:// ==================================================================
+        2:  117:FILE *fxn_open_data_calc_frate_limit (void) {
+        -:  118:// ==================================================================
+        2:  119:  return (fopen ("./data/data_calc_frate_limit.txt", "w+"));
+        -:  120:}
+        -:  121:
+        -:  122:// ==================================================================
+        2:  123:FILE *fxn_open_data_calc_intgr_error (void) {
+        -:  124:// ==================================================================
+        2:  125:  return (fopen ("./data/data_calc_intgr_error.txt", "w+"));
+        -:  126:}
+        -:  127:
+        -:  128:// ==================================================================
+        2:  129:FILE *fxn_open_data_ngc_code (void) {
+        -:  130:// ==================================================================
+        2:  131:  return (fopen ("./ngcode/data_ngcode.ngc", "w+"));
+        -:  132:}
+        -:  133:
+        -:  134:
+        -:  135:// ==================================================================
+        2:  136:void proc_open_all_files (void) {
+        -:  137:// ==================================================================
+        -:  138:
+        2:  139:  FHdata_01 = fxn_open_data_01 ();
+        2:  140:  FHdata_02 = fxn_open_data_02 ();
+        2:  141:  FHdata_raw_curve = fxn_open_data_raw_curve ();
+        2:  142:  FHdata_calc_u_next = fxn_open_data_calc_u_next ();
+        2:  143:  FHdata_calc_tang_accn = fxn_open_data_calc_tang_accn ();
+        2:  144:  FHdata_calc_t_look = fxn_open_data_calc_t_look ();
+        2:  145:  FHdata_calc_frate_limit = fxn_open_data_calc_frate_limit ();
+        2:  146:  FHdata_calc_intgr_error = fxn_open_data_calc_intgr_error ();
+        2:  147:  FHdata_ngc_code = fxn_open_data_ngc_code ();
+        -:  148:  
+        2:  149:}
+        -:  150:
+        -:  151:// ==================================================================
+        2:  152:void proc_writeheader_data_01 (void) {
+        -:  153:// ==================================================================
+        2:  154:  fprintf (FHdata_01, "# DTStamp_FHdata_01 %s \n", get_datetime_stamp ());
+        2:  155:  fprintf (FHdata_01, "# Testing data 01 \n");
+        -:  156:  
+        2:  157:}
+        -:  158:
+        -:  159:// ==================================================================
+        2:  160:void proc_writefooter_data_01 (void) {
+        -:  161:// ==================================================================
+        2:  162:  fprintf (FHdata_01, "# Testing data 01 \n");
+        2:  163:  fprintf (FHdata_01, "# DTStamp_FHdata_01 %s \n", get_datetime_stamp ());
+        2:  164:}
+        -:  165:
+        -:  166:// ==================================================================
+        2:  167:void proc_writeheader_data_02 (void) {
+        -:  168:// ==================================================================
+        2:  169:  fprintf (FHdata_02, "# DTStamp_FHdata_02 %s \n", get_datetime_stamp ());
+        2:  170:  fprintf (FHdata_02, "# Testing data 02 \n");
+        2:  171:}
+        -:  172:
+        -:  173:// ==================================================================
+        2:  174:void proc_writefooter_data_02 (void) {
+        -:  175:// ==================================================================
+        2:  176:  fprintf (FHdata_02, "# Testing data 01 \n");
+        2:  177:  fprintf (FHdata_02, "# DTStamp_FHdata_02 %s \n", get_datetime_stamp ());
+        -:  178:
+        2:  179:}
+        -:  180:
+        -:  181:// ==================================================================
+        2:  182:void proc_writeheader_all_files (void) {
+        -:  183:// ==================================================================
+        -:  184:
+        2:  185:   proc_writeheader_data_01 ();
+        2:  186:   proc_writeheader_data_02 ();
+        2:  187:   proc_writeheader_data_raw_curve (FHdata_raw_curve);
+        2:  188:   proc_writeheader_data_calc_u_next (FHdata_calc_u_next);
+        2:  189:   proc_writeheader_data_calc_tang_accn (FHdata_calc_tang_accn);
+        2:  190:   proc_writeheader_data_calc_t_look (FHdata_calc_t_look);
+        2:  191:   proc_writeheader_data_calc_frate_limit (FHdata_calc_frate_limit);
+        2:  192:   proc_writeheader_data_calc_intgr_error (FHdata_calc_intgr_error);
+        -:  193:
+        -:  194:   
+        2:  195: }
+        -:  196:
+        -:  197:// ==================================================================
+        2:  198:void proc_writefooter_all_files (void) {
+        -:  199:// ==================================================================
+        -:  200:
+        2:  201:   proc_writefooter_data_01 ();
+        2:  202:   proc_writefooter_data_02 ();
+        2:  203:   proc_writefooter_data_raw_curve (FHdata_raw_curve);
+        2:  204:   proc_writefooter_data_calc_u_next (FHdata_calc_u_next);
+        2:  205:   proc_writefooter_data_calc_tang_accn (FHdata_calc_tang_accn);
+        2:  206:   proc_writefooter_data_calc_t_look (FHdata_calc_t_look);
+        2:  207:   proc_writefooter_data_calc_frate_limit (FHdata_calc_frate_limit);
+        2:  208:   proc_writefooter_data_calc_intgr_error (FHdata_calc_intgr_error);
+        -:  209:   
+        2:  210:}
+        -:  211:
+        -:  212:
+        -:  213:// ==================================================================
+        2:  214:int fxn_close_data_01 (void) {
+        -:  215:  // ==================================================================
+        2:  216:  return (fclose (FHdata_01));
+        -:  217:}
+        -:  218:
+        -:  219:// ==================================================================
+        2:  220:int fxn_close_data_02 (void) {
+        -:  221:// ==================================================================
+        2:  222:  return (fclose (FHdata_02));
+        -:  223:}
+        -:  224:
+        -:  225:// ==================================================================
+        2:  226:int fxn_close_data_raw_curve (void) {
+        -:  227:// ==================================================================
+        2:  228:  return (fclose (FHdata_raw_curve));
+        -:  229:}
+        -:  230:
+        -:  231:
+        -:  232:// ==================================================================
+        2:  233:int fxn_close_data_calc_u_next (void) {
+        -:  234:// ==================================================================
+        2:  235:  return (fclose (FHdata_calc_u_next));
+        -:  236:}
+        -:  237:
+        -:  238:// ==================================================================
+        2:  239:int fxn_close_data_calc_tang_accn (void) {
+        -:  240:// ==================================================================
+        2:  241:  return (fclose (FHdata_calc_tang_accn));
+        -:  242:}
+        -:  243:
+        -:  244:// ==================================================================
+        2:  245:int fxn_close_data_calc_t_look (void) {
+        -:  246:// ==================================================================
+        2:  247:  return (fclose (FHdata_calc_t_look));
+        -:  248:}
+        -:  249:
+        -:  250:// ==================================================================
+        2:  251:int fxn_close_data_calc_frate_limit (void) {
+        -:  252:// ==================================================================
+        2:  253:  return (fclose (FHdata_calc_frate_limit));
+        -:  254:}
+        -:  255:
+        -:  256:// ==================================================================
+        2:  257:int fxn_close_data_calc_intgr_error (void) {
+        -:  258:// ==================================================================
+        2:  259:  return (fclose (FHdata_calc_intgr_error));
+        -:  260:}
+        -:  261:
+        -:  262:
+        -:  263:// ==================================================================
+        2:  264:int fxn_close_data_ngc_code (void) {
+        -:  265:// ==================================================================
+        2:  266:  return (fclose (FHdata_ngc_code));
+        -:  267:}
+        -:  268:
+        -:  269:// ==================================================================
+        2:  270:void proc_close_all_files (void) {
+        -:  271:// ==================================================================
+        -:  272:
+        -:  273:  // Can check for success or close failures based on int returned
+        2:  274:  int closefile_01 = fxn_close_data_01 ();
+        2:  275:  int closefile_02 = fxn_close_data_02 ();
+        2:  276:  int closefile_raw_curve = fxn_close_data_raw_curve ();
+        2:  277:  int closefile_calc_u_next = fxn_close_data_calc_u_next ();
+        2:  278:  int closefile_calc_tang_accn = fxn_close_data_calc_tang_accn ();
+        2:  279:  int closefile_calc_t_look = fxn_close_data_calc_t_look ();
+        2:  280:  int closefile_calc_frate_limit = fxn_close_data_calc_frate_limit ();
+        2:  281:  int closefile_calc_intgr_error = fxn_close_data_calc_intgr_error ();
+        2:  282:  int closefile_ngc_code = fxn_close_data_ngc_code ();
+        -:  283:  
+        2:  284:  }
+        -:  285:
+        -:  286:// ==================================================================
+        -:  287:// ALHAMDULILLAH 3 TIMES WRY
+        -:  288:// ==================================================================
+        -:  289:

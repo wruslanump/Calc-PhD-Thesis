@@ -1,0 +1,122 @@
+
+\subsection{Plot of Skewed-Astroid curve 
+	[\ref{img-Plot of Skewed-Astroid curve.pdf}]}
+\label{ssec-App-Plot of Skewed-Astroid curve}
+
+\subsection{Skewed-Astroid Radius of Curvature 
+	[\ref{img-Skewed-Astroid Radius of Curvature.pdf}] } 
+\label{ssec-App-Skewed-Astroid Radius of Curvature} 
+
+\subsection{Skewed-Astroid Direction of Travel 
+	[\ref{img-Skewed-Astroid Direction of Travel 3D.pdf}]} 
+\label{ssec-App-Skewed-Astroid Direction of Travel}  
+
+\subsection{Skewed-Astroid Perspective View 3D in LinuxCNC-Axis 
+	[\ref{img-Skewed-Astroid-Perspective-View-3D-from-LinuxCNC-Axis.pdf}]}
+\label{ssec-App-Skewed-Astroid Perspective View 3D in LinuxCNC-Axis }
+
+\subsection{Skewed-Astroid 1st and 2nd Order Taylor's Approximation 
+	[\ref{img-Skewed-Astroid 1st and 2nd Order Taylor's Approximation.pdf}]}
+\label{ssec-App-Skewed-Astroid 1st and 2nd Taylor's Approximation}
+
+\subsection{Skewed-Astroid (1st minus 2nd) Order Taylor's Approximation 
+	[\ref{img-Skewed-Astroid (1st minus 2nd) Order Taylor's Approximation.pdf}]}
+\label{ssec-App-Skewed-Astroid (1st minus 2nd) Order Taylor's Approximation}
+
+\subsection{Skewed-Astroid Chord-Error Absolute Constraint 
+	[\ref{img-Skewed-Astroid Chord-Error Absolute Constraint.pdf}] } 
+\label{ssec-App-Skewed-Astroid Chord-Error Absolute Constraint.pdf}
+
+\subsection{Skewed-Astroid Four Feedrate Limit Components Profile
+	[\ref{img-Skewed-Astroid Four Feedrate Limit Components Profile.pdf}] }
+\label{ssec-App-Skewed-Astroid Four Feedrate Limit Components Profile}
+
+\subsection{Skewed-Astroid FRate Command, FRate Limit, Current FRate
+	[\ref{img-Skewed-Astroid-FeedrateCommand-FeedrateLimit-CurrentFeedrate.pdf}] }
+\label{ssec-App-Skewed-Astroid-FeedrateCommand-FeedrateLimit-CurrentFeedrate.pdf}
+
+\subsection{Skewed-Astroid Current Feedrate Absolute Constraint
+	[\ref{img-Skewed-Astroid Current Feedrate Absolute Constraint.pdf}] }
+\label{ssec-App-Skewed-Astroid Current Feedrate Absolute Constraint.pdf}
+
+\subsection{Skewed-Astroid Histogram distribution of interpolated points
+	[\ref{fig-Skewed-Astroid Histogram distribution of interpolated points}] }
+\label{ssec-App-Skewed-Astroid Histogram distribution of interpolated points}
+
+\subsection{Skewed-Astroid Table distribution of interpolated points
+	[\ref{tab-Skewed-Astroid Table distribution of interpolated points}] }
+\label{ssec-App-Skewed-Astroid Table distribution of interpolated points}
+
+\subsection{Skewed-Astroid Rising Current Feedrate Profile
+	[\ref{img-Skewed-Astroid Rising Current Feedrate Profile.pdf}]}
+\label{ssec-App-Skewed-Astroid Rising Current Feedrate Profile.pdf}
+
+\subsection{Skewed-Astroid Falling Current Feedrate Profile
+	[\ref{img-Skewed-Astroid Falling Current Feedrate Profile.pdf}]}
+\label{ssec-App-Skewed-Astroid Falling Current Feedrate Profile.pdf}
+
+\subsection{Skewed-Astroid FC10 Running Feedrate Profiles
+	[\ref{img-Skewed-Astroid-FC10-Running-Feedrate-Profiles.pdf}] }
+\label{ssec-App-Skewed-Astroid-FC10-Running-Feedrate-Profiles.pdf}
+
+\subsection{Skewed-Astroid FC20 Running Feedrate Profiles
+	[\ref{img-Skewed-Astroid-FC20-Running-Feedrate-Profiles.pdf}] }
+\label{ssec-App-Skewed-Astroid-FC20-Running-Feedrate-Profiles.pdf}
+
+\subsection{Skewed-Astroid FC30 Running Feedrate Profiles
+	[\ref{img-Skewed-Astroid-FC30-Running-Feedrate-Profiles.pdf}] }
+\label{ssec-App-Skewed-Astroid-FC30-Running-Feedrate-Profiles.pdf}
+
+\subsection{Skewed-Astroid FC40 Running Feedrate Profiles
+	[\ref{img-Skewed-Astroid-FC40-Running-Feedrate-Profiles.pdf}] }
+\label{ssec-App-Skewed-Astroid-FC40-Running-Feedrate-Profiles.pdf}
+
+%% ==================================================
+\clearpage
+\pagebreak
+
+\subsection{Skewed-Astroid FC10 Colored Feedrate Run Profile
+	[\ref{img-Skewed-Astroid FC10 Colored Feedrate Run Profile}] }
+\label{ssec-App-Skewed-Astroid FC10 Colored Feedrate Run Profile}
+
+\subsection{Skewed-Astroid FC20 Colored Feedrate Run Profile
+	\ref{img-Skewed-Astroid FC20 Colored Feedrate Run Profile}] }
+\label{ssec-App-Skewed-Astroid FC20 Colored Feedrate Run Profile}
+
+\subsection{Skewed-Astroid FC30 Colored Feedrate Run Profile
+	[\ref{img-Skewed-Astroid FC30 Colored Feedrate Run Profile}] }
+\label{ssec-App-Skewed-Astroid FC30 Colored Feedrate Run Profile}
+
+\subsection{Skewed-Astroid FC40 Colored Feedrate Run Profile
+	[\ref{img-Skewed-Astroid FC40 Colored Feedrate Run Profile}] }
+\label{ssec-App-Skewed-Astroid FC40 Colored Feedrate Run Profile}
+
+\subsection{Skewed-Astroid-Table-FC10-20-30-40-Run-Performance-data
+	[\ref{Skewed-Astroid-Table-FC10-20-30-40-Run-Performance-data}] }
+\label{ssec-App-Skewed-Astroid-Table-FC10-20-30-40-Run-Performance-data}
+
+\subsection{Skewed-Astroid Performance 1: Chord-error per chord-length
+	[\ref{img-Skewed-Astroid Performance 1: Chord-error per chord-length.pdf}] }
+\label{ssec-App-Skewed-Astroid-Performance 1: Chord-error per chord-length}
+
+\subsection{Skewed-Astroid Performance 2: Chord-area per chord
+	[\ref{img-Skewed-Astroid Performance 2: Chord-area per chord.pdf}] }
+\label{ssec-App-Skewed-Astroid-Performance 2: Chord-area per chord}
+
+\subsection{Skewed-Astroid FC10 Tangential Acceleration Run Profile
+	[\ref{img-Skewed-Astroid FC10 Tangential Acceleration Run Profile}] }
+\label{ssec-App-Skewed-Astroid FC10 Tangential Acceleration Run Profile}
+
+\subsection{Skewed-Astroid FC20 Tangential Acceleration Run Profile
+	[\ref{img-Skewed-Astroid FC20 Tangential Acceleration Run Profile}] }
+\label{ssec-App-Skewed-Astroid FC20 Tangential Acceleration Run Profile}
+
+\subsection{Skewed-Astroid FC30 Tangential Acceleration Run Profile
+	[\ref{img-Skewed-Astroid FC30 Tangential Acceleration Run Profile}] }
+\label{ssec-App-Skewed-Astroid FC30 Tangential Acceleration Run Profile}
+
+\subsection{Skewed-Astroid FC40 Tangential Acceleration Run Profile
+	[\ref{img-Skewed-Astroid FC40 Tangential Acceleration Run Profile}] }
+\label{ssec-App-Skewed-Astroid FC40 Tangential Acceleration Run Profile}
+
+

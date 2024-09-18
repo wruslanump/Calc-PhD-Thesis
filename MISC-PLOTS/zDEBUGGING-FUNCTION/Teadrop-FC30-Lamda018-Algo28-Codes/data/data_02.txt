@@ -1,0 +1,83 @@
+# DTStamp_FHdata_02 2023-10-21 07:25:40 522204782 
+# Testing data 02 
+Write run report statistics to screen and file. 
+
+FC30-L0.18-A28-TEARDROP (1) EPSILON PROCESSING ERRORS 
+FC30-L0.18-A28-TEARDROP STEP 1 ERRORS 
+FC30-L0.18-A28-TEARDROP count_step1_ERROR_1 =          0 
+FC30-L0.18-A28-TEARDROP count_step1_ERROR_2 =          0 
+FC30-L0.18-A28-TEARDROP STEP 2 ERRORS 
+FC30-L0.18-A28-TEARDROP count_step2_ERROR_1 =          0 
+FC30-L0.18-A28-TEARDROP count_step2_ERROR_2 =          0 
+FC30-L0.18-A28-TEARDROP count_step2_ERROR_3 =          0 
+FC30-L0.18-A28-TEARDROP count_step2_ERROR_4 =          0 
+
+FC30-L0.18-A28-TEARDROP (2) EPSILON COUNT RANGE VALUE STATISTICS 
+FC30-L0.18-A28-TEARDROP cnt_eps_above_10E_6             =          0  (0.000000 %) 
+FC30-L0.18-A28-TEARDROP cnt_eps_betwn_10E_7_upto_10E_6  =       7347  (100.000000 %) 
+FC30-L0.18-A28-TEARDROP cnt_eps_betwn_10E_8_upto_10E_7  =          0  (0.000000 %) 
+FC30-L0.18-A28-TEARDROP cnt_eps_betwn_10E_9_upto_10E_8  =          0  (0.000000 %) 
+FC30-L0.18-A28-TEARDROP cnt_eps_betwn_10E_10_upto_10E_9 =          0  (0.000000 %) 
+FC30-L0.18-A28-TEARDROP cnt_eps_below_10E_10            =          0  (0.000000 %) 
+FC30-L0.18-A28-TEARDROP cnt_eps_total_points processed  =       7347  (100.000000 %) 
+
+FC30-L0.18-A28-TEARDROP (3) INTERPOLATED POINT STATISTICS 
+FC30-L0.18-A28-TEARDROP Count before step1, epsilon is already    below upper bound = 0 (   0.000000  %) 
+FC30-L0.18-A28-TEARDROP Count during step1, pushdown epsilon to   below upper bound = 7347 ( 100.000000  %) 
+FC30-L0.18-A28-TEARDROP After step1 the interpolated points count below upper bound = 7347 (total interpolated points) 
+FC30-L0.18-A28-TEARDROP Count during step2, pushup into range (lower , upper) bound = 0 (total pushup points) 
+
+FC30-L0.18-A28-TEARDROP (4) ADJUST (INCR/DECR) CURR_FRATE TO CALCULATED CURR_FRATE_LIMIT 
+FC30-L0.18-A28-TEARDROP Count_rising_s_curve_points     = 370 	(    5.036069 %) 
+FC30-L0.18-A28-TEARDROP Count_frate_islower_fratelimit  = 3304 	(   44.970736 %) 
+FC30-L0.18-A28-TEARDROP Count_frate_isequal_fratelimit  = 0 	(    0.000000 %) 
+FC30-L0.18-A28-TEARDROP Count_frate_ishigher_fratelimit = 3304 	(   44.970736 %) 
+FC30-L0.18-A28-TEARDROP Count_falling_s_curve_points    = 369 	(    5.022458 %) 
+FC30-L0.18-A28-TEARDROP Total interpolated points       = 7347 	(  100.000000 %) 
+
+FC30-L0.18-A28-TEARDROP (5) CHORD ERROR (CURR_EPS) VARIABLE VALUE STATISTICS 
+FC30-L0.18-A28-TEARDROP eps (min_eps, avg_eps, max_eps, sum_eps) = ( 0.000000e+00, 9.987468e-07, 9.999996e-07 7.336794e-03 )
+FC30-L0.18-A28-TEARDROP At min_eps (line_mineps, u_mineps, x_mineps, y_mineps) = (      0 0.000000e+00 0.000000e+00 0.000000e+00 )
+FC30-L0.18-A28-TEARDROP At max_eps (line_maxeps, u_maxeps, x_maxeps, y_maxeps) = (   4825 6.750110e-01 1.151771e+01 -3.290567e+01 )
+
+FC30-L0.18-A28-TEARDROP (6) RADIUS OF CURVATURE (CURR_RHO) VARIABLE VALUE STATISTICS 
+FC30-L0.18-A28-TEARDROP rho (min, avg, max, sum) = ( 0.000000e+00, 2.751009e+01, 1.060005e+02 2.020891e+05 )
+FC30-L0.18-A28-TEARDROP At min_rho (line_minrho, u_minrho, x_minrho, y_minrho) = (      0 0.000000e+00 0.000000e+00 0.000000e+00 )
+FC30-L0.18-A28-TEARDROP At max_rho (line_maxrho, u_maxrho, x_maxrho, y_maxrho) = (      1 1.372799e-04 -2.058351e-02 -2.058916e-02 )
+
+FC30-L0.18-A28-TEARDROP (7) TANGENTIAL ACCELERATION (CURR_TANG_ACCN) VARIABLE VALUE STATISTICS 
+FC30-L0.18-A28-TEARDROP tangaccn (min, avg, max, sum) = ( -3.199050e+01, -5.819671e-01, 3.173454e+01 -4.275130e+03 )
+FC30-L0.18-A28-TEARDROP At min_tangaccn (line_mintangaccn, u_mintangaccn, x_mintangaccn, y_mintangaccn) = (   6979 9.502514e-01 6.385514e+00 -7.091055e+00 )
+FC30-L0.18-A28-TEARDROP At max_tangaccn (line_maxtangaccn, u_maxtangaccn, x_maxtangaccn, y_maxtangaccn) = (    124 1.695092e-02 -2.414799e+00 -2.499538e+00 )
+
+FC30-L0.18-A28-TEARDROP (8) FEEDRATE (CURR_FRATE) VARIABLE VALUE STATISTICS 
+FC30-L0.18-A28-TEARDROP frate (min, avg, max, sum) = ( 0.000000e+00, 1.096461e+01, 2.495455e+01 8.054604e+04 )
+FC30-L0.18-A28-TEARDROP At min_frate (line_minfrate, u_minfrate, x_minfrate, y_minfrate) = (      0 0.000000e+00 0.000000e+00 0.000000e+00 )
+FC30-L0.18-A28-TEARDROP At max_frate (line_maxfrate, u_maxfrate, x_maxfrate, y_maxfrate) = (    149 2.035025e-02 -2.868706e+00 -2.990418e+00 )
+
+FC30-L0.18-A28-TEARDROP (9) ALGORITHM EXECUTION STATISTICS 
+
+FC30-L0.18-A28-TEARDROP TOTAL-INTERPOLATED-POINTS          =  7347    
+FC30-L0.18-A28-TEARDROP SUM-CHORD-ERROR-(mm)               =  7.336793707381e-03 
+FC30-L0.18-A28-TEARDROP SUM-CHORD-ERROR/TOT-INTERPOL-PNTS  =  9.987467611463e-07 
+
+FC30-L0.18-A28-TEARDROP SUM-ARC-LENGTH-(mm)                =  1.018638195262e+02 
+FC30-L0.18-A28-TEARDROP SUM-CHORD-LENGTH-(mm)              =  1.018638226724e+02 
+FC30-L0.18-A28-TEARDROP DIFF-ARC-LENGTH-CHORD-LENGTH-(mm)  =  -2.975420997586e-06 
+FC30-L0.18-A28-TEARDROP PCNT-DIFF-ARC-CHORD-LENGTH         =  -2.921101261067e-06 
+
+FC30-L0.18-A28-TEARDROP SUM-CHORD-ERROR/SUM-CHORD-LENGTH   =  7.202550930155e-05 
+
+FC30-L0.18-A28-TEARDROP SUM-ARC-THETA-(rad)                =  4.712349787227e+00 
+FC30-L0.18-A28-TEARDROP SUM-ARC-AREA-(mm2)                 =  6.781012634326e-05 
+
+FC30-L0.18-A28-TEARDROP SUM-ARC-AREA/SUM-CHORD-LENGTH      =  7.202550930155e-05 
+
+FC30-L0.18-A28-TEARDROP AVG-CHORD-ERROR-(mm)               =  9.987467611463e-07 
+FC30-L0.18-A28-TEARDROP AVG-ARC-LENGTH-(mm)                =  1.386656949716e-02 
+FC30-L0.18-A28-TEARDROP AVG-CHORD-LENGTH-(mm)              =  1.386656992545e-02 
+FC30-L0.18-A28-TEARDROP AVG-ARC-THETA-(rad)                =  6.414851330284e-04 
+FC30-L0.18-A28-TEARDROP AVG-ARC-AREA-(mm2)                 =  9.230891143923e-09 
+
+# Testing data 01 
+# DTStamp_FHdata_02 2023-10-21 07:26:08 670247251 

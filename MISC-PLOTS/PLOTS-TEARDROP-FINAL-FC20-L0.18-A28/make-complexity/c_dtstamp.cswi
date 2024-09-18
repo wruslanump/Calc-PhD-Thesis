@@ -1,0 +1,10 @@
+20240201060447
+-c
+-x
+c
+-c
+-pg
+-fprofile-arcs
+-ftest-coverage
+--std=c99
+--std=c11

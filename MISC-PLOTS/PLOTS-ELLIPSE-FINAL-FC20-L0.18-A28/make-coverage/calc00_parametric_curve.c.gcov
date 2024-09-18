@@ -1,0 +1,71 @@
+        -:    0:Source:/home/wruslan/workspaces-gnat/gnatstudio-c/gnat_c_cnc-04/src/algo/calc00_parametric_curve.c
+        -:    1:// FILE: calc00_parametric_curve.c
+        -:    2:
+        -:    3:#include <stdio.h>
+        -:    4:
+        -:    5:// INCLUDED FOR THE FUNCTION DEFINITIONS
+        -:    6:#include "curves/c_position.h"
+        -:    7:#include "curves/c_velocity.h"
+        -:    8:#include "curves/c_accelern.h"
+        -:    9:
+        -:   10:#include "algo/calc00_parametric_curve.h"
+        -:   11:
+        -:   12:// ==================================================================
+        2:   13:void proc_writeheader_data_raw_curve (FILE* FHdata_raw_curve)
+        -:   14:// ==================================================================
+        -:   15:{
+        -:   16:
+        2:   17:  fprintf (FHdata_raw_curve,
+        -:   18:           "# rtime[1], u[2], u_next[3], pos_x[4], pos_y[5], pos_r[6], "
+        -:   19:           "vel_x[7], vel_y[8], vel_r[9], acc_x[10], acc_y[11], acc_r[12], eps[13], rho[14]\n");
+        -:   20:
+        -:   21:
+        2:   22:  fprintf (FHdata_raw_curve, "# DTStamp_FHdata_raw_curve %s \n", get_datetime_stamp ());
+        2:   23:}
+        -:   24:
+        -:   25:
+        -:   26:// =================================================================
+    22594:   27:void proc_write_raw_curves (FILE *FHdata_raw_curve, double rtime, double u, double u_next)
+        -:   28:// =================================================================
+        -:   29:  {
+        -:   30:
+    22594:   31:      double pos_x = fxn_cpos_x (u);
+    22594:   32:      double pos_y = fxn_cpos_y (u);
+    22594:   33:      double pos_r = fxn_cpos_r (u);
+        -:   34:
+    22594:   35:      double vel_x = fxn_cvel_x (u);
+    22594:   36:      double vel_y = fxn_cvel_y (u);
+    22594:   37:      double vel_r = fxn_cvel_r (u);
+        -:   38:
+    22594:   39:      double acc_x = fxn_cacc_x (u);
+    22594:   40:      double acc_y = fxn_cacc_y (u);
+    22594:   41:      double acc_r = fxn_cacc_r (u);
+        -:   42:
+    22594:   43:      double eps = fxn_cpos_epsilon(u, u_next);
+    22594:   44:      double rho = fxn_cpos_rho(u);
+        -:   45:
+    22594:   46:      fprintf (FHdata_raw_curve,
+        -:   47:               "%12.6lf %12.9lf %12.9lf %12.6lf %12.6lf %12.6lf  %12.6lf "
+        -:   48:               "%12.6lf %12.6lf  %12.6lf %12.6lf %12.6lf %18.15lf %12.6lf  \n",
+        -:   49:               rtime, u, u_next, pos_x, pos_y, pos_r, vel_x, vel_y, vel_r,
+        -:   50:               acc_x, acc_y, acc_r, eps, rho);
+        -:   51:
+    22594:   52:  }
+        -:   53:
+        -:   54:// ==================================================================
+        2:   55:  void proc_writefooter_data_raw_curve (FILE *FHdata_raw_curve)
+        -:   56:// ==================================================================
+        -:   57:{
+        -:   58:
+        2:   59:  fprintf (FHdata_raw_curve,
+        -:   60:           "# rtime[1], u[2], u_next[3], pos_x[4], pos_y[5], pos_r[6], "
+        -:   61:           "vel_x[7], vel_y[8], vel_r[9], acc_x[10], acc_y[11], acc_r[12], eps[13], rho[14] \n");
+        -:   62:
+        -:   63:
+        2:   64:  fprintf (FHdata_raw_curve, "# DTStamp_FHdata_raw_curve %s \n", get_datetime_stamp ());
+        2:   65:}
+        -:   66:
+        -:   67:// ==================================================================
+        -:   68:// ALHAMDULILLAH 3 TIMES WRY
+        -:   69:// ==================================================================
+        -:   70:
